@@ -1,0 +1,242 @@
+{
+  "topics": {
+    "budgeting_and_expense_tracking": {
+      "lessons": [
+        { "step": "STEP 1", "title": "Introduction to Budgeting", "duration": "4 min" },
+        { "step": "STEP 2", "title": "Understanding Income", "duration": "5 min" },
+        { "step": "STEP 3", "title": "Classifying Expenses", "duration": "4 min" },
+        { "step": "STEP 4", "title": "Needs vs Wants", "duration": "5 min" },
+        { "step": "STEP 5", "title": "Developing a Budget Plan", "duration": "4 min" },
+        { "step": "STEP 6", "title": "Monitoring & Tracking Spending", "duration": "4 min" }
+      ],
+      "preQuiz": [
+        {
+          "question": "What is a budget?",
+          "options": [
+            "A record of past transactions",
+            "A plan for managing income and expenses",
+            "A savings account",
+            "A type of investment"
+          ],
+          "correctAnswer": "A plan for managing income and expenses",
+          "explanation": "A budget is a plan that helps you manage income and expenses."
+        },
+        {
+          "question": "Which of the following is considered a fixed expense?",
+          "options": ["Dining out", "Groceries", "Rent", "Shopping"],
+          "correctAnswer": "Rent",
+          "explanation": "Rent is typically a fixed expense paid regularly."
+        },
+        {
+          "question": "If you earn MUR 20,000 per month and spend MUR 18,000, what remains?",
+          "options": ["MUR 2,000", "MUR 38,000", "MUR 200", "MUR 1,800"],
+          "correctAnswer": "MUR 2,000",
+          "explanation": "MUR 20,000 minus MUR 18,000 equals MUR 2,000 remaining."
+        },
+        {
+          "question": "Which of the following is usually a \"want\" rather than a \"need\"?",
+          "options": ["Electricity bill", "Basic groceries", "Transport to work", "Streaming subscription"],
+          "correctAnswer": "Streaming subscription",
+          "explanation": "Streaming subscriptions are usually optional wants, not basic needs."
+        },
+        {
+          "question": "Why is tracking daily spending important?",
+          "options": [
+            "It increases income",
+            "It helps identify spending patterns",
+            "It replaces budgeting",
+            "It removes all financial risk"
+          ],
+          "correctAnswer": "It helps identify spending patterns",
+          "explanation": "Tracking helps you spot patterns and make better spending decisions."
+        }
+      ]
+    },
+    "saving_and_emergency_funds": {
+      "lessons": [
+        { "step": "STEP 1", "title": "The Habit: Paying Yourself First", "duration": "4 min" },
+        { "step": "STEP 2", "title": "The Shield: Emergency Funds", "duration": "5 min" },
+        { "step": "STEP 3", "title": "The Tool: Savings Accounts", "duration": "4 min" },
+        { "step": "STEP 4", "title": "The Growth: Compound Interest", "duration": "5 min" },
+        { "step": "STEP 5", "title": "The Strategy: Automating Stability", "duration": "4 min" }
+      ],
+      "preQuiz": [
+        {
+          "question": "What is an emergency fund?",
+          "options": [
+            "A fund for planned vacations",
+            "A \"financial shield\" for unexpected expenses",
+            "A high-risk investment",
+            "A secondary checking account"
+          ],
+          "correctAnswer": "A \"financial shield\" for unexpected expenses",
+          "explanation": "An emergency fund protects you from unexpected financial shocks."
+        },
+        {
+          "question": "What is \"Paying Yourself First\"?",
+          "options": [
+            "Buying a gift after you get paid",
+            "Saving a portion of your income before spending anything else",
+            "Paying your bills on time",
+            "Giving yourself a raise"
+          ],
+          "correctAnswer": "Saving a portion of your income before spending anything else",
+          "explanation": "It means moving money to savings first, then spending the rest."
+        },
+        {
+          "question": "Where is the safest and most effective place for an emergency fund?",
+          "options": [
+            "In a physical jar at home",
+            "In a separate, liquid savings account",
+            "In long-term stocks",
+            "In your daily spending wallet"
+          ],
+          "correctAnswer": "In a separate, liquid savings account",
+          "explanation": "It should be safe, accessible, and separate from daily spending money."
+        },
+        {
+          "question": "What is the \"magic\" effect where your interest earns more interest?",
+          "options": ["Simple interest", "Compound interest", "Inflation", "Net income"],
+          "correctAnswer": "Compound interest",
+          "explanation": "Compound interest means earning returns on both principal and prior interest."
+        },
+        {
+          "question": "When should you use your emergency fund?",
+          "options": [
+            "For a flash sale on clothes",
+            "For a sudden, necessary laptop repair",
+            "To go to a concert with friends",
+            "For monthly rent that you already planned for"
+          ],
+          "correctAnswer": "For a sudden, necessary laptop repair",
+          "explanation": "Emergency funds are for urgent, necessary, unplanned expenses."
+        }
+      ]
+    },
+    "debt_management": {
+      "lessons": [
+        { "step": "STEP 1", "title": "Understanding Debt: The Mechanics of Borrowing", "duration": "4 min" },
+        { "step": "STEP 2", "title": "The \"Pay Later\" Illusion (Digital Debt)", "duration": "5 min" },
+        { "step": "STEP 3", "title": "The Minimum Payment Trap", "duration": "4 min" },
+        { "step": "STEP 4", "title": "Your Financial \"Grade\" (The MCIB)", "duration": "5 min" },
+        { "step": "STEP 5", "title": "Escaping the Debt Hole: The Exit Strategy", "duration": "4 min" }
+      ],
+      "preQuiz": [
+        {
+          "question": "What is \"Debt\"?",
+          "options": [
+            "A cash reward for being a loyal customer",
+            "Money you borrow today that you MUST pay back later",
+            "A discount code for online shopping",
+            "A type of savings account"
+          ],
+          "correctAnswer": "Money you borrow today that you MUST pay back later",
+          "explanation": "Debt is borrowed money that must be repaid, usually with extra cost."
+        },
+        {
+          "question": "What is \"Interest\"?",
+          "options": [
+            "How much you like a new product",
+            "The \"rent\" or extra fee you pay to use someone else's money",
+            "A gift the bank gives you for borrowing",
+            "The total amount of money you have in your pocket"
+          ],
+          "correctAnswer": "The \"rent\" or extra fee you pay to use someone else's money",
+          "explanation": "Interest is the cost of borrowing money."
+        },
+        {
+          "question": "What does \"APR\" tell you about a loan or \"Pay Later\" deal?",
+          "options": [
+            "The name of the person who owns the bank",
+            "The total \"Price Tag\" of the debt (interest + fees) for one year",
+            "How many people have downloaded the app",
+            "The day of the week you should pay"
+          ],
+          "correctAnswer": "The total \"Price Tag\" of the debt (interest + fees) for one year",
+          "explanation": "APR reflects the yearly total borrowing cost, including rates and fees."
+        }
+      ]
+    },
+    "financial_planning_for_big_goals": {
+      "lessons": [
+        { "step": "STEP 1", "title": "Short-Term vs. Long-Term Goals", "duration": "5 min" },
+        { "step": "STEP 2", "title": "Estimating Future Costs & The 10% Buffer", "duration": "5 min" },
+        { "step": "STEP 3", "title": "Creating a Financial Plan (S.M.A.R.T. Goals)", "duration": "5 min" },
+        { "step": "STEP 4", "title": "Tracking Progress Toward Goals", "duration": "5 min" }
+      ],
+      "preQuiz": [
+        {
+          "question": "Which of these is a \"Specific\" goal?",
+          "options": [
+            "I want to be rich one day.",
+            "I want to save 50,000 MUR for a laptop by December 20th.",
+            "I want to buy something nice soon."
+          ],
+          "correctAnswer": "I want to save 50,000 MUR for a laptop by December 20th.",
+          "explanation": "A specific goal includes a clear target amount and deadline."
+        },
+        {
+          "question": "If you save 1,000 MUR a month for a car that costs 200,000 MUR, how long will it take?",
+          "options": ["About 5 years.", "About 16 years.", "About 2 years."],
+          "correctAnswer": "About 16 years.",
+          "explanation": "200,000 ÷ 1,000 = 200 months, which is about 16 years and 8 months."
+        },
+        {
+          "question": "What is an \"Inflation Adjustment\"?",
+          "options": [
+            "Realizing things get more expensive over time.",
+            "Getting a discount at the store.",
+            "Paying your bills on time."
+          ],
+          "correctAnswer": "Realizing things get more expensive over time.",
+          "explanation": "Inflation adjustment means accounting for future price increases when planning."
+        }
+      ]
+    },
+    "investing_basics": {
+      "lessons": [
+        { "step": "STEP 1", "title": "Introduction to Investing", "duration": "5 min" },
+        { "step": "STEP 2", "title": "Risk and Return", "duration": "5 min" },
+        { "step": "STEP 3", "title": "Types of Investments (Stocks, Bonds, Funds)", "duration": "5 min" },
+        { "step": "STEP 4", "title": "Diversification", "duration": "5 min" },
+        { "step": "STEP 5", "title": "The Power of Long-Term Investing", "duration": "5 min" },
+        { "step": "STEP 6", "title": "Common Investment Mistakes", "duration": "5 min" }
+      ],
+      "preQuiz": []
+    },
+    "protecting_yourself_from_fraud_and_scams": {
+      "lessons": [
+        { "step": "STEP 1", "title": "Protecting from Fraud & Scams", "duration": "5 min" },
+        { "step": "STEP 2", "title": "Common Types of Financial Scams", "duration": "5 min" },
+        { "step": "STEP 3", "title": "Online Payment and Banking Security", "duration": "5 min" },
+        { "step": "STEP 4", "title": "Protecting Personal Information", "duration": "5 min" },
+        { "step": "STEP 5", "title": "Recognizing Warning Signs of Fraud", "duration": "5 min" },
+        { "step": "STEP 6", "title": "What To Do If You Are Scammed", "duration": "5 min" }
+      ],
+      "preQuiz": []
+    },
+    "taxes_and_tax_planning": {
+      "lessons": [
+        { "step": "STEP 1", "title": "Introduction to Taxes", "duration": "5 min" },
+        { "step": "STEP 2", "title": "Why Governments Collect Taxes", "duration": "5 min" },
+        { "step": "STEP 3", "title": "Common Types of Taxes Individuals Pay", "duration": "5 min" },
+        { "step": "STEP 4", "title": "Understanding Income Tax", "duration": "5 min" },
+        { "step": "STEP 5", "title": "Basic Tax Planning Concepts", "duration": "5 min" },
+        { "step": "STEP 6", "title": "Avoiding Common Tax Mistakes", "duration": "5 min" }
+      ],
+      "preQuiz": []
+    },
+    "retirement_planning": {
+      "lessons": [
+        { "step": "STEP 1", "title": "Introduction to Retirement Planning", "duration": "5 min" },
+        { "step": "STEP 2", "title": "Why Retirement Planning Matters", "duration": "5 min" },
+        { "step": "STEP 3", "title": "Pension Systems and Retirement Funds", "duration": "5 min" },
+        { "step": "STEP 4", "title": "The Power of Starting Early", "duration": "5 min" },
+        { "step": "STEP 5", "title": "Estimating Retirement Needs", "duration": "5 min" },
+        { "step": "STEP 6", "title": "Building Long-Term Financial Security", "duration": "5 min" }
+      ],
+      "preQuiz": []
+    }
+  }
+}
+

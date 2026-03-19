@@ -1,0 +1,34 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, '15.5'
+
+# CocoaPods analytics sends network stats
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+# Hardcode the Flutter SDK path
+flutter_root = '/Users/husniyah/development/flutter/flutter'
+
+require File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper')
+
+target 'Runner' do
+  use_frameworks! :linkage => :static
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.5'
+      if config.name == 'Debug'
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+      end
+    end
+  end
+end
+

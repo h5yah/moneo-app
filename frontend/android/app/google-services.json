@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "819485859824",
+    "project_id": "fyp-fintech-app",
+    "storage_bucket": "fyp-fintech-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:819485859824:android:daa4ae40d7e52c65638735",
+        "android_client_info": {
+          "package_name": "com.example.fintech"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "819485859824-hvdisjpe9d3lco501fsfag59539h3sob.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOv9RqeLXc6_O3OXalZmGsZkDZaNHD2gk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "819485859824-hvdisjpe9d3lco501fsfag59539h3sob.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "819485859824-a7aok01h44pq3ef3a9l55h07i1f5ogto.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.husniyah.fintech"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

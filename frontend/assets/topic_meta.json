@@ -1,0 +1,90 @@
+{
+  "order": [
+    "budgeting_and_expense_tracking",
+    "saving_and_emergency_funds",
+    "debt_management",
+    "financial_planning_for_big_goals",
+    "investing_basics",
+    "protecting_yourself_from_fraud_and_scams",
+    "taxes_and_tax_planning",
+    "retirement_planning"
+  ],
+  "topics": {
+    "budgeting_and_expense_tracking": {
+      "title": "Budgeting & Expense Tracking",
+      "totalLessons": 6,
+      "iconName": "list_alt_outlined",
+      "iconColor": "#2F80ED",
+      "iconBgColor": "#1C2F80ED",
+      "progressColor": "#2F80ED",
+      "enabled": true
+    },
+    "saving_and_emergency_funds": {
+      "title": "Saving & Emergency Funds",
+      "totalLessons": 5,
+      "iconName": "savings_outlined",
+      "iconColor": "#6FCF97",
+      "iconBgColor": "#1C6FCF97",
+      "progressColor": "#6FCF97",
+      "enabled": true,
+      "prerequisiteTopicId": "budgeting_and_expense_tracking"
+    },
+    "debt_management": {
+      "title": "Debt Management",
+      "totalLessons": 5,
+      "iconName": "credit_card_outlined",
+      "iconColor": "#3A7CA5",
+      "iconBgColor": "#1C3A7CA5",
+      "progressColor": "#3A7CA5",
+      "enabled": true,
+      "prerequisiteTopicId": "saving_and_emergency_funds"
+    },
+    "financial_planning_for_big_goals": {
+      "title": "Financial Planning for Big Goals",
+      "totalLessons": 4,
+      "iconName": "tablet_outlined",
+      "iconColor": "#2D9CDB",
+      "iconBgColor": "#1C2D9CDB",
+      "progressColor": "#56CCF2",
+      "enabled": true,
+      "prerequisiteTopicId": "debt_management"
+    },
+    "investing_basics": {
+      "title": "Investing Basics",
+      "totalLessons": 6,
+      "iconName": "show_chart_outlined",
+      "iconColor": "#2D9CDB",
+      "iconBgColor": "#1C2D9CDB",
+      "progressColor": "#2D9CDB",
+      "enabled": false
+    },
+    "protecting_yourself_from_fraud_and_scams": {
+      "title": "Protecting Yourself from Fraud & Scams",
+      "totalLessons": 6,
+      "iconName": "security_outlined",
+      "iconColor": "#4F6D7A",
+      "iconBgColor": "#1C4F6D7A",
+      "progressColor": "#4F6D7A",
+      "enabled": false
+    },
+    "taxes_and_tax_planning": {
+      "title": "Taxes & Tax Planning",
+      "totalLessons": 6,
+      "iconName": "account_balance_outlined",
+      "iconColor": "#1B3B6F",
+      "iconBgColor": "#1C1B3B6F",
+      "progressColor": "#1B3B6F",
+      "enabled": false
+    },
+    "retirement_planning": {
+      "title": "Retirement Planning",
+      "totalLessons": 6,
+      "iconName": "schedule_outlined",
+      "iconColor": "#56B4F0",
+      "iconBgColor": "#1C56B4F0",
+      "progressColor": "#56B4F0",
+      "enabled": false
+    }
+  }
+}
+

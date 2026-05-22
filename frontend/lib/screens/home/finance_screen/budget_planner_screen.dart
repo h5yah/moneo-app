@@ -186,6 +186,7 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final today = DateTime.now();
     final selectedDay = _days[_selectedDayIndex];
@@ -195,11 +196,13 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
         selectedDay.month == today.month &&
         selectedDay.day == today.day;
 
+    final isOverBudget = _dailyBudget > 0 && _spentToday > _dailyBudget;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF6F7FB),
 
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF6F7FB),
+        backgroundColor: isDark ? const Color(0xFF17192B) : const Color(0xFFF6F7FB),
         elevation: 0,
         centerTitle: true,
 
@@ -208,12 +211,12 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
           onPressed: () => Navigator.pop(context),
         ),
 
-        title: const Text(
+        title: Text(
           "Expenses",
           style: TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 20,
-            color: Color(0xFF2C2E4A),
+            color: isDark ? Colors.white : const Color(0xFF2C2E4A),
           ),
         ),
 
@@ -278,6 +281,87 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
 
                 const SizedBox(height: 10),
 
+                if (isOverBudget)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF3D2424)
+                            : const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFFFF453A)
+                                  .withValues(alpha: 0.45)
+                              : const Color(0xFFFFCDD2),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: isDark
+                                ? const Color(0xFFFF6961)
+                                : const Color(0xFFFF3B30),
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              isToday
+                                  ? "You've exceeded today's budget by Rs ${(_spentToday - _dailyBudget).toStringAsFixed(0)}."
+                                  : 'Budget exceeded by Rs ${(_spentToday - _dailyBudget).toStringAsFixed(0)} on this date.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                height: 1.35,
+                                color: isDark
+                                    ? const Color(0xFFFFD0CC)
+                                    : const Color(0xFFB71C1C),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                if (!isOverBudget)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E3D2A)
+                              : const Color(0xFFEAF7EE),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'In budget',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF1E9E53),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
                 Text(
                   _remaining >= 0
                       ? "Rs ${_remaining.toStringAsFixed(0)}"
@@ -289,7 +373,7 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
                     fontSize: 46,
                     fontWeight: FontWeight.w900,
                     color: _remaining >= 0
-                        ? const Color(0xFF2C2E4A)
+                        ? (isDark ? Colors.white : const Color(0xFF2C2E4A))
                         : const Color(0xFFFF6B4A),
                   ),
                 ),
@@ -300,15 +384,22 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
                   isToday
                       ? (_remaining >= 0
                           ? "Left to spend today"
-                          : "You are over budget")
-                      : "Viewing budget for selected day",
+                          : "Over budget — spending is above your daily limit")
+                      : (isOverBudget
+                          ? "Over budget for this day"
+                          : "Viewing budget for selected day"),
 
                   textAlign: TextAlign.center,
 
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: Color(0xFF8C90A3),
-                    fontWeight: FontWeight.w600,
+                    color: isOverBudget
+                        ? const Color(0xFFFF3B30)
+                        : (isDark
+                            ? const Color(0xFF9B9EB8)
+                            : const Color(0xFF8C90A3)),
+                    fontWeight:
+                        isOverBudget ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
 
@@ -318,7 +409,7 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
                   padding: const EdgeInsets.all(18),
 
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1B1D33) : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                   ),
 
@@ -330,21 +421,30 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
 
                           Expanded(
                             child: _stat(
-                              "Left to spend",
-                              "Rs ${_remaining.toStringAsFixed(0)}",
+                              isOverBudget ? "Over by" : "Left to spend",
+                              isOverBudget
+                                  ? "Rs ${(_spentToday - _dailyBudget).toStringAsFixed(0)}"
+                                  : "Rs ${_remaining.toStringAsFixed(0)}",
+                              isDark: isDark,
+                              valueColor: isOverBudget
+                                  ? const Color(0xFFFF6B4A)
+                                  : null,
                             ),
                           ),
 
                           Container(
                             width: 1,
                             height: 48,
-                            color: const Color(0xFFE8EAF1),
+                            color: isDark
+                                ? const Color(0xFF2C2E45)
+                                : const Color(0xFFE8EAF1),
                           ),
 
                           Expanded(
                             child: _stat(
                               "Budget",
                               "Rs ${_dailyBudget.toStringAsFixed(0)}",
+                              isDark: isDark,
                             ),
                           ),
                         ],
@@ -355,7 +455,9 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
                       LinearProgressIndicator(
                         value: _progress,
                         minHeight: 10,
-                        backgroundColor: const Color(0xFFEAECEF),
+                        backgroundColor: isDark
+                            ? const Color(0xFF2C2E45)
+                            : const Color(0xFFEAECEF),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           _progress >= 1
                               ? const Color(0xFFFF6B4A)
@@ -383,7 +485,14 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
     );
   }
 
-  Widget _stat(String label, String value) {
+  Widget _stat(
+    String label,
+    String value, {
+    required bool isDark,
+    Color? valueColor,
+  }) {
+    final resolvedValueColor = valueColor ??
+        (isDark ? Colors.white : const Color(0xFF2C2E4A));
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
@@ -392,9 +501,11 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
 
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF8C90A3),
+              color: isDark
+                  ? const Color(0xFF9B9EB8)
+                  : const Color(0xFF8C90A3),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -403,9 +514,9 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
 
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
-              color: Color(0xFF2C2E4A),
+              color: resolvedValueColor,
               fontWeight: FontWeight.w900,
             ),
           ),

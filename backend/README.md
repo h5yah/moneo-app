@@ -6,6 +6,7 @@ This backend includes secure XP and Finance operations using Firebase Cloud Func
 
 - `getXp` - returns authenticated user XP total.
 - `earnXp` - increments XP atomically.
+- `earnXpOnce` - increments XP only once per `awardKey` (stored under `users/{uid}/xpAwards`).
 - `spendXp` - decrements XP atomically, blocks overspending.
 
 ### Finance functions
@@ -15,6 +16,15 @@ This backend includes secure XP and Finance operations using Firebase Cloud Func
 - `logExpense` - atomically deducts from available balance and logs an expense.
 - `scanToPay` - atomically performs merchant QR payment and logs transaction metadata.
 - `payBill` - atomically pays a bill and logs it as `bill_payment`.
+
+### AI assistant
+
+- `miroChat` - authenticated chat with **OpenAI** (used by the Monéo “Ask Miro” screen).  
+  - **Secret:** create an API key in the OpenAI dashboard, then run:  
+    `firebase functions:secrets:set OPENAI_API_KEY`  
+    (paste the key when prompted).  
+  - **Deploy:** `cd backend/functions && npm install && npm run deploy`  
+  - Flutter calls `httpsCallable('miroChat')` with `{ "message": "<user text>", "lessonContext": "<optional excerpt>" }` and reads `{ "reply": "..." }`. When `lessonContext` is sent, the model is instructed to use it only if the question matches the curriculum; otherwise it answers from general knowledge.
 
 All functions require Firebase Authentication (`request.auth.uid`).
 
@@ -54,6 +64,7 @@ Use Flutter `cloud_functions` package and call:
 
 - `FirebaseFunctions.instance.httpsCallable('getXp')`
 - `FirebaseFunctions.instance.httpsCallable('earnXp').call({'amount': 10, 'source': 'quiz_correct'})`
+- `FirebaseFunctions.instance.httpsCallable('earnXpOnce').call({'amount': 20, 'source': 'lesson_completion', 'awardKey': 'lesson:budgeting:1'})`
 - `FirebaseFunctions.instance.httpsCallable('spendXp').call({'amount': 500, 'source': 'deal_claim'})`
 
 Finance call examples:

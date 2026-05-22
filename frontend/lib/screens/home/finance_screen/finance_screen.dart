@@ -8,6 +8,7 @@ import 'my_wallet_screen.dart';
 import 'scan_to_pay_screen.dart';
 import 'send_money_screen.dart';
 import 'budget_planner_screen.dart';
+import 'goal_icon_style.dart';
 
 class FinanceScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
@@ -27,12 +28,20 @@ class _FinanceScreenState extends State<FinanceScreen> {
   double _income = 0.00;
   double _spent = 0.00;
 
+  final PageController _myGoalsPageController = PageController();
+
   String get _userId => FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
 
   @override
   void initState() {
     super.initState();
     _refreshFinanceStats();
+  }
+
+  @override
+  void dispose() {
+    _myGoalsPageController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshFinanceStats() async {
@@ -56,8 +65,9 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFFF0F4FA),
+      color: isDark ? const Color(0xFF0F1020) : const Color(0xFFF0F4FA),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,14 +89,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(35, 61, 35, 0),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(35, 18, 35, 0),
       child: Text(
         'Finance',
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w600,
-          color: Colors.black,
+          color: isDark ? Colors.white : Colors.black,
           letterSpacing: -0.408,
         ),
       ),
@@ -475,12 +486,13 @@ class _FinanceScreenState extends State<FinanceScreen> {
     required Color iconColor,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1B1D33) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
@@ -513,10 +525,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1C1C1E),
+                color: isDark ? Colors.white : const Color(0xFF1C1C1E),
                 height: 1.25,
               ),
             ),
@@ -526,7 +538,472 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
+  DateTime? _parseGoalDate(String input) {
+    final value = input.trim();
+    if (value.isEmpty || value.toLowerCase() == 'no date') return null;
+
+    final parts = value.split('/');
+    if (parts.length == 3) {
+      final day = int.tryParse(parts[0]);
+      final month = int.tryParse(parts[1]);
+      final year = int.tryParse(parts[2]);
+      if (day != null && month != null && year != null) {
+        return DateTime(year, month, day);
+      }
+    }
+
+    return DateTime.tryParse(value);
+  }
+
+  String _remainingTimeLabel(String dateText) {
+    final parsedDate = _parseGoalDate(dateText);
+    if (parsedDate == null) return 'No target date';
+
+    final now = DateTime.now();
+    final difference = parsedDate.difference(now);
+    if (difference.inDays <= 0) return 'This month';
+
+    final monthsApprox = difference.inDays / 30.44;
+    if (monthsApprox < 1) return '< 1 month remaining';
+
+    final roundedMonths = monthsApprox.round();
+    if (roundedMonths <= 1) return '1 month remaining';
+    return '$roundedMonths months remaining';
+  }
+
+  Widget _financeGoalSheetField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required TextInputType keyboardType,
+    bool readOnly = false,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F7FB),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE9EBF2)),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        readOnly: readOnly,
+        onTap: onTap,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          labelText: label,
+          labelStyle: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
+          prefixIcon: Icon(icon, color: const Color(0xFF2D4EFF), size: 20),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAdjustGoalSheet(DocumentSnapshot doc) async {
+    final data = doc.data()! as Map<String, dynamic>;
+    final titleController =
+        TextEditingController(text: data['title']?.toString() ?? '');
+    final targetController = TextEditingController(
+      text: ((data['target'] as num?)?.toDouble() ?? 0).toStringAsFixed(0),
+    );
+    final dateController =
+        TextEditingController(text: data['date']?.toString() ?? '');
+    var isLoading = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (sheetContext, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                20 + MediaQuery.of(sheetContext).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD1D1D6),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Adjust goal',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Rename your goal and update target or date.',
+                    style: TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
+                  ),
+                  const SizedBox(height: 18),
+                  _financeGoalSheetField(
+                    controller: titleController,
+                    label: 'Goal title',
+                    icon: Icons.flag_outlined,
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(height: 12),
+                  _financeGoalSheetField(
+                    controller: targetController,
+                    label: 'Target amount',
+                    icon: Icons.track_changes,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 12),
+                  _financeGoalSheetField(
+                    controller: dateController,
+                    label: 'Date',
+                    icon: Icons.calendar_today_outlined,
+                    keyboardType: TextInputType.datetime,
+                    readOnly: true,
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: modalContext,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        dateController.text =
+                            '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+                        setSheetState(() {});
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 18),
+                  if (isLoading)
+                    const Center(child: CircularProgressIndicator()),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2D4EFF),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              final newTitle = titleController.text.trim();
+                              final newTarget = double.tryParse(
+                                    targetController.text.trim(),
+                                  ) ??
+                                  0;
+                              final newDate =
+                                  dateController.text.trim().isEmpty
+                                      ? 'No date'
+                                      : dateController.text.trim();
+                              if (newTitle.isEmpty || newTarget <= 0) {
+                                ScaffoldMessenger.of(sheetContext)
+                                    .showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Please enter a goal title and valid target amount',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+                              setSheetState(() => isLoading = true);
+                              try {
+                                final timeLabel =
+                                    _remainingTimeLabel(newDate);
+                                await FirebaseFirestore.instance
+                                    .collection('goals')
+                                    .doc(doc.id)
+                                    .update({
+                                  'title': newTitle,
+                                  'target': newTarget,
+                                  'date': newDate,
+                                  'timeRemaining': timeLabel,
+                                  'remaining': timeLabel,
+                                });
+                                if (sheetContext.mounted) {
+                                  Navigator.pop(sheetContext);
+                                }
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content:
+                                          Text('Goal updated successfully!'),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                setSheetState(() => isLoading = false);
+                                if (sheetContext.mounted) {
+                                  ScaffoldMessenger.of(sheetContext)
+                                      .showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                }
+                              }
+                            },
+                      child: const Text(
+                        'Save Changes',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: TextButton(
+                      onPressed: isLoading
+                          ? null
+                          : () => Navigator.pop(sheetContext),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Color(0xFF8E8E93)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: TextButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              setSheetState(() => isLoading = true);
+                              try {
+                                await FirebaseFirestore.instance
+                                    .collection('goals')
+                                    .doc(doc.id)
+                                    .delete();
+                                if (sheetContext.mounted) {
+                                  Navigator.pop(sheetContext);
+                                }
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Goal deleted.'),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                setSheetState(() => isLoading = false);
+                                if (sheetContext.mounted) {
+                                  ScaffoldMessenger.of(sheetContext)
+                                      .showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                }
+                              }
+                            },
+                      child: const Text(
+                        'Delete Goal',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    titleController.dispose();
+    targetController.dispose();
+    dateController.dispose();
+  }
+
+  /// Single goal card for My Goals carousel on Finance.
+  Widget _financeMyGoalCard(DocumentSnapshot doc, bool isDark) {
+    final data = doc.data()! as Map<String, dynamic>;
+    final title = data['title'] ?? '';
+    final category = data['category'] ?? '';
+    final target = (data['target'] as num?)?.toDouble() ?? 0;
+    final current = (data['current'] as num?)?.toDouble() ?? 0;
+    final remaining = data['remaining'] ?? '1 month remaining';
+    final percent = target > 0 ? ((current / target) * 100).round() : 0;
+    final iconKey = data['icon']?.toString();
+    final iconColors = goalIconAccent(iconKey, isDark: isDark);
+    final accentPillBorder = Color.lerp(
+      iconColors.foreground,
+      iconColors.background,
+      0.45,
+    )!;
+    final goalIconSize = iconKey == 'account_balance' ? 20.0 : 24.0;
+
+    return Container(
+      key: ValueKey(doc.id),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconColors.background,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  goalIconFromKey(iconKey),
+                  color: iconColors.foreground,
+                  size: goalIconSize,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : null,
+                      ),
+                    ),
+                    Text(
+                      category.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8E8E93),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => _showAdjustGoalSheet(doc),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEAF3FF),
+                  foregroundColor: const Color(0xFF007AFF),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  minimumSize: const Size(0, 32),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Adjust',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: iconColors.background,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: accentPillBorder,
+                  ),
+                ),
+                child: Text(
+                  remaining,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: iconColors.foreground,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '$percent%',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: iconColors.foreground,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: LinearProgressIndicator(
+              value: target > 0 ? (current / target) : 0,
+              minHeight: 9,
+              backgroundColor: const Color(0xFFEBEBEB),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                iconColors.foreground,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Current: Rs $current',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF8E8E93),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'Target: Rs $target',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMyGoalsSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 35),
       child: Column(
@@ -535,12 +1012,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'My Goals',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xC2000000),
+                  color: isDark ? Colors.white : const Color(0xC2000000),
                   letterSpacing: -0.408,
                 ),
               ),
@@ -553,6 +1030,14 @@ class _FinanceScreenState extends State<FinanceScreen> {
                     ),
                   );
                 },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 child: const Text(
                   'View Details',
                   style: TextStyle(fontWeight: FontWeight.w600),
@@ -577,7 +1062,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                   padding: const EdgeInsets.all(24),
                   margin: const EdgeInsets.only(bottom: 18),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1B1D33) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -627,7 +1112,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const GoalsScreen(),
+                                builder: (context) =>
+                                    const GoalsScreen(openCreateOnLaunch: true),
                               ),
                             );
                           },
@@ -648,161 +1134,72 @@ class _FinanceScreenState extends State<FinanceScreen> {
               final goals = snapshot.data!.docs;
 
               return Column(
-                children: goals.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final title = data['title'] ?? '';
-                  final category = data['category'] ?? '';
-                  final target = (data['target'] as num?)?.toDouble() ?? 0;
-                  final current = (data['current'] as num?)?.toDouble() ?? 0;
-                  final remaining = data['remaining'] ?? '1 month remaining';
-                  final percent =
-                      target > 0 ? ((current / target) * 100).round() : 0;
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (goals.length == 1)
+                    _financeMyGoalCard(goals.first, isDark)
+                  else
+                    SizedBox(
+                      height: 170,
+                      child: PageView.builder(
+                        controller: _myGoalsPageController,
+                        itemCount: goals.length,
+                        itemBuilder: (context, index) {
+                          final doc = goals[index];
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              right: index < goals.length - 1 ? 12 : 0,
+                            ),
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: _financeMyGoalCard(doc, isDark),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF5F6FA),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.school,
-                                color: Colors.black,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Text(
-                                    category.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF8E8E93),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFEAF3FF),
-                                foregroundColor: const Color(0xFF007AFF),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
+                  if (goals.length > 1)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, right: 14),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const GoalsScreen(),
                                 ),
-                                minimumSize: const Size(0, 32),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: const Text(
-                                'Adjust',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Container(
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF8E8E93),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
+                                horizontal: 8,
                                 vertical: 4,
                               ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEAF3FF),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: const Color(0xFFBFD9FF),
-                                ),
-                              ),
-                              child: Text(
-                                remaining,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B4C9E),
-                                ),
-                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            const Spacer(),
-                            Text(
-                              '$percent%',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF007AFF),
+                            child: const Text(
+                              '...',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1,
+                                height: 1,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: LinearProgressIndicator(
-                            value: target > 0 ? (current / target) : 0,
-                            minHeight: 9,
-                            backgroundColor: const Color(0xFFEBEBEB),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF007AFF),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Current: Rs $current',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF8E8E93),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'Target: Rs $target',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                        ],
+                      ),
+                    )
+                  else
+                    const SizedBox(height: 8),
+                ],
               );
             },
           ),
@@ -812,6 +1209,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _buildBudgetPlannerSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final userId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
@@ -823,12 +1221,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Budget Planner',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xC2000000),
+                  color: isDark ? Colors.white : const Color(0xC2000000),
                   letterSpacing: -0.408,
                 ),
               ),
@@ -851,7 +1249,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1B1D33) : Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
@@ -939,7 +1337,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1B1D33) : Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
@@ -1047,7 +1445,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1B1D33) : Colors.white,
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
@@ -1089,6 +1487,22 @@ class _FinanceScreenState extends State<FinanceScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
+                                  Text(
+                                    isOverBudget
+                                        ? 'Over budget'
+                                        : 'In budget',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isOverBudget
+                                          ? (isDark
+                                              ? const Color(0xFFFF6961)
+                                              : const Color(0xFFE53935))
+                                          : (isDark
+                                              ? const Color(0xFF4ADE80)
+                                              : const Color(0xFF1E9E53)),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -1130,6 +1544,54 @@ class _FinanceScreenState extends State<FinanceScreen> {
                             ),
                           ),
                         ),
+                        if (isOverBudget) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF3D2424)
+                                  : const Color(0xFFFFEBEE),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFFFF453A)
+                                        .withValues(alpha: 0.45)
+                                    : const Color(0xFFFFCDD2),
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: isDark
+                                      ? const Color(0xFFFF6961)
+                                      : const Color(0xFFFF3B30),
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Over budget today by Rs ${(spentToday - dailyBudget).toStringAsFixed(0)}. Review spending in the planner.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.35,
+                                      color: isDark
+                                          ? const Color(0xFFFFD0CC)
+                                          : const Color(0xFFB71C1C),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 18),
                         Row(
                           children: [

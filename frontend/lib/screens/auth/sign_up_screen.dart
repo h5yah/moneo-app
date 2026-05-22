@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fintech/screens/auth/login_screen.dart';
-// import 'package:fintech/screens/home/home_screen/home_screen.dart';
+import 'package:fintech/screens/onboarding_screen.dart';
+import 'package:fintech/screens/home/home_screen/home_screen.dart';
 import 'package:fintech/screens/pre_quiz_screen.dart';
 import 'package:fintech/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -23,10 +26,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _obscureReEnterPassword = true;
   bool _isLoading = false;
-  String _selectedCountry = 'Mauritius';
 
   final AuthService _authService = AuthService();
   final RegExp _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _bgColor => _isDark ? const Color(0xFF0F1020) : Colors.white;
+  Color get _fieldColor => _isDark ? const Color(0xFF1B1D33) : const Color(0xFFF2F2F7);
+  Color get _textColor => _isDark ? Colors.white : const Color(0xFF212121);
+  Color get _mutedColor => _isDark ? const Color(0xFFAAB0C6) : const Color(0xFF868686);
 
   @override
   void initState() {
@@ -53,7 +61,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bgColor,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -66,28 +74,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Header with Back Button and Title
                 Row(
                   children: [
-                    // Back Button
+                    // Back → onboarding (Get started + Sign in); stack uses pushReplacement so pop() cannot return there.
                     IconButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute<void>(
+                            builder: (context) => const OnboardingScreen(),
+                          ),
+                          (route) => false,
+                        );
                       },
-                      icon: const Icon(
-                        Icons.chevron_left,
-                        color: Color(0xFF007AFF),
-                        size: 28,
+                      style: IconButton.styleFrom(
+                        foregroundColor: const Color(0xFF007AFF),
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(40, 40),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ).copyWith(
+                        overlayColor: WidgetStateProperty.resolveWith((states) {
+                          if (states.contains(WidgetState.pressed) ||
+                              states.contains(WidgetState.hovered)) {
+                            return const Color(0xFF007AFF)
+                                .withValues(alpha: 0.12);
+                          }
+                          return null;
+                        }),
                       ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.chevron_left, size: 28),
                     ),
                     // Title - Centered
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Sign Up',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF212121),
+                          color: _textColor,
                           letterSpacing: -0.408,
                         ),
                       ),
@@ -140,9 +162,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         FilteringTextInputFormatter.digitsOnly,
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    // Country Field with Dropdown
-                    _buildCountryField(),
                     const SizedBox(height: 16),
                     // Password Field
                     _buildPasswordField(
@@ -204,18 +223,85 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: _mutedColor.withValues(alpha: 0.4),
+                            thickness: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'or',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: _mutedColor,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: _mutedColor.withValues(alpha: 0.4),
+                            thickness: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: _isDark
+                                ? const Color(0xFF2A2D4A)
+                                : const Color(0xFF000000),
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: _isLoading ? null : _handleGoogleSignUp,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/google_logo.png',
+                              width: 22,
+                              height: 22,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Continue with Google',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: _textColor,
+                                letterSpacing: -0.408,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     // Sign In Link
                     Center(
                       child: RichText(
                         text: TextSpan(
                           children: [
-                            const TextSpan(
+                            TextSpan(
                               text: 'Already have an account? ',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF212121),
+                                color: _textColor,
                                 letterSpacing: -0.408,
                               ),
                             ),
@@ -266,7 +352,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         lastName.isEmpty ||
         email.isEmpty ||
         phone.isEmpty ||
-        _selectedCountry.isEmpty ||
         password.isEmpty ||
         rePassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -300,31 +385,111 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _isLoading = true;
     });
 
-  final user = await _authService.registerUser(
-  firstName,
-  lastName,
-  email,
-  phone,
-  _selectedCountry,
-  password,
-);
+    try {
+      final user = await _authService.registerUser(
+        firstName,
+        lastName,
+        email,
+        phone,
+        password,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-    });
+      setState(() {
+        _isLoading = false;
+      });
 
-    if (user != null) {
+      if (user != null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => PreQuizScreen()),
         );
         return;
-    }
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Registration failed. Please try again.')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registration failed. Please try again.'),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      final message = e.code == 'email-already-in-use'
+          ? 'An account already exists for this email. Try another email.'
+          : (e.message ?? 'Registration failed. Please try again.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registration failed. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final credential = await _authService.signInWithGoogle();
+      if (!mounted) return;
+      if (credential == null) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      setState(() {
+        _isLoading = false;
+      });
+      final isNewUser = credential.additionalUserInfo?.isNewUser ?? false;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) =>
+              isNewUser ? PreQuizScreen() : const HomeScreen(),
+        ),
+      );
+    } on GoogleSignInException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.description ?? 'Google sign-in failed (${e.code}).',
+          ),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Google sign-in failed.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: $e')),
+      );
+    }
   }
 
   Widget _buildTextField({
@@ -339,10 +504,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: Color(0xFF868686),
+            color: _mutedColor,
             letterSpacing: -0.408,
           ),
         ),
@@ -350,7 +515,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Container(
           height: 50,
           decoration: BoxDecoration(
-            color: const Color(0xFFF2F2F7),
+            color: _fieldColor,
             borderRadius: BorderRadius.circular(10),
           ),
           child: TextField(
@@ -364,65 +529,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 vertical: 14,
               ),
               hintText: hintText,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 fontSize: 16,
-                color: Color(0xFF212121),
+                color: _textColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF212121),
+              color: _textColor,
               fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCountryField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Country',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Color(0xFF868686),
-            letterSpacing: -0.408,
-          ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () {
-            _showCountryPicker();
-          },
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF2F2F7),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _selectedCountry.isEmpty ? 'Select Country' : _selectedCountry,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF212121),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Color(0xFF007AFF),
-                  size: 20,
-                ),
-              ],
             ),
           ),
         ),
@@ -442,10 +558,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: Color(0xFF868686),
+            color: _mutedColor,
             letterSpacing: -0.408,
           ),
         ),
@@ -453,7 +569,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Container(
           height: 50,
           decoration: BoxDecoration(
-            color: const Color(0xFFF2F2F7),
+            color: _fieldColor,
             borderRadius: BorderRadius.circular(10),
           ),
           child: TextField(
@@ -466,99 +582,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 vertical: 14,
               ),
               hintText: hintText,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 fontSize: 16,
-                color: Color(0xFF212121),
+                color: _textColor,
                 fontWeight: FontWeight.w500,
               ),
               suffixIcon: GestureDetector(
                 onTap: onToggleVisibility,
                 child: Icon(
                   obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: const Color(0xFF868686),
+                  color: _mutedColor,
                   size: 20,
                 ),
               ),
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF212121),
+              color: _textColor,
               fontWeight: FontWeight.w500,
             ),
           ),
         ),
       ],
-    );
-  }
-
-  void _showCountryPicker() {
-    final countries = [
-      'Mauritius',
-      'United States',
-      'Canada',
-      'United Kingdom',
-      'Australia',
-      'Germany',
-      'France',
-      'Japan',
-      'China',
-      'India',
-      'Brazil',
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Select Country',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF212121),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: countries.length,
-                  itemBuilder: (context, index) {
-                    final country = countries[index];
-                    return ListTile(
-                      title: Text(country),
-                      onTap: () {
-                        setState(() {
-                          _selectedCountry = country;
-                        });
-                        Navigator.pop(context);
-                      },
-                      selected: _selectedCountry == country,
-                      selectedTileColor: const Color(0xFFF2F2F7),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

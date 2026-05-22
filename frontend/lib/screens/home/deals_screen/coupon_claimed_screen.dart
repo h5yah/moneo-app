@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fintech/services/coupon_service.dart';
+import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:math' as math;
 
 class CouponClaimedScreen extends StatefulWidget {
@@ -10,6 +15,7 @@ class CouponClaimedScreen extends StatefulWidget {
   final String couponCode;
   final DateTime validUntil;
   final String storeLogoUrl;
+  final List<String> validationPoints;
 
   const CouponClaimedScreen({
     super.key,
@@ -21,6 +27,7 @@ class CouponClaimedScreen extends StatefulWidget {
     required this.couponCode,
     required this.validUntil,
     required this.storeLogoUrl,
+    this.validationPoints = UserCoupon.defaultValidationPoints,
   });
 
   @override
@@ -28,240 +35,355 @@ class CouponClaimedScreen extends StatefulWidget {
 }
 
 class _CouponClaimedScreenState extends State<CouponClaimedScreen> {
-  @override
-  Widget build(BuildContext context) {
-    final validUntilText =
-        'Valid until ${widget.validUntil.day} ${_getMonthName(widget.validUntil.month)} ${widget.validUntil.year}';
+  static final _validUntilFormat = DateFormat('d MMMM yyyy');
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFE).withValues(alpha: 0.94),
-      body: SafeArea(
-        child: SingleChildScrollView(
+  bool _showsDiscountSeparately(String title, String discount) {
+    if (discount.isEmpty) return false;
+    final normalizedTitle = title.toLowerCase();
+    final normalizedDiscount = discount.toLowerCase();
+    return !normalizedTitle.contains(normalizedDiscount);
+  }
+
+  Future<void> _copyCode() async {
+    await Clipboard.setData(ClipboardData(text: widget.couponCode));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Coupon code copied'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _shareCoupon() async {
+    final validUntil = _validUntilFormat.format(widget.validUntil);
+    await Share.share(
+      '${widget.dealStore} — ${widget.dealTitle}\n'
+      'Code: ${widget.couponCode}\n'
+      'Valid until $validUntil\n'
+      '${widget.location}',
+      subject: '${widget.dealStore} coupon',
+    );
+  }
+
+  void _showTermsSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF1B1D33) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0),
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with close button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const SizedBox(width: 24),
-                      const Text(
-                        'Coupon',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                          letterSpacing: -0.408,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: const Icon(
-                          Icons.close,
-                          size: 24,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
+                Text(
+                  'Terms & conditions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
-                const SizedBox(height: 30),
-                // Main coupon card
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 34),
-                  padding: const EdgeInsets.all(25),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Store logo
-                      _buildStoreLogo(),
-                      const SizedBox(height: 16),
-                      // Store name
-                      Text(
-                        widget.dealStore,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xB5000000),
-                          letterSpacing: -0.408,
+                const SizedBox(height: 16),
+                ...widget.validationPoints.map(
+                  (point) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6, right: 10),
+                          child: Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white70 : Colors.black,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Discount and title
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: widget.discount,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                letterSpacing: -0.408,
-                              ),
+                        Expanded(
+                          child: Text(
+                            point,
+                            style: TextStyle(
+                              fontSize: 14,
+                              height: 1.35,
+                              color: isDark ? const Color(0xFFAAB0C6) : const Color(0xB5000000),
                             ),
-                            TextSpan(
-                              text: '  ',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                            ),
-                            TextSpan(
-                              text: widget.dealTitle,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Color(0xB5000000),
-                                letterSpacing: -0.408,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      // Description
-                      Text(
-                        widget.description,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                          letterSpacing: -0.408,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Location
-                      Text(
-                        widget.location,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Color(0xB5000000),
-                          letterSpacing: -0.408,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Terms and conditions bullets
-                      Column(
-                        children: [
-                          _buildTermBullet(
-                            'Must be presented to merchant.',
-                          ),
-                          const SizedBox(height: 8),
-                          _buildTermBullet(
-                            'Not combinable with other promotions.',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      // Decorative dividers
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: Colors.grey[300],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: _buildDecorativeDot(),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: Colors.grey[300],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      // QR Code
-                      _buildQRCode(),
-                      const SizedBox(height: 20),
-                      // Coupon code
-                      Text(
-                        widget.couponCode,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                          letterSpacing: -0.408,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Validity date
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.share,
-                            size: 16,
-                            color: Color(0xFF666666),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                validUntilText,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0x73000000),
-                                  letterSpacing: -0.408,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          const Icon(
-                            Icons.info_outline,
-                            size: 18,
-                            color: Color(0xFF666666),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 40),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final validUntilText = 'Valid until ${_validUntilFormat.format(widget.validUntil)}';
+    final showDiscount = _showsDiscountSeparately(widget.dealTitle, widget.discount);
+
+    return Scaffold(
+      backgroundColor: isDark
+          ? const Color(0xFF0F1020)
+          : const Color(0xFFFFFFFE).withValues(alpha: 0.94),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 24),
+                    Text(
+                      'Coupon',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
+                        letterSpacing: -0.408,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        Icons.close,
+                        size: 24,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 34),
+                padding: const EdgeInsets.all(25),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1B1D33) : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildStoreLogo(),
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.dealStore.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white70 : const Color(0xB5000000),
+                        letterSpacing: -0.408,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildOfferHeadline(isDark, showDiscount),
+                    const SizedBox(height: 24),
+                    Text(
+                      widget.description,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.white : Colors.black,
+                        letterSpacing: -0.408,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.location,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: isDark ? const Color(0xFFAAB0C6) : const Color(0xB5000000),
+                        letterSpacing: -0.408,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Column(
+                      children: [
+                        for (var i = 0; i < widget.validationPoints.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 8),
+                          _buildTermBullet(widget.validationPoints[i], isDark),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: _buildDecorativeDot(),
+                        ),
+                        Expanded(child: Divider(color: Colors.grey[300])),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    _buildQRCode(isDark),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: _copyCode,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.couponCode,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.copy,
+                            size: 16,
+                            color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF666666),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tap code to copy',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFFAAB0C6) : const Color(0x73000000),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: _shareCoupon,
+                          icon: Icon(
+                            Icons.share,
+                            size: 20,
+                            color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF666666),
+                          ),
+                          tooltip: 'Share coupon',
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              validUntilText,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? const Color(0xFFAAB0C6) : const Color(0x73000000),
+                                letterSpacing: -0.408,
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: _showTermsSheet,
+                          icon: Icon(
+                            Icons.info_outline,
+                            size: 22,
+                            color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF666666),
+                          ),
+                          tooltip: 'Terms & conditions',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
     );
   }
 
+  Widget _buildOfferHeadline(bool isDark, bool showDiscount) {
+    final titleStyle = TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+      color: isDark ? Colors.white : Colors.black,
+      letterSpacing: -0.408,
+    );
+    final subtitleStyle = TextStyle(
+      fontSize: 16,
+      color: isDark ? const Color(0xFFAAB0C6) : const Color(0xB5000000),
+      letterSpacing: -0.408,
+    );
+
+    if (!showDiscount) {
+      return Text(
+        widget.dealTitle,
+        textAlign: TextAlign.center,
+        style: titleStyle,
+      );
+    }
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        children: [
+          TextSpan(text: widget.discount, style: titleStyle),
+          TextSpan(text: '\n', style: titleStyle),
+          TextSpan(text: widget.dealTitle, style: subtitleStyle),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStoreLogo() {
+    if (widget.storeLogoUrl.startsWith('assets/')) {
+      return ClipOval(
+        child: Image.asset(
+          widget.storeLogoUrl,
+          width: 106,
+          height: 106,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildInitialsLogo(),
+        ),
+      );
+    }
+    return _buildInitialsLogo();
+  }
+
+  Widget _buildInitialsLogo() {
+    final color = _storeColor(widget.dealStore);
     return Container(
       width: 106,
       height: 106,
       decoration: BoxDecoration(
-        color: const Color(0xFF004D40),
+        color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFF004D40), width: 8),
+        border: Border.all(color: color, width: 8),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Create a star-like badge background
           CustomPaint(
             size: const Size(106, 106),
-            painter: StarBadgePainter(),
+            painter: StarBadgePainter(color: color),
           ),
-          // Store initials or logo
           Text(
             _getInitials(widget.dealStore),
             style: const TextStyle(
@@ -275,13 +397,24 @@ class _CouponClaimedScreenState extends State<CouponClaimedScreen> {
     );
   }
 
-  String _getInitials(String text) {
-    final parts = text.split(' ');
-    if (parts.isEmpty) return '?';
-    return parts.map((part) => part.isNotEmpty ? part[0] : '').join('').toUpperCase();
+  Color _storeColor(String store) {
+    final hash = store.hashCode.abs();
+    const hues = [0xFF004D40, 0xFF1A3A52, 0xFF3F9EB2, 0xFF5222D0, 0xFFEE5F17];
+    return Color(hues[hash % hues.length]);
   }
 
-  Widget _buildTermBullet(String text) {
+  String _getInitials(String text) {
+    final parts = text.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) {
+      return parts.first.length >= 2
+          ? parts.first.substring(0, 2).toUpperCase()
+          : parts.first.toUpperCase();
+    }
+    return parts.take(2).map((p) => p.isNotEmpty ? p[0] : '').join().toUpperCase();
+  }
+
+  Widget _buildTermBullet(String text, bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -291,8 +424,8 @@ class _CouponClaimedScreenState extends State<CouponClaimedScreen> {
           child: Container(
             width: 4,
             height: 4,
-            decoration: const BoxDecoration(
-              color: Colors.black,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white70 : Colors.black,
               shape: BoxShape.circle,
             ),
           ),
@@ -300,10 +433,10 @@ class _CouponClaimedScreenState extends State<CouponClaimedScreen> {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w400,
-              color: Color(0xB5000000),
+              color: isDark ? const Color(0xFFAAB0C6) : const Color(0xB5000000),
               letterSpacing: -0.408,
             ),
           ),
@@ -324,54 +457,50 @@ class _CouponClaimedScreenState extends State<CouponClaimedScreen> {
     );
   }
 
-  Widget _buildQRCode() {
+  Widget _buildQRCode(bool isDark) {
     return Container(
       width: 164,
       height: 164,
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2D45) : Colors.grey.shade300,
+        ),
       ),
-      child: Center(
-        child: Icon(
-          Icons.qr_code_2,
-          size: 80,
-          color: Colors.grey[400],
+      child: QrImageView(
+        data: widget.couponCode,
+        version: QrVersions.auto,
+        size: 148,
+        backgroundColor: Colors.white,
+        eyeStyle: const QrEyeStyle(
+          eyeShape: QrEyeShape.square,
+          color: Colors.black,
+        ),
+        dataModuleStyle: const QrDataModuleStyle(
+          dataModuleShape: QrDataModuleShape.square,
+          color: Colors.black,
         ),
       ),
     );
   }
-
-  String _getMonthName(int month) {
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return monthNames[month - 1];
-  }
 }
 
 class StarBadgePainter extends CustomPainter {
+  StarBadgePainter({required this.color});
+
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF1A3A52)
+      ..color = color
       ..style = PaintingStyle.fill;
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // Draw a star-shaped badge
     _drawStar(canvas, center, radius, 12, paint);
   }
 
@@ -382,7 +511,7 @@ class StarBadgePainter extends CustomPainter {
     for (int i = 0; i < points; i++) {
       final angle = angleSlice * i - math.pi / 2;
       final outerRadiusFactor = i.isEven ? 1.0 : 0.5;
-      
+
       final x = center.dx + radius * outerRadiusFactor * math.cos(angle);
       final y = center.dy + radius * outerRadiusFactor * math.sin(angle);
 
@@ -398,5 +527,5 @@ class StarBadgePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(StarBadgePainter oldDelegate) => false;
+  bool shouldRepaint(StarBadgePainter oldDelegate) => oldDelegate.color != color;
 }

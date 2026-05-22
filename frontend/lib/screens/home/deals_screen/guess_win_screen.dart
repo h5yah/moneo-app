@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:fintech/services/xp_service.dart';
+import 'widgets/daily_reward_completed_view.dart';
 
 class GuessWinScreen extends StatefulWidget {
   const GuessWinScreen({super.key});
@@ -16,12 +17,27 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
   String _feedback = '';
   bool _gameWon = false;
   bool _gameLost = false;
+  bool _loadingDaily = true;
+  bool _playedToday = false;
+  bool _roundComplete = false;
   final List<int> _prizePool = [150, 250, 400, 600, 800, 1000];
 
   @override
   void initState() {
     super.initState();
-    _startNewGame();
+    _loadDailyStatus();
+  }
+
+  Future<void> _loadDailyStatus() async {
+    final played = await XpService.instance.hasDailyReward(XpService.guessWinGame);
+    if (!mounted) return;
+    setState(() {
+      _playedToday = played;
+      _loadingDaily = false;
+    });
+    if (!played) {
+      _startNewGame();
+    }
   }
 
   void _startNewGame() {
@@ -36,7 +52,7 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
   }
 
   void _selectCard(int index) {
-    if (_gameWon || _gameLost) return;
+    if (_playedToday || _roundComplete || _gameWon || _gameLost) return;
 
     setState(() {
       _selectedCardIndex = index;
@@ -45,7 +61,7 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
   }
 
   void _makeGuess(int index) {
-    if (_gameWon || _gameLost) return;
+    if (_playedToday || _roundComplete || _gameWon || _gameLost) return;
 
     final winningIndex = _winningCardIndex;
     if (winningIndex == null) return;
@@ -53,6 +69,7 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
     setState(() {
       _selectedCardIndex = index;
       _prizeValue = _prizePool[math.Random().nextInt(_prizePool.length)];
+      _roundComplete = true;
 
       if (index == winningIndex) {
         _gameWon = true;
@@ -60,7 +77,7 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
         _showResultDialog(true);
       } else {
         _gameLost = true;
-        _feedback = 'Not this time! Try again';
+        _feedback = 'Not this time!';
         _showResultDialog(false);
       }
     });
@@ -135,78 +152,63 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _startNewGame();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF1A3A52)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      final result = await XpService.instance.earnXpOnce(
+                        amount: prize,
+                        source: 'guess_win_reward',
+                        awardKey: XpService.dailyAwardKey(XpService.guessWinGame),
+                      );
+                      if (!result.awarded) {
+                        if (!mounted) return;
+                        setState(() => _playedToday = true);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Daily guess reward already claimed.'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (!mounted) {
+                        return;
+                      }
+
+                      setState(() => _playedToday = true);
+                      Navigator.of(this.context).pop();
+                      Navigator.of(this.context).pop();
+                    } catch (error) {
+                      if (!mounted) {
+                        return;
+                      }
+
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not claim reward right now. Try again.'),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        'Play Again',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A3A52),
-                        ),
-                      ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00C6FF),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Claim XP',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          await XpService.instance.earnXp(
-                            amount: prize,
-                            source: 'guess_win_reward',
-                          );
-
-                          if (!mounted) {
-                            return;
-                          }
-
-                          Navigator.of(this.context).pop();
-                          Navigator.of(this.context).pop();
-                        } catch (error) {
-                          if (!mounted) {
-                            return;
-                          }
-
-                          ScaffoldMessenger.of(this.context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Could not claim reward right now. Try again.'),
-                            ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00C6FF),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Claim',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -237,7 +239,14 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
         centerTitle: true,
         actions: const [],
       ),
-      body: SingleChildScrollView(
+      body: _loadingDaily
+          ? const Center(child: CircularProgressIndicator())
+          : _playedToday
+              ? const DailyRewardCompletedView(
+                  gameTitle: 'Guess & Win',
+                  accentColor: Color(0xFF00C6FF),
+                )
+              : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -285,7 +294,7 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
                       padding: EdgeInsets.only(right: index == 2 ? 0 : 12),
                       child: _MysteryCard(
                         selected: isSelected,
-                        dimmed: _gameWon || _gameLost,
+                        dimmed: _roundComplete || _gameWon || _gameLost,
                         onTap: () => _selectCard(index),
                       ),
                     ),
@@ -340,7 +349,10 @@ class _GuessWinScreenState extends State<GuessWinScreen> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _selectedCardIndex == null || _gameWon || _gameLost
+                  onPressed: _selectedCardIndex == null ||
+                          _roundComplete ||
+                          _gameWon ||
+                          _gameLost
                       ? null
                       : () => _makeGuess(_selectedCardIndex!),
                   style: ElevatedButton.styleFrom(

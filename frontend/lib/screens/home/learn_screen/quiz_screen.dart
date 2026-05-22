@@ -34,8 +34,6 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  static const int _xpPerLevel = 500;
-
   int _currentQuestionIndex = 0;
   String? _selectedAnswer;
   bool _answered = false;
@@ -43,13 +41,24 @@ class _QuizScreenState extends State<QuizScreen> {
   int _totalXP = 0;
   bool _showXpPopup = false;
   int _xpPopupTick = 0;
+  final List<Future<XpEarnResult>> _pendingXpWrites = [];
 
   QuizQuestion get _currentQuestion => widget.questions[_currentQuestionIndex];
 
+  String get _quizAwardScope {
+    final topicId = widget.topicId?.trim();
+    if (topicId != null && topicId.isNotEmpty) return topicId;
+    return widget.quizTitle
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FC),
+      backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF6F8FC),
       body: SafeArea(
         child: Stack(
           children: [
@@ -96,10 +105,13 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   BoxDecoration _premiumSurfaceDecoration({Color color = Colors.white}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
-      color: color,
+      color: isDark ? const Color(0xFF1B1D33) : color,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: const Color(0xFF007AFF).withValues(alpha: 0.10)),
+      border: Border.all(
+        color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFF007AFF).withValues(alpha: 0.10),
+      ),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: 0.03),
@@ -146,7 +158,7 @@ class _QuizScreenState extends State<QuizScreen> {
             Icon(Icons.bolt, size: 16, color: Color(0xFFFF9800)),
             SizedBox(width: 4),
             Text(
-              '+10 XP',
+              '+50 XP',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -160,13 +172,16 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF007AFF).withValues(alpha: 0.10)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFF007AFF).withValues(alpha: 0.10),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -178,17 +193,17 @@ class _QuizScreenState extends State<QuizScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.black, size: 24),
+            icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black, size: 24),
             onPressed: () => _showExitDialog(),
           ),
           Expanded(
             child: Center(
               child: Text(
                 widget.quizTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
             ),
@@ -476,8 +491,6 @@ class _QuizScreenState extends State<QuizScreen> {
     if (_selectedAnswer == _currentQuestion.correctAnswer) {
       _score++;
       if (widget.awardXp) {
-        _totalXP += 10;
-        _showCorrectXpPopup();
         _persistCorrectAnswerXp();
       }
     }
@@ -489,31 +502,28 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
-  Future<void> _persistCorrectAnswerXp() async {
-    try {
-      await XpService.instance.earnXp(
-        amount: 10,
-        source: 'quiz_correct_answer',
-      );
-    } catch (error) {
-      debugPrint('Failed to persist correct-answer XP: $error');
-    }
-  }
+  void _persistCorrectAnswerXp() {
+    final future = XpService.instance.earnXpOnce(
+      amount: 50,
+      source: 'quiz_correct_answer',
+      awardKey: 'quiz_correct:$_quizAwardScope:$_currentQuestionIndex',
+    );
+    _pendingXpWrites.add(future);
 
-  void _showCorrectXpPopup() {
-    setState(() {
-      _showXpPopup = true;
-      _xpPopupTick++;
-    });
-
-    Future.delayed(const Duration(milliseconds: 950), () {
-      if (!mounted) {
-        return;
-      }
-
+    future.then((result) {
+      if (!result.awarded || !mounted) return;
       setState(() {
-        _showXpPopup = false;
+        _totalXP += 50;
+        _showXpPopup = true;
+        _xpPopupTick++;
       });
+
+      Future.delayed(const Duration(milliseconds: 950), () {
+        if (!mounted) return;
+        setState(() => _showXpPopup = false);
+      });
+    }).catchError((error) {
+      debugPrint('Failed to persist correct-answer XP: $error');
     });
   }
 
@@ -530,6 +540,14 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Future<void> _showResults() async {
+    if (_pendingXpWrites.isNotEmpty) {
+      try {
+        await Future.wait(_pendingXpWrites);
+      } catch (error) {
+        debugPrint('Failed waiting for quiz XP writes: $error');
+      }
+    }
+
     if (widget.onQuizFinished != null) {
       try {
         await widget.onQuizFinished!(_score, widget.questions.length);
@@ -551,17 +569,15 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     var currentLevel = 1;
-    var xpToNextLevel = _xpPerLevel;
+    var xpToNextLevel = XpService.baseXpPerLevel;
     int? preQuizScore;
     int? preQuizTotal;
 
     try {
       final totalXp = await XpService.instance.getXp();
-      final xpInCurrentLevel = totalXp % _xpPerLevel;
-      currentLevel = (totalXp ~/ _xpPerLevel) + 1;
-      xpToNextLevel = xpInCurrentLevel == 0
-          ? _xpPerLevel
-          : _xpPerLevel - xpInCurrentLevel;
+      final levelMeta = XpService.levelMetaFromTotalXp(totalXp);
+      currentLevel = levelMeta.level;
+      xpToNextLevel = levelMeta.xpToNextLevel;
     } catch (error) {
       debugPrint('Failed to load XP progress for completion screen: $error');
     }
@@ -596,6 +612,7 @@ class _QuizScreenState extends State<QuizScreen> {
           earnedXP: _totalXP,
           currentLevel: currentLevel,
           xpToNextLevel: xpToNextLevel,
+          topicId: widget.topicId,
           topicTitle: widget.topicTitle,
           lessonsCompleted: widget.lessonsCompleted,
           totalLessons: widget.totalLessons,
@@ -638,7 +655,7 @@ class _QuizScreenState extends State<QuizScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Quiz Info'),
         content: const Text(
-          'Answer all questions to complete the quiz. You earn 10 XP for each correct answer!',
+          'Answer all questions to complete the quiz. You earn 50 XP for each correct answer!',
         ),
         actions: [
           TextButton(

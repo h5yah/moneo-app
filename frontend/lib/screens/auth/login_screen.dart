@@ -4,9 +4,13 @@ import 'package:fintech/screens/auth/sign_up_screen.dart';
 import 'package:fintech/screens/home/home_screen/home_screen.dart';
 import 'package:fintech/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.showLoggedOutMessage = false});
+
+  /// When true (e.g. after logout), shows a one-time confirmation on open.
+  final bool showLoggedOutMessage;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -26,6 +30,14 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+    if (widget.showLoggedOutMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Logged out successfully')),
+        );
+      });
+    }
   }
 
   @override
@@ -37,8 +49,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0F1020) : Colors.white;
+    final field = isDark ? const Color(0xFF1B1D33) : const Color(0xFFF2F2F7);
+    final text = isDark ? Colors.white : const Color(0xFF212121);
+    final muted = isDark ? const Color(0xFFAAB0C6) : const Color(0xFF868686);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bg,
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         child: ConstrainedBox(
@@ -74,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Container(
                             height: 50,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF2F2F7),
+                              color: field,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: TextField(
@@ -87,15 +104,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   vertical: 14,
                                 ),
                                 hintText: 'Enter email',
-                                hintStyle: const TextStyle(
+                                hintStyle: TextStyle(
                                   fontSize: 16,
-                                  color: Color(0xFF212121),
+                                  color: text,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
-                                color: Color(0xFF212121),
+                                color: text,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -105,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Container(
                             height: 50,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF2F2F7),
+                              color: field,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: TextField(
@@ -118,9 +135,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   vertical: 14,
                                 ),
                                 hintText: 'Enter password',
-                                hintStyle: const TextStyle(
+                                hintStyle: TextStyle(
                                   fontSize: 16,
-                                  color: Color(0xFF212121),
+                                  color: text,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 suffixIcon: GestureDetector(
@@ -133,14 +150,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _obscurePassword
                                         ? Icons.visibility_off
                                         : Icons.visibility,
-                                    color: const Color(0xFF868686),
+                                    color: muted,
                                     size: 20,
                                   ),
                                 ),
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
-                                color: Color(0xFF212121),
+                                color: text,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -185,13 +202,82 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Forgot Password
                           TextButton(
                             onPressed: _isLoading ? null : _handleForgotPassword,
-                            child: const Text(
+                            child: Text(
                               'forgot password?',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF212121),
+                                color: text,
                                 letterSpacing: -0.408,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  color: muted.withValues(alpha: 0.4),
+                                  thickness: 1,
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'or',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: muted,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  color: muted.withValues(alpha: 0.4),
+                                  thickness: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF2A2D4A)
+                                      : const Color(0xFF000000),
+                                  width: 1,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed:
+                                  _isLoading ? null : _handleGoogleSignIn,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/google_logo.png',
+                                    width: 22,
+                                    height: 22,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: text,
+                                      letterSpacing: -0.408,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -203,103 +289,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Bottom Section
                 Column(
                   children: [
-                    // Social Login Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Log In With Socials',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF868686),
-                              letterSpacing: -0.41,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          // Social Buttons Row
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // Apple Button
-                              SizedBox(
-                                width: 100,
-                                height: 48,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onPressed: () {},
-                                  child: const Icon(
-                                    Icons.apple,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                              // Google Button
-                                SizedBox(
-                                width: 100,
-                                height: 48,
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(
-                                      color: Color.fromARGB(255, 0, 0, 0),
-                                      width: 1,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onPressed: () {},
-                                  child: Image.asset(
-                                    'assets/google_logo.png',
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                ),
-                              ),
-                              // Facebook Button
-                              SizedBox(
-                                width: 100,
-                                height: 48,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF007AFF),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onPressed: () {},
-                                  child: const Icon(
-                                    Icons.facebook,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 24),
                     // Sign Up Link
                     Center(
                       child: RichText(
                         text: TextSpan(
                           children: [
-                            const TextSpan(
+                            TextSpan(
                               text: "Don't have an account? ",
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF212121),
+                                color: text,
                                 letterSpacing: -0.408,
                               ),
                             ),
@@ -375,6 +376,58 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Login failed. Please try again.')),
     );
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final credential = await _authService.signInWithGoogle();
+      if (!mounted) return;
+      if (credential == null) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      setState(() {
+        _isLoading = false;
+      });
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } on GoogleSignInException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.description ?? 'Google sign-in failed (${e.code}).',
+          ),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Google sign-in failed.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: $e')),
+      );
+    }
   }
 
   Future<void> _handleForgotPassword() async {

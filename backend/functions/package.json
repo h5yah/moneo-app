@@ -12,7 +12,9 @@
     "lint": "echo 'No linter configured'"
   },
   "dependencies": {
+    "dotenv": "^17.4.1",
     "firebase-admin": "^12.7.0",
-    "firebase-functions": "^5.1.1"
+    "firebase-functions": "^5.1.1",
+    "openai": "^4.87.3"
   }
 }

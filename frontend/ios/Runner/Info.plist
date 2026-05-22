@@ -68,5 +68,18 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>We need camera access to scan your receipts</string>
+	<key>GIDClientID</key>
+	<string>819485859824-a7aok01h44pq3ef3a9l55h07i1f5ogto.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.819485859824-a7aok01h44pq3ef3a9l55h07i1f5ogto</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

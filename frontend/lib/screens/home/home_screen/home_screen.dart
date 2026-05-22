@@ -10,8 +10,12 @@ import 'currency_converter_screen.dart';
 import 'savings_calculator_screen.dart';
 import 'loan_calculator_screen.dart';
 import 'tip_splitter_screen.dart';
+import 'notifications_screen.dart';
 import 'package:fintech/services/topic_progress_service.dart';
 import 'package:fintech/services/topic_meta_service.dart';
+import 'package:fintech/services/app_theme_controller.dart';
+import 'package:fintech/services/app_notification_service.dart';
+import 'package:fintech/services/xp_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.userName});
@@ -25,6 +29,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _reviewCompleted = false;
   int _selectedIndex = 0;
+  bool _showStreakCelebration = false;
+  int _celebrationStreakDays = 0;
+  bool _hasShownStreakCelebration = false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -89,6 +96,56 @@ class _HomeScreenState extends State<HomeScreen> {
         _activeTopicData = selectedData;
       });
     }
+
+    await _sendDailyHomeNotifications(
+      topicId: selectedId,
+      topicData: selectedData,
+    );
+  }
+
+  Future<void> _sendDailyHomeNotifications({
+    required String topicId,
+    required Map<String, dynamic>? topicData,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final todayKey = _formatDate(DateTime.now());
+      final userSnapshot = await _firestore.collection('users').doc(user.uid).get();
+      final userData = userSnapshot.data() ?? <String, dynamic>{};
+      final streakDays = (userData['streakDays'] as num?)?.toInt() ?? 0;
+
+      await AppNotificationService.instance.createInboxNotification(
+        title: 'Keep your streak alive',
+        body: streakDays > 0
+            ? 'You are on a $streakDays day streak. Keep going!'
+            : 'Open Monéo daily to start your streak.',
+        type: 'streak_reminder',
+        uniqueKey: 'streak_reminder_$todayKey',
+        payload: {'streakDays': streakDays},
+      );
+
+      final topicMeta = TopicMetaService.instance.byId[topicId];
+      if (topicMeta != null && _hasStartedTopicProgress(topicData)) {
+        final lessonsCompleted =
+            (topicData?['lessonsCompleted'] as num?)?.toInt() ?? 0;
+        await AppNotificationService.instance.createInboxNotification(
+          title: 'Continue your lesson',
+          body:
+              '${topicMeta.title}: $lessonsCompleted/${topicMeta.totalLessons} lessons completed.',
+          type: 'lesson_reminder',
+          uniqueKey: 'lesson_reminder_$todayKey',
+          payload: {
+            'topicId': topicId,
+            'lessonsCompleted': lessonsCompleted,
+            'totalLessons': topicMeta.totalLessons,
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('Daily notification error: $e');
+    }
   }
 
   Future<void> _updateStreakIfNeeded() async {
@@ -128,11 +185,33 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         SetOptions(merge: true),
       );
+
+      await AppNotificationService.instance.createInboxNotification(
+        title: 'Streak updated',
+        body: 'You are now on a $streakDays day streak. Keep going!',
+        type: 'streak',
+        uniqueKey: 'streak_updated_$today',
+        payload: {'streakDays': streakDays},
+      );
+
+      _showStreakCelebrationOverlay(streakDays);
+
       debugPrint('[Streak] Updated: streakDays=$streakDays, lastActiveDate=$today (doc: users/${user.uid})');
     } catch (e, st) {
       debugPrint('[Streak] Error: $e');
       debugPrint(st.toString());
     }
+  }
+
+  /// True when the user has begun this topic (pre-quiz, a lesson, or mid-lesson progress).
+  bool _hasStartedTopicProgress(Map<String, dynamic>? topicData) {
+    if (topicData == null || topicData.isEmpty) return false;
+    if (topicData['preQuizCompleted'] == true) return true;
+    final lessonsCompleted = (topicData['lessonsCompleted'] as num?)?.toInt() ?? 0;
+    if (lessonsCompleted > 0) return true;
+    final activeLesson = (topicData['activeLessonNumber'] as num?)?.toInt();
+    if (activeLesson != null && activeLesson > 0) return true;
+    return false;
   }
 
   String _formatDate(DateTime date) {
@@ -142,8 +221,33 @@ class _HomeScreenState extends State<HomeScreen> {
     return '$y-$m-$d';
   }
 
+  void _showStreakCelebrationOverlay(int streakDays) {
+    if (!mounted || streakDays <= 0) return;
+    if (_hasShownStreakCelebration) return;
+    _hasShownStreakCelebration = true;
+    setState(() {
+      _celebrationStreakDays = streakDays;
+      _showStreakCelebration = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 2400), () {
+      if (!mounted) return;
+      setState(() => _showStreakCelebration = false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBgColor = isDark
+        ? const Color(0xFF0F1020)
+        : _selectedIndex == 1
+            ? Colors.white
+            : _selectedIndex == 3
+                ? const Color(0xFFF0F4FA)
+                : _selectedIndex == 4
+                    ? const Color(0xFFF0F0F0)
+                    : const Color(0xFFF5F7FB);
     Widget body;
 
     switch (_selectedIndex) {
@@ -182,9 +286,85 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
-      body: SafeArea(child: body),
+      backgroundColor: scaffoldBgColor,
+      body: Stack(
+        children: [
+          SafeArea(top: _selectedIndex != 4, child: body),
+          if (_showStreakCelebration) _buildStreakCelebrationOverlay(),
+        ],
+      ),
       bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildStreakCelebrationOverlay() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.24),
+          alignment: Alignment.center,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.8, end: 1.0),
+            duration: const Duration(milliseconds: 420),
+            curve: Curves.elasticOut,
+            builder: (context, scale, child) {
+              return Transform.scale(scale: scale, child: child);
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 28),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1B1D33) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE7EAF2),
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x26000000),
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.7, end: 1.2),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeInOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(scale: value, child: child);
+                    },
+                    child: const Text('🔥', style: TextStyle(fontSize: 64)),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Streak on fire!',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'You are now on a $_celebrationStreakDays day streak. Keep going!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.35,
+                      color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -209,6 +389,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerCardColor = isDark ? const Color(0xFF1B1D33) : Colors.white;
+    final headerBorderColor = isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE8ECF4);
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF111827);
+    final secondaryTextColor = isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
       child: Row(
@@ -228,12 +414,12 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: headerCardColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFE8ECF4)),
+                border: Border.all(color: headerBorderColor),
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
               ),
-              child: const Icon(Icons.person_rounded, color: Color(0xFF6B7280), size: 28),
+              child: Icon(Icons.person_rounded, color: secondaryTextColor, size: 28),
             ),
           ),
           const SizedBox(width: 14),
@@ -242,29 +428,138 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Hi, $_displayName',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: primaryTextColor)),
                 const SizedBox(height: 4),
                 Text(_formattedDate,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF6B7280))),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: secondaryTextColor)),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE8ECF4)),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF111827), size: 22),
-              onPressed: () {},
-            ),
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: AppThemeController.modeNotifier,
+            builder: (context, mode, _) {
+              final isDark = mode == ThemeMode.dark;
+              return Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: headerCardColor,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: headerBorderColor),
+                ),
+                child: IconButton(
+                  tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+                  icon: Icon(
+                    isDark ? Icons.wb_sunny_outlined : Icons.nightlight_round,
+                    color: primaryTextColor,
+                    size: 22,
+                  ),
+                  onPressed: AppThemeController.toggleTheme,
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildNotificationButton(
+            headerCardColor: headerCardColor,
+            headerBorderColor: headerBorderColor,
+            primaryTextColor: primaryTextColor,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotificationButton({
+    required Color headerCardColor,
+    required Color headerBorderColor,
+    required Color primaryTextColor,
+  }) {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: headerCardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: headerBorderColor),
+        ),
+        child: IconButton(
+          icon: Icon(Icons.notifications_none_rounded, color: primaryTextColor, size: 22),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+            );
+          },
+        ),
+      );
+    }
+
+    final unreadStream = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('notifications')
+        .where('isRead', isEqualTo: false)
+        .snapshots();
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: unreadStream,
+      builder: (context, snapshot) {
+        final unreadCount = snapshot.data?.docs.length ?? 0;
+        final showBadge = unreadCount > 0;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: headerCardColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: headerBorderColor),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.notifications_none_rounded, color: primaryTextColor, size: 22),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                  );
+                },
+              ),
+            ),
+            if (showBadge)
+              Positioned(
+                right: -2,
+                top: -2,
+                child: Container(
+                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF3B30),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      unreadCount > 99 ? '99+' : '$unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -276,7 +571,6 @@ class _HomeScreenState extends State<HomeScreen> {
         (data['lessonsCompleted'] as num?)?.toInt()?.clamp(0, meta.totalLessons) ??
             0;
 
-    // Partial step progress within the current lesson
     final activeLessonNumber = data['activeLessonNumber'] as int?;
     final activeLessonStep = data['activeLessonStep'] as int?;
     final activeLessonTotalSteps = data['activeLessonTotalSteps'] as int?;
@@ -337,19 +631,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 14),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.16),
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Row(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.bolt, color: Colors.white, size: 15),
-                          SizedBox(width: 6),
-                          Text('+120 XP',
-                              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                          const Icon(
+                            Icons.bolt,
+                            color: Colors.white,
+                            size: 17,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '+${XpService.lessonCompletionXp} XP',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -372,10 +681,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF5B4CF0),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
-                      child: const Text('Start',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        _hasStartedTopicProgress(data) ? 'Continue' : 'Start',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -414,6 +731,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildToolsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sectionTitleColor = isDark ? Colors.white : const Color(0xFF111827);
+    final cardColor = isDark ? const Color(0xFF1B1D33) : Colors.white;
+    final cardBorderColor = isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE9ECF4);
+    final labelColor = isDark ? Colors.white : const Color(0xFF111827);
+    final subColor = isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280);
     final tools = [
       _ToolItem(
         label: 'Currency',
@@ -454,8 +777,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Tools',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+          Text('Tools',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: sectionTitleColor)),
           const SizedBox(height: 12),
           GridView.count(
             crossAxisCount: 2,
@@ -469,9 +792,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardColor,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE9ECF4)),
+                  border: Border.all(color: cardBorderColor),
                 ),
                 child: Row(
                   children: [
@@ -488,10 +811,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(t.label,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                                  color: Color(0xFF111827))),
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: labelColor)),
                           Text(t.sub,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
+                              style: TextStyle(fontSize: 11, color: subColor)),
                         ],
                       ),
                     ),
@@ -512,6 +834,7 @@ class _HomeScreenState extends State<HomeScreen> {
 ];
 
   Widget _buildSmartInsight() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
@@ -521,7 +844,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         margin: const EdgeInsets.only(left: 6),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1B1D33) : Colors.white,
           borderRadius: BorderRadius.circular(22),
         ),
         child: Padding(
@@ -544,15 +867,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Smart insight',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                    Text('Smart insight',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : const Color(0xFF111827))),
                     const SizedBox(height: 6),
                     Text(
   _insights[DateTime.now().day % _insights.length],
-  style: const TextStyle(
+  style: TextStyle(
     fontSize: 13,
     height: 1.45,
-    color: Color(0xFF6B7280),
+    color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280),
   ),
 ),
                   ],
@@ -566,13 +892,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMotivationSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Rewards & motivation',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+          Text('Rewards & motivation',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : const Color(0xFF111827))),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -587,6 +917,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStreakCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = _auth.currentUser;
     final stream = user == null
         ? Stream<DocumentSnapshot<Map<String, dynamic>>?>.value(null)
@@ -605,9 +936,9 @@ class _HomeScreenState extends State<HomeScreen> {
           return Container(
             height: 170,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1B1D33) : Colors.white,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: const Color(0xFFE9ECF7)),
+              border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE9ECF7)),
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Padding(
@@ -622,7 +953,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: Text(streakLabel,
                             maxLines: 2,
-                            style: const TextStyle(color: Color(0xFF1F2937), fontSize: 16,
+                            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1F2937), fontSize: 16,
                                 fontWeight: FontWeight.w800)),
                       ),
                     ],
@@ -631,7 +962,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: weekDays.map((d) => Text(d,
-                        style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11,
+                        style: TextStyle(color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280), fontSize: 11,
                             fontWeight: FontWeight.w700))).toList(),
                   ),
                   const SizedBox(height: 10),
@@ -657,7 +988,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _reviewCompleted
                         ? 'Nice work — today\'s challenge completed'
                         : 'Keep your streak alive by using the app daily.',
-                    style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11,
+                    style: TextStyle(color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280), fontSize: 11,
                         fontWeight: FontWeight.w500, height: 1.35),
                   ),
                 ],
@@ -672,7 +1003,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRewardsCard() {
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedIndex = 3),
+        onTap: () => setState(() => _selectedIndex = 4),
         child: Container(
           height: 170,
           decoration: BoxDecoration(
@@ -727,8 +1058,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomNav() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey[300]!))),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
+        ),
+      ),
       child: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (i) {
@@ -743,12 +1079,12 @@ class _HomeScreenState extends State<HomeScreen> {
           if (i == 0) _loadActiveTopicProgress();
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF17192B) : Colors.white,
         elevation: 0,
         // Let us control icon sizes via custom widgets.
         iconSize: 0,
         selectedItemColor: const Color(0xFF007AFF),
-        unselectedItemColor: const Color.fromRGBO(0, 0, 0, 0.55),
+        unselectedItemColor: isDark ? const Color(0xFF939BB6) : const Color.fromRGBO(0, 0, 0, 0.55),
         selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
         unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
         items: const [

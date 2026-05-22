@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:fintech/services/xp_service.dart';
+import 'widgets/daily_reward_completed_view.dart';
 
 class SpinWinScreen extends StatefulWidget {
   const SpinWinScreen({super.key});
@@ -13,6 +14,9 @@ class _SpinWinScreenState extends State<SpinWinScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isSpinning = false;
+  bool _loadingDaily = true;
+  bool _playedToday = false;
+  bool _hasSpunToday = false;
   int _selectedPrize = 0;
 
   final List<String> _prizes = [
@@ -44,6 +48,16 @@ class _SpinWinScreenState extends State<SpinWinScreen>
       duration: const Duration(seconds: 4),
       vsync: this,
     );
+    _loadDailyStatus();
+  }
+
+  Future<void> _loadDailyStatus() async {
+    final played = await XpService.instance.hasDailyReward(XpService.spinWinGame);
+    if (!mounted) return;
+    setState(() {
+      _playedToday = played;
+      _loadingDaily = false;
+    });
   }
 
   @override
@@ -53,10 +67,11 @@ class _SpinWinScreenState extends State<SpinWinScreen>
   }
 
   void _spin() {
-    if (_isSpinning) return;
+    if (_isSpinning || _playedToday || _hasSpunToday) return;
 
     setState(() {
       _isSpinning = true;
+      _hasSpunToday = true;
       _selectedPrize = math.Random().nextInt(_prizes.length);
     });
 
@@ -116,15 +131,27 @@ class _SpinWinScreenState extends State<SpinWinScreen>
               ElevatedButton(
                 onPressed: () async {
                   try {
-                    await XpService.instance.earnXp(
+                    final result = await XpService.instance.earnXpOnce(
                       amount: prizeXp,
                       source: 'spin_win_reward',
+                      awardKey: XpService.dailyAwardKey(XpService.spinWinGame),
                     );
+                    if (!result.awarded) {
+                      if (!mounted) return;
+                      setState(() => _playedToday = true);
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Daily spin reward already claimed.'),
+                        ),
+                      );
+                      return;
+                    }
 
                     if (!mounted) {
                       return;
                     }
 
+                    setState(() => _playedToday = true);
                     Navigator.of(this.context).pop();
                     Navigator.of(this.context).pop();
                   } catch (error) {
@@ -188,7 +215,14 @@ class _SpinWinScreenState extends State<SpinWinScreen>
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: _loadingDaily
+          ? const Center(child: CircularProgressIndicator())
+          : _playedToday
+              ? const DailyRewardCompletedView(
+                  gameTitle: 'Spin & Win',
+                  accentColor: Color(0xFFEA9C1D),
+                )
+              : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -316,7 +350,7 @@ class _SpinWinScreenState extends State<SpinWinScreen>
               const SizedBox(height: 60),
               // Spin Button
               ElevatedButton(
-                onPressed: _isSpinning ? null : _spin,
+                onPressed: _isSpinning || _hasSpunToday ? null : _spin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEA9C1D),
                   foregroundColor: Colors.white,
@@ -331,7 +365,11 @@ class _SpinWinScreenState extends State<SpinWinScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _isSpinning ? 'Spinning...' : 'Spin Now',
+                      _isSpinning
+                          ? 'Spinning...'
+                          : _hasSpunToday
+                              ? 'Claim your prize above'
+                              : 'Spin Now',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,

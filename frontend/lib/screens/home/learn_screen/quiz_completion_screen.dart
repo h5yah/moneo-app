@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'topic_completion_screen.dart';
+import 'package:fintech/services/xp_service.dart';
 
 class QuizCompletionScreen extends StatelessWidget {
-  static const int _xpPerLevel = 500;
-
   final int score;
   final int totalQuestions;
   final int earnedXP;
   final int currentLevel;
   final int xpToNextLevel;
+  final String? topicId;
   final String? topicTitle;
   final int? lessonsCompleted;
   final int? totalLessons;
@@ -22,6 +22,7 @@ class QuizCompletionScreen extends StatelessWidget {
     required this.earnedXP,
     required this.currentLevel,
     required this.xpToNextLevel,
+    this.topicId,
     this.topicTitle,
     this.lessonsCompleted,
     this.totalLessons,
@@ -31,8 +32,6 @@ class QuizCompletionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progressToNextLevel =
-        ((_xpPerLevel - xpToNextLevel) / _xpPerLevel).clamp(0.0, 1.0);
     final hasImprovementData =
       preQuizScore != null && preQuizTotal != null && preQuizTotal! > 0;
 
@@ -72,30 +71,50 @@ class QuizCompletionScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 // XP message
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black.withValues(alpha: 0.6),
-                      height: 1.5,
-                    ),
-                    children: [
-                      const TextSpan(text: "You're "),
-                      TextSpan(
-                        text: '$xpToNextLevel XP',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF007AFF),
+                StreamBuilder<int>(
+                  stream: XpService.instance.xpStream(),
+                  builder: (context, snapshot) {
+                    final totalXp = (snapshot.data ?? 0).clamp(0, 1 << 30);
+                    final levelMeta = XpService.levelMetaFromTotalXp(totalXp);
+                    final liveCurrentLevel = levelMeta.level;
+                    final liveXpToNext = levelMeta.xpToNextLevel;
+
+                    return RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black.withValues(alpha: 0.6),
+                          height: 1.5,
                         ),
+                        children: [
+                          const TextSpan(text: "You're "),
+                          TextSpan(
+                            text: '$liveXpToNext XP',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF007AFF),
+                            ),
+                          ),
+                          const TextSpan(text: ' away from your next\nreward.'),
+                        ],
                       ),
-                      const TextSpan(text: ' away from your next\nreward.'),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
                 // Level progress section
-                _buildLevelProgress(progressToNextLevel),
+                StreamBuilder<int>(
+                  stream: XpService.instance.xpStream(),
+                  builder: (context, snapshot) {
+                    final totalXp = (snapshot.data ?? 0).clamp(0, 1 << 30);
+                    final levelMeta = XpService.levelMetaFromTotalXp(totalXp);
+                    return _buildLevelProgress(
+                      levelMeta.progressInLevel,
+                      currentLevel: levelMeta.level,
+                    );
+                  },
+                ),
                 if (hasImprovementData) ...[
                   const SizedBox(height: 24),
                   _buildImprovementSection(),
@@ -106,16 +125,11 @@ class QuizCompletionScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Alex is doing amazing!',
+                      'Keep going — you’re building momentum!',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black.withValues(alpha: 0.6),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Text(
-                      '🚀',
-                      style: TextStyle(fontSize: 14),
                     ),
                   ],
                 ),
@@ -185,7 +199,10 @@ class QuizCompletionScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLevelProgress(double progress) {
+  Widget _buildLevelProgress(
+    double progress, {
+    required int currentLevel,
+  }) {
     return Column(
       children: [
         Row(
@@ -255,24 +272,30 @@ class QuizCompletionScreen extends StatelessWidget {
   }
 
   Widget _buildContinueButton(BuildContext context) {
-    final resolvedTopicTitle = topicTitle ?? 'Budgeting & Expense Tracking';
-    final resolvedLessonsCompleted = lessonsCompleted ?? 5;
-    final resolvedTotalLessons = totalLessons ?? 5;
+    final resolvedTopicTitle = topicTitle;
+    final resolvedLessonsCompleted = lessonsCompleted;
+    final resolvedTotalLessons = totalLessons;
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          // Navigate to topic completion screen
+          if (resolvedTopicTitle == null ||
+              resolvedLessonsCompleted == null ||
+              resolvedTotalLessons == null) {
+            Navigator.of(context).pop();
+            return;
+          }
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => TopicCompletionScreen(
+                topicId: topicId,
                 topicTitle: resolvedTopicTitle,
                 lessonsCompleted: resolvedLessonsCompleted,
                 totalLessons: resolvedTotalLessons,
                 earnedXP: earnedXP,
-                performanceScore:
-                    (score / totalQuestions * 100).clamp(0.0, 100.0),
+                performanceScore: (score / totalQuestions * 100).clamp(0.0, 100.0),
               ),
             ),
           );

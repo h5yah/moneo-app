@@ -24,7 +24,10 @@ import 'package:flutter/material.dart';
 // ...existing code...
 
 class GoalsScreen extends StatefulWidget {
-  const GoalsScreen({super.key});
+  const GoalsScreen({super.key, this.openCreateOnLaunch = false});
+
+  /// When true, opens the add-goal flow (category picker) as soon as the screen is shown.
+  final bool openCreateOnLaunch;
 
   @override
   State<GoalsScreen> createState() => _GoalsScreenState();
@@ -150,6 +153,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
     }
 
     return DateTime.tryParse(value);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openCreateOnLaunch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showCreateGoalDialog();
+      });
+    }
   }
 
   String _iconNameFromIcon(IconData icon) {
@@ -448,15 +461,23 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF17192B) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Goals', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 22)),
+        title: Text(
+          'Goals',
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -470,7 +491,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF7F8FA),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),

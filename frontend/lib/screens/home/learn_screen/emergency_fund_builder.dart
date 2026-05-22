@@ -1224,7 +1224,11 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
     Future.microtask(() async {
       if (!_xpAwarded && _emergencyFund >= 1500) {
         _xpAwarded = true;
-        await XpService.instance.earnXp(amount: 50, source: 'emergency_fund_builder');
+        await XpService.instance.earnXpOnce(
+          amount: 100,
+          source: 'emergency_fund_builder',
+          awardKey: 'scenario:emergency_fund_builder',
+        );
       }
     });
 
@@ -1284,7 +1288,7 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
                       children: const [
                         Icon(Icons.star, color: Colors.yellow, size: 22),
                         SizedBox(width: 8),
-                        Text('XP Earned: 50',
+                        Text('XP Earned: 100',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,

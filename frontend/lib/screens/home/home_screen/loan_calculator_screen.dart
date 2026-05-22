@@ -11,8 +11,7 @@ class LoanCalculatorScreen extends StatefulWidget {
 
 class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
     with SingleTickerProviderStateMixin {
-  final TextEditingController _loanController =
-      TextEditingController(text: '0');
+  final TextEditingController _loanController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _breakdownKey = GlobalKey();
 
@@ -102,18 +101,21 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0F1020) : _bg;
+    final titleColor = isDark ? Colors.white : _textDark;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: _bg,
+        backgroundColor: bgColor,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: _BackButton(),
-        title: const Text(
+        title: Text(
           'Loan Calculator',
           style: TextStyle(
-            color: _textDark,
+            color: titleColor,
             fontSize: 18,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.3,
@@ -197,12 +199,13 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF6B7280),
+        color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280),
         letterSpacing: 0.2,
       ),
     );
@@ -221,14 +224,22 @@ class _BackButton extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1B1D33)
+                : Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE5E7EB)),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF2A2D4A)
+                  : const Color(0xFFE5E7EB),
+            ),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 14,
-            color: Color(0xFF111827),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : const Color(0xFF111827),
           ),
         ),
       ),
@@ -250,13 +261,16 @@ class _AmountInputFieldState extends State<_AmountInputField> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _focused ? const Color(0xFFFF6B35) : const Color(0xFFE5E7EB),
+          color: _focused
+              ? const Color(0xFFFF6B35)
+              : (isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE5E7EB)),
           width: _focused ? 1.5 : 1,
         ),
         boxShadow: _focused
@@ -298,21 +312,27 @@ class _AmountInputFieldState extends State<_AmountInputField> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[\d,.]')),
                 ],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF111827),
+                  color: isDark ? Colors.white : const Color(0xFF111827),
                   letterSpacing: -0.5,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: '0',
                   hintStyle: TextStyle(
-                    color: Color(0xFFD1D5DB),
-                    fontWeight: FontWeight.w500,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                    color: (isDark
+                            ? const Color(0xFFAAB0C6)
+                            : const Color(0xFF9CA3AF))
+                        .withValues(alpha: 0.45),
                   ),
                   border: InputBorder.none,
+                  isDense: true,
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
                 ),
               ),
             ),

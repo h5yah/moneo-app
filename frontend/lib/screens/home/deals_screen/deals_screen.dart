@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:fintech/services/coupon_service.dart';
 import 'package:fintech/services/xp_service.dart';
+import 'package:fintech/services/xp_tier_service.dart';
 import 'deal_detail_screen.dart';
 import 'all_deals_screen.dart';
 import 'my_coupons_screen.dart';
 import 'spin_win_screen.dart';
 import 'guess_win_screen.dart';
 import 'shake_win_screen.dart';
+import 'loyalty_tier_screen.dart';
 
 class DealsScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
@@ -22,29 +25,59 @@ class DealsScreen extends StatefulWidget {
 
 class _DealsScreenState extends State<DealsScreen> {
   int _selectedIndex = 3; // Deals tab
-  static const int _maxXp = 200000;
+  bool _spinPlayedToday = false;
+  bool _guessPlayedToday = false;
+  bool _shakePlayedToday = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshDailyGameStatus();
+  }
+
+  Future<void> _refreshDailyGameStatus() async {
+    final results = await Future.wait([
+      XpService.instance.hasDailyReward(XpService.spinWinGame),
+      XpService.instance.hasDailyReward(XpService.guessWinGame),
+      XpService.instance.hasDailyReward(XpService.shakeWinGame),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _spinPlayedToday = results[0];
+      _guessPlayedToday = results[1];
+      _shakePlayedToday = results[2];
+    });
+  }
+
+  Future<void> _openMiniGame(Widget screen) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => screen),
+    );
+    await _refreshDailyGameStatus();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return StreamBuilder<int>(
       stream: XpService.instance.xpStream(),
       builder: (context, snapshot) {
         final currentXp = snapshot.data ?? 0;
 
         return Container(
-          color: const Color(0xFFF0F0F0),
+          color: isDark ? const Color(0xFF0F1020) : const Color(0xFFF0F0F0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Gradient Header with XP Circle
                 _buildGradientHeader(currentXp),
-                const SizedBox(height: 8),
-                // Status Card
                 _buildStatusCard(currentXp),
-                const SizedBox(height: 32),
                 // Rewards Section
-                _buildRewardsSection(),
+                Transform.translate(
+                  offset: const Offset(0, 0),
+                  child: _buildRewardsSection(),
+                ),
                 const SizedBox(height: 32),
                 // Exclusive Deals Section
                 _buildExclusiveDealsSection(),
@@ -58,26 +91,27 @@ class _DealsScreenState extends State<DealsScreen> {
   }
 
   Widget _buildGradientHeader(int currentXp) {
+    final topInset = MediaQuery.of(context).padding.top;
     return Container(
-      height: 319,
+      height: 319 + topInset,
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
           colors: [
-            Color(0xFFEA9C1D),
-            Color(0xFFFF2D84),
+            Color(0xFF007AFF),
+            Color(0xFF7C3AED),
           ],
         ),
       ),
       child: Stack(
         children: [
           // Header Title
-          const Positioned(
+          Positioned(
             left: 35,
-            top: 61,
-            child: Text(
+            top: 18 + topInset,
+            child: const Text(
               'Rewards',
               style: TextStyle(
                 fontSize: 24,
@@ -87,57 +121,68 @@ class _DealsScreenState extends State<DealsScreen> {
               ),
             ),
           ),
-          // Notification Icon
+          // My Coupons icon
           Positioned(
             right: 35,
-            top: 61,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const MyCouponsScreen(),
+            top: 18 + topInset,
+            child: StreamBuilder<int>(
+              stream: CouponService.instance.activeCouponCountStream(),
+              builder: (context, snapshot) {
+                final count = snapshot.data ?? 0;
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const MyCouponsScreen(),
+                      ),
+                    );
+                  },
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(
+                        Icons.confirmation_number_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 13,
+                              minHeight: 13,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF6366F1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                count > 9 ? '9+' : '$count',
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  letterSpacing: -0.408,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 );
               },
-              child: Stack(
-                children: [
-                  const Icon(
-                    Icons.confirmation_number_outlined,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 13,
-                      height: 13,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEA9C1D),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '1',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            letterSpacing: -0.408,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
           // XP Circle Progress
           Positioned(
             left: 0,
             right: 0,
-            top: 95,
+            top: 95 + topInset,
             child: Center(
               child: _buildXPCircle(currentXp),
             ),
@@ -148,22 +193,21 @@ class _DealsScreenState extends State<DealsScreen> {
   }
 
   Widget _buildXPCircle(int currentXp) {
-    final boundedXp = currentXp.clamp(0, _maxXp);
-    final progress = boundedXp / _maxXp;
+    final tierMeta = XpTierService.metaFromTotalXp(currentXp);
+    final progress = tierMeta.progressInTier;
+    final rangeStart = tierMeta.tierRangeStart;
+    final rangeEnd = tierMeta.tierRangeEnd;
 
     return SizedBox(
       width: 340,
       height: 180,
       child: Stack(
         children: [
-          // Progress Circle
+          // Progress Circle (animated 0 → current)
           Positioned(
             left: 14,
             top: 10,
-            child: CustomPaint(
-              size: const Size(313, 160),
-              painter: _CircleProgressPainter(progress),
-            ),
+            child: _AnimatedArcProgress(targetProgress: progress),
           ),
           // Star Icon
           Positioned(
@@ -171,19 +215,18 @@ class _DealsScreenState extends State<DealsScreen> {
             top: 44,
             child: Icon(
               Icons.star,
-              color: Color(0xFFEA9C1D),
+              color: Color(tierMeta.currentTier.accentColor),
               size: 24,
             ),
           ),
-          // Blue text
           Positioned(
             left: 14,
             right: 14,
             top: 79,
             child: Text(
-              'Silver',
+              tierMeta.currentTier.label,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Color(0xBFFFFFFF),
@@ -207,13 +250,12 @@ class _DealsScreenState extends State<DealsScreen> {
               ),
             ),
           ),
-          // 0 label
           Positioned(
             left: 16,
             top: 166,
             child: Text(
-              '0',
-              style: TextStyle(
+              _formatNumber(rangeStart),
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Color(0xADFFFFFF),
@@ -221,13 +263,12 @@ class _DealsScreenState extends State<DealsScreen> {
               ),
             ),
           ),
-          // 200,000 label
           Positioned(
-            left: 290,
+            right: 16,
             top: 166,
             child: Text(
-              _formatNumber(_maxXp),
-              style: TextStyle(
+              tierMeta.isMaxTier ? 'Max' : _formatNumber(rangeEnd),
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Color(0xADFFFFFF),
@@ -241,56 +282,116 @@ class _DealsScreenState extends State<DealsScreen> {
   }
 
   Widget _buildStatusCard(int currentXp) {
-    final remainingXp = math.max(0, _maxXp - currentXp);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tierMeta = XpTierService.metaFromTotalXp(currentXp);
+    final highlightXp = tierMeta.isMaxTier
+        ? _formatNumber(tierMeta.totalXp)
+        : _formatNumber(tierMeta.xpToNextTier);
 
     return Transform.translate(
       offset: const Offset(0, -25),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 35),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0x9C000000),
-                    letterSpacing: -0.408,
-                    height: 1.33,
-                  ),
-                  children: [
-                    const TextSpan(text: "You're "),
-                    TextSpan(
-                      text: '${_formatNumber(remainingXp)} XP',
-                      style: const TextStyle(
-                        color: Color(0xFFEA9C1D),
-                      ),
-                    ),
-                    const TextSpan(text: ' away from Silver status,\nkeep it up!'),
-                  ],
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 325),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _openLoyaltyTiers(currentXp),
+              borderRadius: BorderRadius.circular(20),
+              child: Ink(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1B1D33) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: isDark
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+              child: tierMeta.isMaxTier
+                  ? Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: isDark ? const Color(0xFFAAB0C6) : const Color(0x9C000000),
+                          letterSpacing: -0.408,
+                          height: 1.33,
+                        ),
+                        children: [
+                          const TextSpan(text: "You're at "),
+                          TextSpan(
+                            text: '${tierMeta.currentTier.label} status',
+                            style: TextStyle(
+                              color: Color(tierMeta.currentTier.accentColor),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          TextSpan(text: ' — $highlightXp total XP!'),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: isDark ? const Color(0xFFAAB0C6) : const Color(0x9C000000),
+                          letterSpacing: -0.408,
+                          height: 1.33,
+                        ),
+                        children: [
+                          const TextSpan(text: "You're "),
+                          TextSpan(
+                            text: '$highlightXp XP',
+                            style: const TextStyle(
+                              color: Color(0xFF6366F1),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' away from ${tierMeta.nextTier!.label} status,\nkeep it up!',
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+            ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        size: 14,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 12),
-            Transform.rotate(
-              angle: math.pi,
-              child: const Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black,
-                size: 12,
-              ),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  void _openLoyaltyTiers(int currentXp) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LoyaltyTierScreen(totalXp: currentXp),
       ),
     );
   }
@@ -303,42 +404,46 @@ class _DealsScreenState extends State<DealsScreen> {
   }
 
   Widget _buildRewardsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 35),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Rewards',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Color(0xB5000000),
+              color: isDark ? Colors.white : const Color(0xB5000000),
               letterSpacing: -0.408,
             ),
           ),
           const SizedBox(height: 18),
           // Spin & Win Card
-          _buildSpinWinCard(),
+          _buildSpinWinCard(playedToday: _spinPlayedToday),
           const SizedBox(height: 12),
-          // Guess & Win and Shake & Win Cards
           Row(
             children: [
               Expanded(
                 child: _buildMiniGameCard(
-                  'Guess & Win',
-                  '1000 XP',
-                  const Color(0xFF75C4EC),
-                  'assets/guess.png',
+                  title: 'Guess & Win',
+                  xp: '1000 XP',
+                  color: const Color(0xFF75C4EC),
+                  iconAsset: 'assets/guess.png',
+                  playedToday: _guessPlayedToday,
+                  onTap: () => _openMiniGame(const GuessWinScreen()),
                 ),
               ),
               const SizedBox(width: 17),
               Expanded(
                 child: _buildMiniGameCard(
-                  'Shake & Win',
-                  '1000 XP',
-                  const Color(0xFFEC75AB),
-                  'assets/shake_egg.png',
+                  title: 'Shake & Win',
+                  xp: '1000 XP',
+                  color: const Color(0xFF8B5CF6),
+                  iconAsset: 'assets/shake_egg.png',
+                  playedToday: _shakePlayedToday,
+                  onTap: () => _openMiniGame(const ShakeWinScreen()),
                 ),
               ),
             ],
@@ -348,151 +453,175 @@ class _DealsScreenState extends State<DealsScreen> {
     );
   }
 
-  Widget _buildSpinWinCard() {
+  Widget _buildSpinWinCard({required bool playedToday}) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const SpinWinScreen(),
+      onTap: () => _openMiniGame(const SpinWinScreen()),
+      child: Opacity(
+        opacity: playedToday ? 0.72 : 1,
+        child: Container(
+          height: 173,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFF4F46E5),
+            borderRadius: BorderRadius.circular(20),
           ),
-        );
-      },
-      child: Container(
-        height: 173,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFFEA9C1D),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Stack(
-          children: [
-          // Left side content
-          const Positioned(
-            left: 20,
-            top: 35,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Spin & Win',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: -0.408,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '1000 XP',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xD4FFFFFF),
-                    letterSpacing: -0.408,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Wheel illustration placeholder on right
-          Positioned(
-            right: 0,
-            top: 13,
-            child: SizedBox(
-              width: 177,
-              height: 147,
-              child: Image.asset(
-                'assets/fortune-wheel.png',
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-    );
-  }
-
-  Widget _buildMiniGameCard(
-    String title,
-    String xp,
-    Color color,
-    String iconAsset,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        if (title == 'Guess & Win') {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const GuessWinScreen(),
-            ),
-          );
-        } else if (title == 'Shake & Win') {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const ShakeWinScreen(),
-            ),
-          );
-        }
-      },
-      child: Container(
-        height: 84,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(20),
-        ),
-      padding: const EdgeInsets.all(10),
-      child: Row(
-        children: [
-          SizedBox(
-            width: iconAsset == 'assets/shake_egg.png' ? 52 : 49,
-            height: iconAsset == 'assets/shake_egg.png' ? 52 : 49,
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Image.asset(
-                iconAsset,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-          const Spacer(),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Stack(
             children: [
-              Text(
-                title,
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: -0.408,
-                  height: 1.29,
+              const Positioned(
+                left: 20,
+                top: 35,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Spin & Win',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: -0.408,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '1000 XP',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xD4FFFFFF),
+                        letterSpacing: -0.408,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                xp,
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xD4FFFFFF),
-                  letterSpacing: -0.408,
+              Positioned(
+                right: 0,
+                top: 13,
+                child: SizedBox(
+                  width: 177,
+                  height: 147,
+                  child: Image.asset(
+                    'assets/fortune-wheel.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
+              if (playedToday)
+                Positioned(
+                  right: 12,
+                  top: 12,
+                  child: _playedTodayBadge(),
+                ),
             ],
           ),
-          const SizedBox(width: 10),
-        ],
+        ),
       ),
-    ),
+    );
+  }
+
+  Widget _buildMiniGameCard({
+    required String title,
+    required String xp,
+    required Color color,
+    required String iconAsset,
+    required bool playedToday,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: playedToday ? 0.72 : 1,
+        child: Container(
+          height: 84,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.all(10),
+          child: Stack(
+            children: [
+              Row(
+                children: [
+                  SizedBox(
+                    width: iconAsset == 'assets/shake_egg.png' ? 52 : 49,
+                    height: iconAsset == 'assets/shake_egg.png' ? 52 : 49,
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Image.asset(
+                        iconAsset,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        title,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: -0.408,
+                          height: 1.29,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        xp,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xD4FFFFFF),
+                          letterSpacing: -0.408,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 10),
+                ],
+              ),
+              if (playedToday)
+                Positioned(
+                  left: 8,
+                  top: 8,
+                  child: _playedTodayBadge(compact: true),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _playedTodayBadge({bool compact = false}) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 8 : 10,
+        vertical: compact ? 3 : 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        'Played today',
+        style: TextStyle(
+          fontSize: compact ? 9 : 11,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 
   Widget _buildExclusiveDealsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -501,12 +630,12 @@ class _DealsScreenState extends State<DealsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Exclusive Deals',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xB5000000),
+                  color: isDark ? Colors.white : const Color(0xB5000000),
                   letterSpacing: -0.408,
                 ),
               ),
@@ -584,6 +713,7 @@ class _DealsScreenState extends State<DealsScreen> {
     List<String>? validationPoints,
     String? dealStore,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -615,7 +745,7 @@ class _DealsScreenState extends State<DealsScreen> {
       child: Container(
         width: 294,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1B1D33) : Colors.white,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -691,10 +821,10 @@ class _DealsScreenState extends State<DealsScreen> {
                       Expanded(
                         child: Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: isDark ? Colors.white : Colors.black,
                             letterSpacing: -0.408,
                           ),
                         ),
@@ -712,12 +842,12 @@ class _DealsScreenState extends State<DealsScreen> {
                               letterSpacing: -0.408,
                             ),
                           ),
-                          const Text(
+                          Text(
                             'XP COST',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
-                              color: Colors.black,
+                              color: isDark ? const Color(0xFFAAB0C6) : Colors.black,
                               letterSpacing: -0.408,
                             ),
                           ),
@@ -728,10 +858,10 @@ class _DealsScreenState extends State<DealsScreen> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xE8000000),
+                      color: isDark ? const Color(0xFFAAB0C6) : const Color(0xE8000000),
                       letterSpacing: -0.408,
                     ),
                   ),
@@ -835,6 +965,69 @@ class _DealsScreenState extends State<DealsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AnimatedArcProgress extends StatefulWidget {
+  const _AnimatedArcProgress({required this.targetProgress});
+
+  final double targetProgress;
+
+  @override
+  State<_AnimatedArcProgress> createState() => _AnimatedArcProgressState();
+}
+
+class _AnimatedArcProgressState extends State<_AnimatedArcProgress>
+    with SingleTickerProviderStateMixin {
+  static const _duration = Duration(milliseconds: 1400);
+
+  late final AnimationController _controller;
+  late Animation<double> _progressAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: _duration);
+    _progressAnimation = _buildTween(0, widget.targetProgress);
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedArcProgress oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.targetProgress != widget.targetProgress) {
+      final from = _progressAnimation.value.clamp(0.0, 1.0);
+      _progressAnimation = _buildTween(from, widget.targetProgress);
+      _controller
+        ..reset()
+        ..forward();
+    }
+  }
+
+  Animation<double> _buildTween(double begin, double end) {
+    return Tween<double>(
+      begin: begin.clamp(0.0, 1.0),
+      end: end.clamp(0.0, 1.0),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _progressAnimation,
+      builder: (context, _) {
+        return CustomPaint(
+          size: const Size(313, 160),
+          painter: _CircleProgressPainter(_progressAnimation.value),
+        );
+      },
     );
   }
 }

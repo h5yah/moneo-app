@@ -172,16 +172,17 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
+      backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF2F2F7),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F2F7),
+        backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF2F2F7),
         elevation: 0,
         titleSpacing: 0,
-        title: const Text(
+        title: Text(
           'My Wallet',
           style: TextStyle(
-            color: Color(0xFF1C1C1E),
+            color: isDark ? Colors.white : const Color(0xFF1C1C1E),
             fontSize: 22,
             fontWeight: FontWeight.w700,
           ),
@@ -196,12 +197,12 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
             const SizedBox(height: 24),
             Row(
               children: [
-                const Text(
+                Text(
                   'Wallet History',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1C1C1E),
+                    color: isDark ? Colors.white : const Color(0xFF1C1C1E),
                   ),
                 ),
                 const Spacer(),
@@ -230,13 +231,13 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1B1D33) : Colors.white,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Text(
+                    child: Text(
                       'No transactions found',
                       style: TextStyle(
-                        color: Color(0xFF8E8E93),
+                        color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF8E8E93),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -386,21 +387,23 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
   }
 
   Widget _buildFilterDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFD1D1D6)),
+        border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFFD1D1D6)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedFilter,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-          style: const TextStyle(
+          dropdownColor: isDark ? const Color(0xFF1B1D33) : Colors.white,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: isDark ? Colors.white : null),
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1C1C1E),
+            color: isDark ? Colors.white : const Color(0xFF1C1C1E),
           ),
           borderRadius: BorderRadius.circular(10),
           items: const [
@@ -420,6 +423,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
   }
 
   Widget _buildHistoryItem(Map<String, dynamic> item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCashIn = item['type'] == 'cash_in';
     final amount = item['amount'] as double;
     final icon = (item['icon'] as IconData?) ??
@@ -435,7 +439,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -460,8 +464,8 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
               children: [
                 Text(
                   item['title'] as String,
-                  style: const TextStyle(
-                    color: Color(0xFF1C1C1E),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1C1C1E),
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -469,8 +473,8 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                 const SizedBox(height: 2),
                 Text(
                   item['date'] as String,
-                  style: const TextStyle(
-                    color: Color(0xFF8E8E93),
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF8E8E93),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),

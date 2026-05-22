@@ -202,7 +202,71 @@
         { "step": "STEP 5", "title": "The Power of Long-Term Investing", "duration": "5 min" },
         { "step": "STEP 6", "title": "Common Investment Mistakes", "duration": "5 min" }
       ],
-      "preQuiz": []
+      "preQuiz": [
+        {
+          "question": "What is the main goal of investing?",
+          "options": [
+            "To guarantee profit every day",
+            "To grow your money over time",
+            "To avoid all risk",
+            "To spend money faster"
+          ],
+          "correctAnswer": "To grow your money over time",
+          "explanation": "Investing aims to grow wealth over the long term, not guarantee daily gains."
+        },
+        {
+          "question": "In general, higher potential returns come with:",
+          "options": ["Lower risk", "Higher risk", "No risk", "Guaranteed results"],
+          "correctAnswer": "Higher risk",
+          "explanation": "Risk and return are linked: higher returns usually mean more volatility/uncertainty."
+        },
+        {
+          "question": "What does diversification help you do?",
+          "options": [
+            "Put all money in one asset",
+            "Reduce the impact of one investment doing badly",
+            "Eliminate taxes",
+            "Make investments risk-free"
+          ],
+          "correctAnswer": "Reduce the impact of one investment doing badly",
+          "explanation": "Diversification spreads risk across different assets so one loss hurts less."
+        }
+      ],
+      "finalQuiz": [
+        {
+          "question": "Which statement best describes investing vs saving?",
+          "options": [
+            "Saving is always higher risk than investing",
+            "Investing aims for long-term growth and can be volatile",
+            "Investing guarantees profit, saving does not",
+            "Saving is only for rich people"
+          ],
+          "correctAnswer": "Investing aims for long-term growth and can be volatile",
+          "explanation": "Saving prioritizes safety/liquidity; investing prioritizes long-term growth with risk."
+        },
+        {
+          "question": "A diversified portfolio means you:",
+          "options": [
+            "Hold many different types of assets",
+            "Buy only one stock you love",
+            "Avoid learning about risk",
+            "Change your investments every day"
+          ],
+          "correctAnswer": "Hold many different types of assets",
+          "explanation": "Diversification spreads risk across different assets/sectors."
+        },
+        {
+          "question": "What is a common investing mistake for beginners?",
+          "options": [
+            "Having a long-term plan",
+            "Chasing quick profits and panic-selling",
+            "Learning fees and risks before buying",
+            "Diversifying gradually"
+          ],
+          "correctAnswer": "Chasing quick profits and panic-selling",
+          "explanation": "Emotional decisions often lead to buying high and selling low."
+        }
+      ]
     },
     "protecting_yourself_from_fraud_and_scams": {
       "lessons": [
@@ -213,7 +277,76 @@
         { "step": "STEP 5", "title": "Recognizing Warning Signs of Fraud", "duration": "5 min" },
         { "step": "STEP 6", "title": "What To Do If You Are Scammed", "duration": "5 min" }
       ],
-      "preQuiz": []
+      "preQuiz": [
+        {
+          "question": "Which is a common warning sign of a scam?",
+          "options": [
+            "Clear written terms and conditions",
+            "Pressure to act immediately",
+            "A secure website and official email domain",
+            "A receipt after payment"
+          ],
+          "correctAnswer": "Pressure to act immediately",
+          "explanation": "Scammers often create urgency so you act before thinking."
+        },
+        {
+          "question": "What should you do if you receive a suspicious link from a bank?",
+          "options": [
+            "Click the link to check quickly",
+            "Reply with your PIN to confirm identity",
+            "Open your bank app or type the official website yourself",
+            "Forward it to friends"
+          ],
+          "correctAnswer": "Open your bank app or type the official website yourself",
+          "explanation": "Use official channels instead of links in messages to avoid phishing."
+        },
+        {
+          "question": "Which information should you NEVER share over chat or phone?",
+          "options": [
+            "Your name",
+            "Your one-time password (OTP) or PIN",
+            "Your city",
+            "Your preferred language"
+          ],
+          "correctAnswer": "Your one-time password (OTP) or PIN",
+          "explanation": "OTPs and PINs give direct account access—banks won't ask for them."
+        }
+      ],
+      "finalQuiz": [
+        {
+          "question": "What is the safest way to verify a message claiming to be from your bank?",
+          "options": [
+            "Reply to the message and ask for proof",
+            "Call a number in the message",
+            "Use the official app/website or official customer support number",
+            "Click the link quickly before it expires"
+          ],
+          "correctAnswer": "Use the official app/website or official customer support number",
+          "explanation": "Always verify using official channels, not links or numbers inside suspicious messages."
+        },
+        {
+          "question": "Which action helps protect you from account takeover?",
+          "options": [
+            "Reusing the same password everywhere",
+            "Sharing OTPs with trusted friends",
+            "Using strong unique passwords and enabling 2-step verification",
+            "Posting your card details in a private group"
+          ],
+          "correctAnswer": "Using strong unique passwords and enabling 2-step verification",
+          "explanation": "Unique passwords + 2FA reduce the chance of attackers accessing your account."
+        },
+        {
+          "question": "If you think you were scammed, what should you do first?",
+          "options": [
+            "Do nothing and wait",
+            "Immediately report to your bank/service and secure your accounts",
+            "Send more money to recover the loss",
+            "Delete the app and ignore it"
+          ],
+          "correctAnswer": "Immediately report to your bank/service and secure your accounts",
+          "explanation": "Fast action can stop further losses and help with recovery steps."
+        }
+      ]
     },
     "taxes_and_tax_planning": {
       "lessons": [
@@ -224,7 +357,76 @@
         { "step": "STEP 5", "title": "Basic Tax Planning Concepts", "duration": "5 min" },
         { "step": "STEP 6", "title": "Avoiding Common Tax Mistakes", "duration": "5 min" }
       ],
-      "preQuiz": []
+      "preQuiz": [
+        {
+          "question": "Why do governments collect taxes?",
+          "options": [
+            "Only to punish people",
+            "To fund public services and infrastructure",
+            "To stop people from saving",
+            "To remove the need for budgets"
+          ],
+          "correctAnswer": "To fund public services and infrastructure",
+          "explanation": "Taxes pay for roads, hospitals, schools, and other public services."
+        },
+        {
+          "question": "Income tax is generally based on:",
+          "options": [
+            "How many friends you have",
+            "Your earnings/income",
+            "Your phone model",
+            "Your shopping preferences"
+          ],
+          "correctAnswer": "Your earnings/income",
+          "explanation": "Income tax is calculated using your taxable income."
+        },
+        {
+          "question": "A common tax mistake is:",
+          "options": [
+            "Keeping receipts and records",
+            "Filing on time",
+            "Ignoring deadlines and missing filings",
+            "Checking official guidance"
+          ],
+          "correctAnswer": "Ignoring deadlines and missing filings",
+          "explanation": "Missing deadlines can lead to penalties and extra stress."
+        }
+      ],
+      "finalQuiz": [
+        {
+          "question": "What is a practical way to avoid tax-time stress?",
+          "options": [
+            "Ignore all records until the deadline",
+            "Keep simple records and set reminders for deadlines",
+            "Only rely on memory",
+            "Wait for someone to file for you automatically"
+          ],
+          "correctAnswer": "Keep simple records and set reminders for deadlines",
+          "explanation": "Basic record-keeping and deadlines reduce mistakes and penalties."
+        },
+        {
+          "question": "Why is filing on time important?",
+          "options": [
+            "It guarantees a refund",
+            "It avoids penalties and keeps you compliant",
+            "It increases your salary",
+            "It removes the need for budgeting"
+          ],
+          "correctAnswer": "It avoids penalties and keeps you compliant",
+          "explanation": "Late filing can lead to penalties, interest, and extra administrative issues."
+        },
+        {
+          "question": "A good tax planning habit is to:",
+          "options": [
+            "Make big financial decisions without checking tax impact",
+            "Understand the basics and use official guidance or professionals when needed",
+            "Guess your tax rate",
+            "Hide income to pay less"
+          ],
+          "correctAnswer": "Understand the basics and use official guidance or professionals when needed",
+          "explanation": "Good planning is legal and informed—use reliable sources."
+        }
+      ]
     },
     "retirement_planning": {
       "lessons": [
@@ -235,7 +437,76 @@
         { "step": "STEP 5", "title": "Estimating Retirement Needs", "duration": "5 min" },
         { "step": "STEP 6", "title": "Building Long-Term Financial Security", "duration": "5 min" }
       ],
-      "preQuiz": []
+      "preQuiz": [
+        {
+          "question": "Why does starting retirement saving early help?",
+          "options": [
+            "Because it guarantees high salary",
+            "Because compound growth has more time to work",
+            "Because it removes all expenses",
+            "Because it makes taxes disappear"
+          ],
+          "correctAnswer": "Because compound growth has more time to work",
+          "explanation": "Time is the biggest advantage—small amounts can grow significantly over decades."
+        },
+        {
+          "question": "A pension or retirement fund is mainly meant to:",
+          "options": [
+            "Pay for daily entertainment",
+            "Provide income later in life when you stop working",
+            "Replace budgeting",
+            "Increase credit card limits"
+          ],
+          "correctAnswer": "Provide income later in life when you stop working",
+          "explanation": "Retirement funds are designed to support you when regular work income stops."
+        },
+        {
+          "question": "Which is a good first step in retirement planning?",
+          "options": [
+            "Guess a random number and stop there",
+            "Estimate future needs and choose a regular contribution",
+            "Only plan one month at a time",
+            "Wait until the last few years"
+          ],
+          "correctAnswer": "Estimate future needs and choose a regular contribution",
+          "explanation": "Start with an estimate, then build a consistent plan you can sustain."
+        }
+      ],
+      "finalQuiz": [
+        {
+          "question": "What is one key benefit of starting retirement planning early?",
+          "options": [
+            "You never need a budget again",
+            "Your money has more time to compound",
+            "You can stop working immediately",
+            "It eliminates all investment risk"
+          ],
+          "correctAnswer": "Your money has more time to compound",
+          "explanation": "The longer the time horizon, the more compound growth can work."
+        },
+        {
+          "question": "Retirement planning mainly helps you:",
+          "options": [
+            "Get a new credit card",
+            "Replace income when you stop working",
+            "Spend more today without consequences",
+            "Avoid learning about money"
+          ],
+          "correctAnswer": "Replace income when you stop working",
+          "explanation": "The goal is financial security when regular work income ends."
+        },
+        {
+          "question": "A realistic retirement plan should include:",
+          "options": [
+            "A target, a contribution plan, and regular reviews",
+            "Only a target date with no savings",
+            "Only investing with no emergency fund",
+            "Waiting until the last year to start"
+          ],
+          "correctAnswer": "A target, a contribution plan, and regular reviews",
+          "explanation": "Plans work best when they are consistent and reviewed as life changes."
+        }
+      ]
     }
   }
 }

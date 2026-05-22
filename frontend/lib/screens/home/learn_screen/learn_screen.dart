@@ -100,19 +100,29 @@ class _LearnScreenState extends State<LearnScreen> {
 
     await LearnContentService.instance.ensureLoaded();
 
-    var progressData = await TopicProgressService.instance.getTopicProgress(topicId);
+    var progressData =
+        await TopicProgressService.instance.getTopicProgress(topicId);
     var preQuizDone = progressData?['preQuizCompleted'] == true;
     var shouldAutoStartFlow = false;
 
     if (!context.mounted) return;
 
-    if (!preQuizDone) {
+    final preQuizQuestions = _getPreQuizQuestionsForTopic(topicId);
+    final preQuizTotal = (progressData?['preQuizTotal'] as num?)?.toInt() ?? -1;
+
+    // If this topic previously had no pre-quiz, we auto-marked it as completed
+    // with a 0/0 result. Now that questions exist, show the pre-quiz again.
+    if (preQuizDone && preQuizTotal == 0 && preQuizQuestions.isNotEmpty) {
+      preQuizDone = false;
+    }
+
+    if (!preQuizDone && preQuizQuestions.isNotEmpty) {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => QuizScreen(
             quizTitle: 'Before You Start Quiz',
-            questions: _getPreQuizQuestionsForTopic(topicId),
+            questions: preQuizQuestions,
             awardXp: false,
             showCompletionFlow: false,
             revealAnswerFeedback: false,
@@ -124,9 +134,10 @@ class _LearnScreenState extends State<LearnScreen> {
                     totalQuestions: totalQuestions,
                   )
                   .then((_) async {
-                await XpService.instance.earnXp(
-                  amount: 10,
+                await XpService.instance.earnXpOnce(
+                  amount: 25,
                   source: 'pre_quiz_completion',
+                  awardKey: 'pre_quiz:$topicId',
                 );
               });
             },
@@ -134,10 +145,20 @@ class _LearnScreenState extends State<LearnScreen> {
         ),
       );
 
-      progressData = await TopicProgressService.instance.getTopicProgress(topicId);
+      progressData =
+          await TopicProgressService.instance.getTopicProgress(topicId);
       preQuizDone = progressData?['preQuizCompleted'] == true;
 
       if (!preQuizDone) return;
+      shouldAutoStartFlow = true;
+    } else if (!preQuizDone && preQuizQuestions.isEmpty) {
+      // Topics with no pre-quiz should not block the learning flow.
+      await TopicProgressService.instance.savePreQuizResult(
+        topicId: topicId,
+        score: 0,
+        totalQuestions: 0,
+      );
+      preQuizDone = true;
       shouldAutoStartFlow = true;
     }
 
@@ -224,8 +245,9 @@ class _LearnScreenState extends State<LearnScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFFFFFFFF),
+      color: isDark ? const Color(0xFF0F1020) : const Color(0xFFFFFFFF),
       child: SingleChildScrollView(
         child: Column(
           children: [
@@ -242,68 +264,29 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(35, 61, 35, 0),
+      padding: const EdgeInsets.fromLTRB(35, 18, 35, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Learn',
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: isDark ? Colors.white : Colors.black,
               letterSpacing: -0.408,
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Short lessons to improve your financial knowledge',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w400,
-              color: Color.fromRGBO(0, 0, 0, 0.6),
+              color: isDark ? const Color(0xFFAAB0C6) : const Color.fromRGBO(0, 0, 0, 0.6),
               letterSpacing: -0.408,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(255, 255, 255, 0.99),
-              border: Border.all(
-                color: const Color.fromRGBO(0, 0, 0, 0.52),
-              ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 18),
-                const Icon(
-                  Icons.search,
-                  color: Color.fromRGBO(0, 0, 0, 0.6),
-                  size: 24,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search lessons, or topics...',
-                      hintStyle: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black.withValues(alpha: 0.6),
-                        letterSpacing: -0.408,
-                      ),
-                      border: InputBorder.none,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Colors.black,
-                      letterSpacing: -0.408,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -312,6 +295,7 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   Widget _buildInteractiveScenariosSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -320,12 +304,12 @@ class _LearnScreenState extends State<LearnScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Interactive Scenarios',
                 style: TextStyle(
                   fontSize: 21,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black,
+                  color: isDark ? Colors.white : Colors.black,
                   letterSpacing: -0.408,
                 ),
               ),
@@ -360,8 +344,6 @@ class _LearnScreenState extends State<LearnScreen> {
                   progress: _budgetSimulatorProgress,
                   totalLevels: 3,
                   duration: '5 min',
-                  difficulty: 'MEDIUM',
-                  difficultyColor: const Color(0xFFE8A31A),
                   xp: 40,
                   imageAsset: null,
                   onTap: () async {
@@ -386,8 +368,6 @@ class _LearnScreenState extends State<LearnScreen> {
                   progress: 2,
                   totalLevels: 4,
                   duration: '7 min',
-                  difficulty: 'MEDIUM',
-                  difficultyColor: const Color(0xFFE8A31A),
                   xp: 50,
                   imageAsset: null,
                   onTap: () {
@@ -413,12 +393,11 @@ class _LearnScreenState extends State<LearnScreen> {
     required int progress,
     required int totalLevels,
     required String duration,
-    required String difficulty,
-    required Color difficultyColor,
     int? xp,
     String? imageAsset,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -426,9 +405,9 @@ class _LearnScreenState extends State<LearnScreen> {
         borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1B1D33) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -465,23 +444,6 @@ class _LearnScreenState extends State<LearnScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: difficultyColor.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Text(
-                        difficulty,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: difficultyColor,
-                          letterSpacing: -0.408,
-                        ),
-                      ),
-                    ),
                     if (xp != null) ...[
                       const SizedBox(width: 8),
                       Container(
@@ -512,10 +474,10 @@ class _LearnScreenState extends State<LearnScreen> {
                 const SizedBox(height: 12),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                     letterSpacing: -0.408,
                   ),
                 ),
@@ -524,10 +486,10 @@ class _LearnScreenState extends State<LearnScreen> {
                   description,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: Color.fromRGBO(0, 0, 0, 0.6),
+                    color: isDark ? const Color(0xFFAAB0C6) : const Color.fromRGBO(0, 0, 0, 0.6),
                     letterSpacing: -0.408,
                     height: 1.27,
                   ),
@@ -541,17 +503,18 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   Widget _buildAllTopicsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 38),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'All Topics',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: isDark ? Colors.white : Colors.black,
               letterSpacing: -0.408,
             ),
           ),
@@ -633,12 +596,13 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   Widget _buildLockedTopicCard({required TopicMeta meta}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
       ),
       child: Row(
         children: [
@@ -667,7 +631,9 @@ class _LearnScreenState extends State<LearnScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black.withValues(alpha: 0.65),
+                    color: isDark
+                        ? const Color(0xFFAAB0C6)
+                        : Colors.black.withValues(alpha: 0.65),
                     letterSpacing: -0.408,
                   ),
                 ),
@@ -710,12 +676,13 @@ class _LearnScreenState extends State<LearnScreen> {
     required int displayProgress,
     required double displayProgressValue,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
       ),
       child: Row(
         children: [
@@ -737,10 +704,10 @@ class _LearnScreenState extends State<LearnScreen> {
               children: [
                 Text(
                   meta.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                     letterSpacing: -0.408,
                   ),
                 ),

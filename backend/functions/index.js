@@ -1,5 +1,8 @@
+require("dotenv").config();
+
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const OpenAI = require("openai");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -9,6 +12,8 @@ setGlobalOptions({
   region: "us-central1",
   maxInstances: 10,
 });
+
+// ================= HELPERS =================
 
 function requireAuth(request) {
   const uid = request.auth?.uid;
@@ -40,6 +45,8 @@ function toNumber(value, fallback = 0) {
   if (!Number.isFinite(normalized)) return fallback;
   return normalized;
 }
+
+// ================= TRANSACTIONS =================
 
 function buildTransactionPayload({
   uid,
@@ -136,31 +143,34 @@ async function performFinanceTransaction({
       { merge: true }
     );
 
-    return {
-      available: next.available,
-      income: next.income,
-      spent: next.spent,
-      saved: next.saved,
-    };
+    return next;
   });
 }
 
+// ================= XP =================
+
 exports.getXp = onCall(async (request) => {
   const uid = requireAuth(request);
-  const userRef = db.collection("users").doc(uid);
-  const snap = await userRef.get();
+  const snap = await db.collection("users").doc(uid).get();
 
   if (!snap.exists) {
     throw new HttpsError("not-found", "User profile does not exist.");
   }
 
-  const xp = Number(snap.data()?.xp ?? 0);
-  return { xp };
+  return { xp: Number(snap.data()?.xp ?? 0) };
 });
+
+function logXpTransaction(tx, userRef, payload) {
+  tx.set(userRef.collection("xpTransactions").doc(), {
+    ...payload,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
 
 exports.earnXp = onCall(async (request) => {
   const uid = requireAuth(request);
   const amount = request.data?.amount;
+  const source = sanitizeString(request.data?.source, "unknown");
 
   validatePositiveInteger(amount, "amount");
 
@@ -168,9 +178,7 @@ exports.earnXp = onCall(async (request) => {
 
   const updatedXp = await db.runTransaction(async (tx) => {
     const snap = await tx.get(userRef);
-    if (!snap.exists) {
-      throw new HttpsError("not-found", "User profile does not exist.");
-    }
+    if (!snap.exists) throw new HttpsError("not-found", "User profile does not exist.");
 
     const currentXp = Number(snap.data()?.xp ?? 0);
     const newXp = currentXp + amount;
@@ -180,18 +188,13 @@ exports.earnXp = onCall(async (request) => {
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    tx.set(
-      userRef.collection("xpTransactions").doc(),
-      {
-        type: "earn",
-        amount,
-        previousXp: currentXp,
-        newXp,
-        source: request.data?.source ?? "unknown",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    logXpTransaction(tx, userRef, {
+      type: "earn",
+      amount,
+      previousXp: currentXp,
+      newXp,
+      source,
+    });
 
     return newXp;
   });
@@ -199,9 +202,64 @@ exports.earnXp = onCall(async (request) => {
   return { xp: updatedXp };
 });
 
+exports.earnXpOnce = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const amount = request.data?.amount;
+  const source = sanitizeString(request.data?.source, "unknown");
+  const awardKey = sanitizeString(request.data?.awardKey);
+
+  validatePositiveInteger(amount, "amount");
+  if (!awardKey) {
+    throw new HttpsError("invalid-argument", "awardKey is required.");
+  }
+
+  const userRef = db.collection("users").doc(uid);
+  const awardRef = userRef.collection("xpAwards").doc(awardKey);
+
+  return db.runTransaction(async (tx) => {
+    const awardSnap = await tx.get(awardRef);
+    const userSnap = await tx.get(userRef);
+
+    if (!userSnap.exists) {
+      throw new HttpsError("not-found", "User profile does not exist.");
+    }
+
+    const currentXp = Number(userSnap.data()?.xp ?? 0);
+
+    if (awardSnap.exists) {
+      return { xp: currentXp, awarded: false };
+    }
+
+    const newXp = currentXp + amount;
+
+    tx.update(userRef, {
+      xp: newXp,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    tx.set(awardRef, {
+      amount,
+      source,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    logXpTransaction(tx, userRef, {
+      type: "earn",
+      amount,
+      previousXp: currentXp,
+      newXp,
+      source,
+      awardKey,
+    });
+
+    return { xp: newXp, awarded: true };
+  });
+});
+
 exports.spendXp = onCall(async (request) => {
   const uid = requireAuth(request);
   const amount = request.data?.amount;
+  const source = sanitizeString(request.data?.source, "unknown");
 
   validatePositiveInteger(amount, "amount");
 
@@ -225,18 +283,13 @@ exports.spendXp = onCall(async (request) => {
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    tx.set(
-      userRef.collection("xpTransactions").doc(),
-      {
-        type: "spend",
-        amount,
-        previousXp: currentXp,
-        newXp,
-        source: request.data?.source ?? "unknown",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    logXpTransaction(tx, userRef, {
+      type: "spend",
+      amount,
+      previousXp: currentXp,
+      newXp,
+      source,
+    });
 
     return newXp;
   });
@@ -244,10 +297,11 @@ exports.spendXp = onCall(async (request) => {
   return { xp: updatedXp };
 });
 
+// ================= FINANCE =================
+
 exports.getFinanceSummary = onCall(async (request) => {
   const uid = requireAuth(request);
-  const balanceRef = db.collection("balances").doc(uid);
-  const snap = await balanceRef.get();
+  const snap = await db.collection("balances").doc(uid).get();
   const data = snap.data() ?? {};
 
   return {
@@ -255,171 +309,76 @@ exports.getFinanceSummary = onCall(async (request) => {
     income: toNumber(data.income, 0),
     spent: toNumber(data.spent, 0),
     saved: toNumber(data.saved, 0),
-    weeklyBudget: toNumber(data.weeklyBudget, 0),
   };
 });
 
-exports.addFunds = onCall(async (request) => {
-  const uid = requireAuth(request);
-  const amount = request.data?.amount;
-  const destination = sanitizeString(request.data?.destination, "general").toLowerCase();
-  const source = sanitizeString(request.data?.source, "manual");
+// ================= AI (FIXED) =================
 
-  validatePositiveNumber(amount, "amount");
+exports.miroChat = onCall(
+  {
+    maxInstances: 5,
+  },
+  async (request) => {
+    const uid = requireAuth(request);
 
-  if (!["general", "emergency"].includes(destination)) {
-    throw new HttpsError(
-      "invalid-argument",
-      "destination must be either 'general' or 'emergency'."
-    );
+    const message = sanitizeString(request.data?.message);
+    if (!message) {
+      throw new HttpsError("invalid-argument", "message is required.");
+    }
+
+    const lessonContext = sanitizeString(request.data?.lessonContext);
+    const maxContextLen = 8000;
+    const trimmedContext =
+      lessonContext.length > maxContextLen
+        ? `${lessonContext.slice(0, maxContextLen)}\n…`
+        : lessonContext;
+
+    // ✅ SAFE KEY FROM .env
+    const key = process.env.OPENAI_API_KEY;
+
+    if (!key) {
+      throw new HttpsError("failed-precondition", "Missing API key.");
+    }
+
+    const client = new OpenAI({ apiKey: key });
+
+    const systemParts = [
+      'You are "Miro", a financial literacy coach for the Monéo app (Mauritius). Be simple, helpful, and practical.',
+      "Always express money in Mauritian Rupees. Prefer the format \"Rs\" with thousands separators (e.g. Rs 2,000 or Rs 15,000). You may also use \"MUR\" when matching app lesson content.",
+      "Never use $, USD, or other currencies unless the user explicitly asks about converting or comparing foreign currency.",
+    ];
+    if (trimmedContext) {
+      systemParts.push(
+        "The user may be asking about material from the app's Learn section. Below is an excerpt from that curriculum (lesson titles and quiz notes).",
+        "If their question clearly relates to this excerpt, base your answer on it and stay consistent with it.",
+        "If the question is unrelated or only loosely related, ignore the excerpt and answer from general financial literacy knowledge.",
+        "",
+        "--- App curriculum excerpt ---",
+        trimmedContext,
+        "--- End excerpt ---",
+      );
+    }
+
+    try {
+      const completion = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: systemParts.join("\n"),
+          },
+          { role: "user", content: message },
+        ],
+      });
+
+      const reply = completion.choices?.[0]?.message?.content?.trim();
+
+      return {
+        reply: reply || "Try asking again.",
+      };
+    } catch (err) {
+      console.error(err);
+      throw new HttpsError("internal", "AI error.");
+    }
   }
-
-  const balances = await performFinanceTransaction({
-    uid,
-    amount,
-    type: "add_funds",
-    expenseName: destination === "emergency" ? "Emergency Fund Top-up" : "Funds Added",
-    category: destination,
-    note: "",
-    metadata: {
-      source,
-      destination,
-    },
-    operation: ({ currentAvailable, currentIncome, currentSpent, currentSaved, amount }) => {
-      return {
-        available: destination === "general" ? currentAvailable + amount : currentAvailable,
-        income: currentIncome + amount,
-        spent: currentSpent,
-        saved: destination === "emergency" ? currentSaved + amount : currentSaved,
-      };
-    },
-  });
-
-  return {
-    ok: true,
-    balances,
-  };
-});
-
-exports.logExpense = onCall(async (request) => {
-  const uid = requireAuth(request);
-  const amount = request.data?.amount;
-  const expenseName = sanitizeString(request.data?.expenseName, "Expense");
-  const category = sanitizeString(request.data?.category, "other");
-  const note = sanitizeString(request.data?.note, "");
-  const source = sanitizeString(request.data?.source, "manual");
-
-  validatePositiveNumber(amount, "amount");
-
-  const balances = await performFinanceTransaction({
-    uid,
-    amount,
-    type: "expense",
-    expenseName,
-    category,
-    note,
-    metadata: {
-      source,
-    },
-    operation: ({ currentAvailable, currentIncome, currentSpent, currentSaved, amount }) => {
-      if (currentAvailable < amount) {
-        throw new HttpsError("failed-precondition", "Insufficient available balance.");
-      }
-
-      return {
-        available: currentAvailable - amount,
-        income: currentIncome,
-        spent: currentSpent + amount,
-        saved: currentSaved,
-      };
-    },
-  });
-
-  return {
-    ok: true,
-    balances,
-  };
-});
-
-exports.scanToPay = onCall(async (request) => {
-  const uid = requireAuth(request);
-  const amount = request.data?.amount;
-  const merchantName = sanitizeString(request.data?.merchantName, "Unknown Merchant");
-  const merchantId = sanitizeString(request.data?.merchantId, "");
-  const merchantAccount = sanitizeString(request.data?.merchantAccount, "");
-  const rawPayload = sanitizeString(request.data?.rawPayload, "");
-
-  validatePositiveNumber(amount, "amount");
-
-  const balances = await performFinanceTransaction({
-    uid,
-    amount,
-    type: "scan_to_pay",
-    expenseName: `Payment to ${merchantName}`,
-    category: "payment",
-    note: "",
-    metadata: {
-      method: "qr",
-    },
-    merchantName,
-    merchantId,
-    merchantAccount,
-    rawPayload,
-    operation: ({ currentAvailable, currentIncome, currentSpent, currentSaved, amount }) => {
-      if (currentAvailable < amount) {
-        throw new HttpsError("failed-precondition", "Insufficient available balance.");
-      }
-
-      return {
-        available: currentAvailable - amount,
-        income: currentIncome,
-        spent: currentSpent + amount,
-        saved: currentSaved,
-      };
-    },
-  });
-
-  return {
-    ok: true,
-    balances,
-  };
-});
-
-exports.payBill = onCall(async (request) => {
-  const uid = requireAuth(request);
-  const amount = request.data?.amount;
-  const billName = sanitizeString(request.data?.billName, "Bill Payment");
-  const billerId = sanitizeString(request.data?.billerId, "");
-  const note = sanitizeString(request.data?.note, "");
-
-  validatePositiveNumber(amount, "amount");
-
-  const balances = await performFinanceTransaction({
-    uid,
-    amount,
-    type: "bill_payment",
-    expenseName: billName,
-    category: "bills",
-    note,
-    metadata: {
-      billerId,
-    },
-    operation: ({ currentAvailable, currentIncome, currentSpent, currentSaved, amount }) => {
-      if (currentAvailable < amount) {
-        throw new HttpsError("failed-precondition", "Insufficient available balance.");
-      }
-
-      return {
-        available: currentAvailable - amount,
-        income: currentIncome,
-        spent: currentSpent + amount,
-        saved: currentSaved,
-      };
-    },
-  });
-
-  return {
-    ok: true,
-    balances,
-  };
-});
+);

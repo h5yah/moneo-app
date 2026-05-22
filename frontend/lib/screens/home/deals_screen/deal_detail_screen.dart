@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fintech/services/coupon_service.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'coupon_claimed_screen.dart';
 
@@ -39,8 +40,9 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
+      backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF0F0F0),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,6 +70,7 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
   }
 
   Widget _buildImageHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
         // Image
@@ -109,12 +112,14 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: isDark
+                      ? const Color(0xFF1B1D33).withValues(alpha: 0.9)
+                      : Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios,
-                  color: Colors.black,
+                  color: isDark ? Colors.white : Colors.black,
                   size: 18,
                 ),
               ),
@@ -126,11 +131,12 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
   }
 
   Widget _buildDealInfoContainer() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -156,7 +162,7 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF242742) : Colors.white,
                         border: Border.all(color: const Color(0xFF00897B), width: 1),
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -174,10 +180,10 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                     // Deal title
                     Text(
                       widget.dealTitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -186,7 +192,9 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                       widget.dealStore,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.black.withValues(alpha: 0.6),
+                        color: isDark
+                            ? const Color(0xFFAAB0C6)
+                            : Colors.black.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -198,7 +206,7 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF242742) : Colors.white,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -216,7 +224,9 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black.withValues(alpha: 0.6),
+                        color: isDark
+                            ? const Color(0xFFAAB0C6)
+                            : Colors.black.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -232,7 +242,7 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF242742) : Colors.white,
                   border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -243,10 +253,10 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                     const SizedBox(width: 6),
                     Text(
                       widget.location,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                   ],
@@ -257,7 +267,7 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF242742) : Colors.white,
                   border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -268,10 +278,10 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                     const SizedBox(width: 6),
                     Text(
                       widget.validity,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                   ],
@@ -285,17 +295,18 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
   }
 
   Widget _buildAboutSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 44),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'ABOUT THIS DEAL',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: isDark ? Colors.white : Colors.black,
               letterSpacing: 0.5,
             ),
           ),
@@ -305,7 +316,9 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
             style: TextStyle(
               fontSize: 14,
               height: 1.6,
-              color: Colors.black.withValues(alpha: 0.8),
+              color: isDark
+                  ? const Color(0xFFAAB0C6)
+                  : Colors.black.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 16),
@@ -323,7 +336,9 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.5,
-                      color: Colors.black.withValues(alpha: 0.7),
+                      color: isDark
+                          ? const Color(0xFFAAB0C6)
+                          : Colors.black.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
@@ -339,12 +354,13 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
   }
 
   Widget _buildRedeemSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1B1D33) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -357,12 +373,12 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'HOW TO REDEEM',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: isDark ? Colors.white : Colors.black,
                 letterSpacing: 0.5,
               ),
             ),
@@ -398,7 +414,9 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           height: 1.5,
-                          color: Colors.black.withValues(alpha: 0.8),
+                          color: isDark
+                              ? const Color(0xFFAAB0C6)
+                              : Colors.black.withValues(alpha: 0.8),
                         ),
                       ),
                     ),
@@ -468,17 +486,34 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
       _isClaiming = true;
     });
 
+    UserCoupon? coupon;
     try {
-      await XpService.instance.spendXp(
-        amount: widget.xpCost,
-        source: 'deal_claim',
+      coupon = await CouponService.instance.claimCoupon(
+        dealStore: widget.dealStore,
+        dealTitle: widget.dealTitle,
+        discount: widget.discount,
+        description: widget.description,
+        location: widget.location,
+        storeLogoUrl: widget.dealImage,
+        xpCost: widget.xpCost,
+        validationPoints: widget.validationPoints,
       );
+
+      try {
+        await XpService.instance.spendXp(
+          amount: widget.xpCost,
+          source: 'deal_claim',
+        );
+      } catch (spendError) {
+        await CouponService.instance.deleteCoupon(coupon.id);
+        rethrow;
+      }
 
       if (!mounted) {
         return;
       }
 
-      _showClaimConfirmation();
+      _showClaimConfirmation(coupon);
     } catch (error) {
       if (!mounted) {
         return;
@@ -501,32 +536,21 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
     }
   }
 
-  void _showClaimConfirmation() {
-    final couponCode = _generateCouponCode();
-    final validUntil = DateTime.now().add(const Duration(days: 18));
-
+  void _showClaimConfirmation(UserCoupon coupon) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CouponClaimedScreen(
-          dealStore: widget.dealStore,
-          dealTitle: widget.dealTitle,
-          discount: widget.discount,
-          description: widget.description,
-          location: widget.location,
-          couponCode: couponCode,
-          validUntil: validUntil,
-          storeLogoUrl: widget.dealImage,
+          dealStore: coupon.dealStore,
+          dealTitle: coupon.dealTitle,
+          discount: coupon.discount,
+          description: coupon.description,
+          location: coupon.location,
+          couponCode: coupon.couponCode,
+          validUntil: coupon.validUntil,
+          storeLogoUrl: coupon.storeLogoUrl,
+          validationPoints: coupon.validationPoints,
         ),
       ),
     );
-  }
-
-  String _generateCouponCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = DateTime.now().microsecond;
-    final code = List.generate(8, (index) {
-      return chars[(random + index) % chars.length];
-    }).join();
-    return code;
   }
 }

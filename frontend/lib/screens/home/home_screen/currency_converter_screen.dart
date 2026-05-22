@@ -94,17 +94,24 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0F1020) : const Color(0xFFF5F7FB);
+    final card = isDark ? const Color(0xFF1B1D33) : Colors.white;
+    final border = isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE9ECF4);
+    final text = isDark ? Colors.white : const Color(0xFF111827);
+    final muted = isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F7FB),
+        backgroundColor: bg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF111827)),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: text),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Currency converter',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+        title: Text('Currency converter',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: text)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF007AFF)),
@@ -120,9 +127,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: card,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE9ECF4)),
+                border: Border.all(color: border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +143,11 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                     controller: _amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700),
-                    decoration: const InputDecoration(border: InputBorder.none, hintText: '0'),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '0',
+                      hintStyle: TextStyle(color: muted),
+                    ),
                     onChanged: (_) => _fetchAndConvert(),
                   ),
                   const Divider(),
@@ -202,13 +213,13 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: card,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE9ECF4)),
+                border: Border.all(color: border),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline_rounded, color: Color(0xFF6B7280), size: 16),
+                  Icon(Icons.info_outline_rounded, color: muted, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -218,7 +229,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                               ? 'Fetching live rates...'
                               : '1 $_from = ${_rate.toStringAsFixed(4)} $_to'
                                 '${_rateDate.isNotEmpty ? ' · $_rateDate' : ''}',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                      style: TextStyle(fontSize: 12, color: muted),
                     ),
                   ),
                 ],
@@ -231,14 +242,18 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   }
 
   Widget _buildCurrencyRow(String label, String selected, ValueChanged<String?> onChanged) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280);
+    final text = isDark ? Colors.white : const Color(0xFF111827);
     return Row(
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+        Text(label, style: TextStyle(fontSize: 13, color: muted)),
         const SizedBox(width: 12),
         DropdownButton<String>(
           value: selected,
           underline: const SizedBox(),
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+          dropdownColor: isDark ? const Color(0xFF1B1D33) : Colors.white,
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: text),
           items: _currencies
               .map((c) => DropdownMenuItem(value: c, child: Text(c)))
               .toList(),

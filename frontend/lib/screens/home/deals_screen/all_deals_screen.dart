@@ -71,8 +71,9 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
+      backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF0F0F0),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -86,18 +87,18 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back_ios,
                         size: 20,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
-                    const Text(
+                    Text(
                       'Deals',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : Colors.black,
                         letterSpacing: -0.408,
                       ),
                     ),
@@ -112,16 +113,16 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search for partners, or deals...',
-                    hintStyle: const TextStyle(
-                      color: Color(0x99000000),
+                    hintStyle: TextStyle(
+                      color: isDark ? const Color(0x99FFFFFF) : const Color(0x99000000),
                       fontSize: 15,
                     ),
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.search,
-                      color: Color(0x99000000),
+                      color: isDark ? const Color(0x99FFFFFF) : const Color(0x99000000),
                     ),
                     filled: true,
-                    fillColor: const Color(0x96FFFFFF),
+                    fillColor: isDark ? const Color(0xFF1B1D33) : const Color(0x96FFFFFF),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: const BorderSide(
@@ -160,12 +161,12 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Exclusive Deals',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xB5000000),
+                            color: isDark ? Colors.white : const Color(0xB5000000),
                             letterSpacing: -0.408,
                           ),
                         ),
@@ -173,12 +174,12 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                           onTap: () {
                             // Show sort options
                           },
-                          child: const Text(
+                          child: Text(
                             'Sort by: Recent',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
-                              color: Color(0x8D000000),
+                              color: isDark ? const Color(0xFFAAB0C6) : const Color(0x8D000000),
                               letterSpacing: -0.408,
                             ),
                           ),
@@ -213,6 +214,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
   }
 
   Widget _buildCategoryButton(String category) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedCategory == category;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -225,11 +227,13 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFFFFFFE) : Colors.white,
+            color: isSelected
+                ? (isDark ? const Color(0xFF242742) : const Color(0xFFFFFFFE))
+                : (isDark ? const Color(0xFF1B1D33) : Colors.white),
             border: Border.all(
               color: isSelected
                   ? const Color(0xFF3F9EB2)
-                  : const Color(0x2B000000),
+                  : (isDark ? const Color(0xFF2A2D4A) : const Color(0x2B000000)),
               width: 1.5,
             ),
             borderRadius: BorderRadius.circular(20),
@@ -245,7 +249,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                     size: 18,
                     color: isSelected
                         ? const Color(0xFF3F9EB2)
-                        : const Color(0x80000000),
+                        : (isDark ? const Color(0xFFAAB0C6) : const Color(0x80000000)),
                   ),
                 ),
               if (category == 'Dining')
@@ -256,7 +260,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                     size: 18,
                     color: isSelected
                         ? const Color(0xFF3F9EB2)
-                        : const Color(0x80000000),
+                        : (isDark ? const Color(0xFFAAB0C6) : const Color(0x80000000)),
                   ),
                 ),
               if (category == 'Lifestyle')
@@ -267,7 +271,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                     size: 18,
                     color: isSelected
                         ? const Color(0xFF3F9EB2)
-                        : const Color(0x80000000),
+                        : (isDark ? const Color(0xFFAAB0C6) : const Color(0x80000000)),
                   ),
                 ),
               if (category == 'Shopping')
@@ -278,7 +282,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                     size: 18,
                     color: isSelected
                         ? const Color(0xFF3F9EB2)
-                        : const Color(0x80000000),
+                        : (isDark ? const Color(0xFFAAB0C6) : const Color(0x80000000)),
                   ),
                 ),
               Text(
@@ -288,7 +292,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                   fontWeight: FontWeight.w500,
                   color: isSelected
                       ? const Color(0xFF3F9EB2)
-                      : const Color(0x80000000),
+                      : (isDark ? const Color(0xFFAAB0C6) : const Color(0x80000000)),
                   letterSpacing: -0.408,
                 ),
               ),
@@ -300,6 +304,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
   }
 
   Widget _buildDealCard(Deal deal) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -331,7 +336,7 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1B1D33) : Colors.white,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -388,7 +393,9 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black.withValues(alpha: 0.55),
+                            color: isDark
+                                ? const Color(0xFFAAB0C6)
+                                : Colors.black.withValues(alpha: 0.55),
                             letterSpacing: -0.2,
                           ),
                         ),
@@ -401,10 +408,10 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                     deal.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: isDark ? Colors.white : Colors.black,
                       letterSpacing: -0.408,
                     ),
                   ),
@@ -463,8 +470,8 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                         },
                         child: Container(
                           padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Colors.black,
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF2A2D4A) : Colors.black,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

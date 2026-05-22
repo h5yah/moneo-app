@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'lesson_content_screen.dart';
 import 'quiz_screen.dart';
 import 'learn_screen.dart';
 import 'package:fintech/services/topic_progress_service.dart';
 import 'package:fintech/services/xp_service.dart';
+import 'package:fintech/services/learn_content_service.dart';
 
 class SubtopicDetailScreen extends StatefulWidget {
   final String topicId;
@@ -30,6 +33,9 @@ class SubtopicDetailScreen extends StatefulWidget {
 }
 
 class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
+  static const int _lessonCompletionXp = XpService.lessonCompletionXp;
+  static const int _postQuizCompletionXp = XpService.postQuizCompletionXp;
+
   late int _completedLessons;
   late int _coreLessonCount;
   bool _preQuizCompleted = false;
@@ -209,25 +215,14 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
   }
 
   LessonStatus _statusForLesson(LessonItem lesson) {
-  final step = lesson.step ?? '';
+    final step = lesson.step ?? '';
 
-  // Fully locked topics
-  const lockedTopics = {
-    'Protecting Yourself from Fraud & Scams',
-    'Taxes & Tax Planning',
-    'Retirement Planning',
-  };
-
-  if (lockedTopics.contains(widget.topicTitle)) {
-    return LessonStatus.locked;
-  }
-
-  // Topic 5: only pre-quiz and intro locked
-  if (widget.topicTitle == 'Investing Basics') {
-    if (step == 'PRE-QUIZ' || step == 'STEP 1') {
-      return LessonStatus.locked;
+    // Pre-quiz gate (if this topic uses it)
+    if (step == 'PRE-QUIZ') {
+      return _preQuizCompleted ? LessonStatus.completed : LessonStatus.quiz;
     }
 
+    // Final quiz unlocks after all core lessons.
     if (step == 'FINAL QUIZ') {
       if (_postQuizCompleted) {
         return LessonStatus.completed;
@@ -235,6 +230,11 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
       return _completedLessons >= _coreLessonCount
           ? LessonStatus.quiz
           : LessonStatus.locked;
+    }
+
+    // Core lessons are locked until pre-quiz is done.
+    if (!_preQuizCompleted) {
+      return LessonStatus.locked;
     }
 
     final lessonNumber = _lessonNumberForProgress(lesson, 0);
@@ -247,33 +247,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
     }
     return LessonStatus.locked;
   }
-
-  if (step == 'PRE-QUIZ') {
-    return _preQuizCompleted ? LessonStatus.completed : LessonStatus.quiz;
-  }
-
-  if (step == 'FINAL QUIZ') {
-    if (_postQuizCompleted) {
-      return LessonStatus.completed;
-    }
-    return _completedLessons >= _coreLessonCount
-        ? LessonStatus.quiz
-        : LessonStatus.locked;
-  }
-
-  final lessonNumber = _lessonNumberForProgress(lesson, 0);
-
-  if (!_preQuizCompleted) {
-    return LessonStatus.locked;
-  }
-  if (lessonNumber <= _completedLessons) {
-    return LessonStatus.completed;
-  }
-  if (lessonNumber == _completedLessons + 1) {
-    return LessonStatus.current;
-  }
-  return LessonStatus.locked;
-}
 
   Widget _buildLessonCard(LessonItem lesson, LessonStatus lessonStatus, int index) {
     final isPreQuiz = lesson.step == 'PRE-QUIZ';
@@ -309,14 +282,19 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
 
                         // Check if it's a quiz
                         if (lessonStatus == LessonStatus.quiz || isPreQuiz || isFinalQuiz) {
+                          final finalQuizQuestions = LearnContentService.instance
+                              .finalQuizQuestionsForTopic(widget.topicId);
+                          final questions = isPreQuiz
+                              ? _getPreQuizQuestions()
+                              : (finalQuizQuestions.isNotEmpty
+                                  ? finalQuizQuestions
+                                  : _getPostQuizQuestions());
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => QuizScreen(
                                 quizTitle: isPreQuiz ? 'Before You Start Quiz' : 'Learning Checkup',
-                                questions: isPreQuiz
-                                  ? _getPreQuizQuestions()
-                                  : _getPostQuizQuestions(),
+                                questions: questions,
                                 awardXp: !isPreQuiz,
                                 showCompletionFlow: !isPreQuiz,
                                 revealAnswerFeedback: !isPreQuiz,
@@ -338,7 +316,11 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                                       totalQuestions: totalQuestions,
                                     );
                                     // Award XP for quiz completion (not pre-quiz)
-                                    await XpService.instance.earnXp(amount: 50, source: 'quiz_completion');
+                                    await XpService.instance.earnXpOnce(
+                                      amount: _postQuizCompletionXp,
+                                      source: 'quiz_completion',
+                                      awardKey: 'post_quiz:${widget.topicId}',
+                                    );
                                   }
                                 },
                               ),
@@ -370,37 +352,46 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                               return;
                             }
 
-                            final newCompleted = lessonNumber > _completedLessons
+                            final previousCompleted = _completedLessons;
+                            final newCompleted = lessonNumber > previousCompleted
                                 ? lessonNumber
-                                : _completedLessons;
+                                : previousCompleted;
 
-                            if (newCompleted > _completedLessons) {
-                              await TopicProgressService.instance.saveLessonsCompleted(
-                                topicId: widget.topicId,
-                                lessonsCompleted: newCompleted,
-                                totalLessons: _coreLessonCount,
-                              );
+                            final pending = <Future<dynamic>>[];
 
-                              if (!mounted) {
-                                return;
-                              }
-
+                            if (newCompleted > previousCompleted) {
+                              if (!mounted) return;
                               setState(() {
                                 _completedLessons = newCompleted;
                               });
+                              pending.add(
+                                TopicProgressService.instance.saveLessonsCompleted(
+                                  topicId: widget.topicId,
+                                  lessonsCompleted: newCompleted,
+                                  totalLessons: _coreLessonCount,
+                                ),
+                              );
+                              pending.add(
+                                XpService.instance.earnXpOnce(
+                                  amount: _lessonCompletionXp,
+                                  source: 'lesson_completion',
+                                  awardKey:
+                                      'lesson:${widget.topicId}:$lessonNumber',
+                                ),
+                              );
                             }
 
-                            // Award XP for lesson completion
-                            await XpService.instance.earnXp(amount: 20, source: 'lesson_completion');
                             final goToNextLesson = await _showLessonCompletedSheet(
                               lessonTitle: lesson.title,
-                              earnedXp: 20,
+                              earnedXp: newCompleted > previousCompleted
+                                  ? _lessonCompletionXp
+                                  : 0,
                             );
 
-                            if (!mounted) {
-                              return;
-                            }
+                            if (!mounted) return;
+                            await Future.wait(pending);
 
+                            if (!mounted) return;
                             if (goToNextLesson) {
                               _openNextStepAfter(newCompleted);
                             }
@@ -605,37 +596,43 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
           return;
         }
 
-        final newCompleted = lessonNumber > _completedLessons
+        final previousCompleted = _completedLessons;
+        final newCompleted = lessonNumber > previousCompleted
             ? lessonNumber
-            : _completedLessons;
+            : previousCompleted;
 
-        if (newCompleted > _completedLessons) {
-          await TopicProgressService.instance.saveLessonsCompleted(
-            topicId: widget.topicId,
-            lessonsCompleted: newCompleted,
-            totalLessons: _coreLessonCount,
-          );
+        final pending = <Future<dynamic>>[];
 
-          if (!mounted) {
-            return;
-          }
-
+        if (newCompleted > previousCompleted) {
+          if (!mounted) return;
           setState(() {
             _completedLessons = newCompleted;
           });
+          pending.add(
+            TopicProgressService.instance.saveLessonsCompleted(
+              topicId: widget.topicId,
+              lessonsCompleted: newCompleted,
+              totalLessons: _coreLessonCount,
+            ),
+          );
+          pending.add(
+            XpService.instance.earnXpOnce(
+              amount: _lessonCompletionXp,
+              source: 'lesson_completion',
+              awardKey: 'lesson:${widget.topicId}:$lessonNumber',
+            ),
+          );
         }
 
-        // Award XP for lesson completion
-        await XpService.instance.earnXp(amount: 20, source: 'lesson_completion');
         final goToNextLesson = await _showLessonCompletedSheet(
           lessonTitle: nextLesson.title,
-          earnedXp: 20,
+          earnedXp: newCompleted > previousCompleted ? _lessonCompletionXp : 0,
         );
 
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
+        await Future.wait(pending);
 
+        if (!mounted) return;
         if (goToNextLesson) {
           _openNextStepAfter(newCompleted);
         }
@@ -653,7 +650,11 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
       MaterialPageRoute(
         builder: (context) => QuizScreen(
           quizTitle: 'Learning Checkup',
-          questions: _getPostQuizQuestions(),
+          questions: LearnContentService.instance
+                  .finalQuizQuestionsForTopic(widget.topicId)
+                  .isNotEmpty
+              ? LearnContentService.instance.finalQuizQuestionsForTopic(widget.topicId)
+              : _getPostQuizQuestions(),
           revealAnswerFeedback: true,
           topicId: widget.topicId,
           topicTitle: widget.topicTitle,

@@ -56,7 +56,8 @@
       "iconColor": "#2D9CDB",
       "iconBgColor": "#1C2D9CDB",
       "progressColor": "#2D9CDB",
-      "enabled": false
+      "enabled": true,
+      "prerequisiteTopicId": "financial_planning_for_big_goals"
     },
     "protecting_yourself_from_fraud_and_scams": {
       "title": "Protecting Yourself from Fraud & Scams",
@@ -65,7 +66,8 @@
       "iconColor": "#4F6D7A",
       "iconBgColor": "#1C4F6D7A",
       "progressColor": "#4F6D7A",
-      "enabled": false
+      "enabled": true,
+      "prerequisiteTopicId": "investing_basics"
     },
     "taxes_and_tax_planning": {
       "title": "Taxes & Tax Planning",
@@ -74,7 +76,8 @@
       "iconColor": "#1B3B6F",
       "iconBgColor": "#1C1B3B6F",
       "progressColor": "#1B3B6F",
-      "enabled": false
+      "enabled": true,
+      "prerequisiteTopicId": "protecting_yourself_from_fraud_and_scams"
     },
     "retirement_planning": {
       "title": "Retirement Planning",
@@ -83,7 +86,8 @@
       "iconColor": "#56B4F0",
       "iconBgColor": "#1C56B4F0",
       "progressColor": "#56B4F0",
-      "enabled": false
+      "enabled": true,
+      "prerequisiteTopicId": "taxes_and_tax_planning"
     }
   }
 }

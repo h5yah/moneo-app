@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:fintech/services/topic_progress_service.dart';
 
 class TopicCompletionScreen extends StatefulWidget {
+  final String? topicId;
   final String topicTitle;
   final int lessonsCompleted;
   final int totalLessons;
@@ -10,6 +12,7 @@ class TopicCompletionScreen extends StatefulWidget {
 
   const TopicCompletionScreen({
     super.key,
+    this.topicId,
     required this.topicTitle,
     required this.lessonsCompleted,
     required this.totalLessons,
@@ -124,20 +127,25 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
   }
 
   Widget _buildTopicCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
+    final topicId = widget.topicId;
+    final baseCard = (int lessonsCompleted, int totalLessons) {
+      final safeTotal = totalLessons <= 0 ? 1 : totalLessons;
+      final progress = (lessonsCompleted / safeTotal).clamp(0.0, 1.0);
+
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
           // Image section
           ClipRRect(
             borderRadius: const BorderRadius.only(
@@ -198,7 +206,7 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
                       ),
                     ),
                     Text(
-                      '${widget.lessonsCompleted} / ${widget.totalLessons}',
+                      '$lessonsCompleted / $totalLessons',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -211,7 +219,7 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
-                    value: widget.lessonsCompleted / widget.totalLessons,
+                    value: progress,
                     minHeight: 9,
                     backgroundColor: const Color(0xFFE0E0E0),
                     valueColor:
@@ -221,8 +229,26 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
               ],
             ),
           ),
-        ],
-      ),
+          ],
+        ),
+      );
+    };
+
+    if (topicId == null || topicId.isEmpty) {
+      return baseCard(widget.lessonsCompleted, widget.totalLessons);
+    }
+
+    return StreamBuilder<Map<String, dynamic>?>(
+      stream: TopicProgressService.instance.topicProgressStream(topicId),
+      builder: (context, snapshot) {
+        final data = snapshot.data;
+        final liveCompleted = (data?['lessonsCompleted'] as num?)?.toInt();
+        final liveTotal = (data?['totalLessons'] as num?)?.toInt();
+        return baseCard(
+          (liveCompleted ?? widget.lessonsCompleted).clamp(0, 999),
+          (liveTotal ?? widget.totalLessons).clamp(1, 999),
+        );
+      },
     );
   }
 

@@ -59,8 +59,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F1020) : Colors.white,
       body: Column(
         children: [
           // PageView - Takes up available space
@@ -208,6 +209,7 @@ class OnboardingContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
         // Background Image - Full height with proper container
@@ -216,8 +218,8 @@ class OnboardingContent extends StatelessWidget {
           child: Container(
             width: 430,
             height: 540,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1B1D33) : Colors.white,
             ),
             child: _buildImage(page.imagePath, page.isAsset),
           ),

@@ -779,7 +779,11 @@ class _SurviveTheMonthScreenState extends State<SurviveTheMonthScreen> {
     Future.microtask(() async {
       if (!_xpAwarded && _budgetLeft >= 0) {
         _xpAwarded = true;
-        await XpService.instance.earnXp(amount: 40, source: 'survive_the_month');
+        await XpService.instance.earnXpOnce(
+          amount: 100,
+          source: 'survive_the_month',
+          awardKey: 'scenario:survive_the_month',
+        );
       }
     });
 
@@ -840,7 +844,7 @@ class _SurviveTheMonthScreenState extends State<SurviveTheMonthScreen> {
                       children: const [
                         Icon(Icons.star, color: Colors.yellow, size: 22),
                         SizedBox(width: 8),
-                        Text('XP Earned: 40',
+                        Text('XP Earned: 100',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,

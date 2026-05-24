@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'subtopic_detail_screen.dart';
@@ -40,19 +44,19 @@ class LearnScreen extends StatefulWidget {
   });
 
   @override
-  State<LearnScreen> createState() => _LearnScreenState();
+  State<LearnScreen> createState() => LearnScreenState();
 }
 
-class _LearnScreenState extends State<LearnScreen> {
+class LearnScreenState extends State<LearnScreen> {
   int _selectedIndex = 1;
   int _budgetSimulatorProgress = 0;
   bool _didAutoResume = false;
-
-  static const String _topicResetFlagKey = 'learn_topic_progress_reset_v2';
-  static const String _budgetTopicResetFlagKey = 'learn_budget_topic_reset_v4';
-  static const String _savingTopicResetFlagKey = 'learn_saving_topic_reset_v1';
-  static const String _debtTopicResetFlagKey = 'learn_debt_topic_reset_v1';
-  static const String _planningTopicResetFlagKey = 'learn_planning_topic_reset_v1';
+  bool _topicMetaReady = false;
+  bool _openingTopic = false;
+  Map<String, Map<String, dynamic>> _progressByTopic = {};
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _progressSub;
+  StreamSubscription<Map<String, Map<String, dynamic>>>? _localProgressSub;
+  Timer? _progressReloadDebounce;
 
   List<TopicMeta> get _topicsInOrder => [
         for (final id in TopicMetaService.instance.order)
@@ -63,18 +67,165 @@ class _LearnScreenState extends State<LearnScreen> {
   @override
   void initState() {
     super.initState();
-    TopicMetaService.instance.ensureLoaded();
-    LearnContentService.instance.ensureLoaded();
-    _resetTopicProgressOnce();
-    _resetBudgetingTopicProgressOnce();
-    _resetSavingTopicProgressOnce();
-    _resetDebtTopicProgressOnce();
-    _resetPlanningTopicProgressOnce();
-    _loadBudgetSimulatorProgress();
+    _topicMetaReady =
+        TopicMetaService.instance.isLoaded && LearnContentService.instance.isLoaded;
+    _initLearnScreen();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeAutoResumeTopic();
     });
+  }
+
+  @override
+  void dispose() {
+    _progressSub?.cancel();
+    _localProgressSub?.cancel();
+    _progressReloadDebounce?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(LearnScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.autoOpenResumeTopic &&
+        widget.resumeTopicId != null &&
+        (oldWidget.resumeTopicId != widget.resumeTopicId ||
+            !oldWidget.autoOpenResumeTopic)) {
+      _didAutoResume = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _maybeAutoResumeTopic();
+      });
+    }
+  }
+
+  Future<void> _initLearnScreen() async {
+    await TopicMetaService.instance.ensureLoaded();
+    if (!mounted) return;
+    setState(() => _topicMetaReady = true);
+
+    await LearnContentService.instance.ensureLoaded();
+    await _loadBudgetSimulatorProgress();
+    await _bootstrapTopicProgress();
+  }
+
+  Future<void> _bootstrapTopicProgress() async {
+    await TopicMetaService.instance.ensureLoaded();
+
+    final local = await TopicProgressService.instance.loadLocalProgress();
+    if (mounted && local.isNotEmpty) {
+      _applyProgressMap(local);
+    }
+
+    final merged = await TopicProgressService.instance.loadAllProgress();
+    if (!mounted) return;
+    _applyProgressMap(merged);
+
+    _progressSub?.cancel();
+    _progressSub =
+        TopicProgressService.instance.watchAllTopicProgressSnapshots().listen(
+      (_) => _scheduleProgressReload(),
+    );
+
+    _localProgressSub?.cancel();
+    _localProgressSub =
+        TopicProgressService.instance.progressUpdates.listen((map) {
+      if (!mounted) return;
+      _applyProgressMap(map);
+    });
+  }
+
+  void _scheduleProgressReload() {
+    _progressReloadDebounce?.cancel();
+    _progressReloadDebounce = Timer(const Duration(milliseconds: 250), () async {
+      if (!mounted) return;
+      final next = await TopicProgressService.instance.loadAllProgress();
+      if (!mounted) return;
+      _applyProgressMap(next);
+    });
+  }
+
+  /// Reload progress from Firestore (e.g. when returning to the Learn tab).
+  Future<void> refreshTopicProgress() async {
+    await _reloadTopicProgressFromServer();
+  }
+
+  void _applyProgressMap(Map<String, Map<String, dynamic>> next) {
+    if (_progressMapsEqual(_progressByTopic, next)) return;
+    setState(() => _progressByTopic = next);
+  }
+
+  bool _progressMapsEqual(
+    Map<String, Map<String, dynamic>> a,
+    Map<String, Map<String, dynamic>> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      final other = b[entry.key];
+      if (other == null) return false;
+      final lessonsA = (entry.value['lessonsCompleted'] as num?)?.toInt() ?? 0;
+      final lessonsB = (other['lessonsCompleted'] as num?)?.toInt() ?? 0;
+      if (lessonsA != lessonsB) return false;
+      if (entry.value['topicCompleted'] != other['topicCompleted']) return false;
+      if (entry.value['allLessonsCompleted'] != other['allLessonsCompleted']) {
+        return false;
+      }
+    }
+    for (final id in b.keys) {
+      if (!a.containsKey(id)) return false;
+    }
+    return true;
+  }
+
+  Future<void> _reloadTopicProgressFromServer() async {
+    final merged = await TopicProgressService.instance.loadAllProgress();
+    if (!mounted) return;
+    _applyProgressMap(merged);
+  }
+
+  Widget _buildLessonProgressBar({
+    required double value,
+    required Color color,
+    Color backgroundColor = const Color(0xFFEBEBEB),
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LinearProgressIndicator(
+        value: value.clamp(0.0, 1.0),
+        minHeight: 7,
+        backgroundColor: backgroundColor,
+        valueColor: AlwaysStoppedAnimation<Color>(color),
+      ),
+    );
+  }
+
+  bool _isTopicComplete(Map<String, dynamic>? data, TopicMeta meta) {
+    if (data == null) return false;
+    if (data['topicCompleted'] == true) return true;
+    if (data['allLessonsCompleted'] == true) return true;
+    final lessons = (data['lessonsCompleted'] as num?)?.toInt() ?? 0;
+    return lessons >= meta.totalLessons;
+  }
+
+  bool _isTopicUnlocked(TopicMeta meta) {
+    if (!meta.enabled) return false;
+    final prereqId = meta.prerequisiteTopicId;
+    if (prereqId == null || prereqId.isEmpty) return true;
+    final prereqMeta = TopicMetaService.instance.byId[prereqId];
+    if (prereqMeta == null) return false;
+    return _isTopicComplete(_progressByTopic[prereqId], prereqMeta);
+  }
+
+  String? _prerequisiteTitle(TopicMeta meta) {
+    final prereqId = meta.prerequisiteTopicId;
+    if (prereqId == null || prereqId.isEmpty) return null;
+    return TopicMetaService.instance.byId[prereqId]?.title;
+  }
+
+  int _lessonsCompletedForTopic(TopicMeta meta) {
+    return TopicProgressService.lessonsCompletedFrom(
+      _progressByTopic[meta.id],
+      meta.totalLessons,
+    );
   }
 
   void _maybeAutoResumeTopic() {
@@ -92,23 +243,65 @@ class _LearnScreenState extends State<LearnScreen> {
     _startTopicFlow(topicId: meta.id);
   }
 
+  Future<void> _openTopic(String topicId) async {
+    if (_openingTopic) return;
+    setState(() => _openingTopic = true);
+    try {
+      await _startTopicFlow(topicId: topicId);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_topicOpenErrorMessage(e)),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _openingTopic = false);
+        await refreshTopicProgress();
+      }
+    }
+  }
+
+  String _topicOpenErrorMessage(Object error) {
+    if (error is StateError) {
+      return error.message;
+    }
+    if (error is FirebaseException) {
+      if (error.code == 'permission-denied') {
+        return 'Progress could not be saved. Deploy Firestore rules from the backend folder.';
+      }
+      return error.message ?? 'Could not open this topic.';
+    }
+    return 'Could not open this topic. Please try again.';
+  }
+
   Future<void> _startTopicFlow({
     required String topicId,
   }) async {
     final meta = TopicMetaService.instance.byId[topicId];
-    if (meta == null) return;
+    if (meta == null) {
+      throw StateError('Topic not found.');
+    }
+
+    if (FirebaseAuth.instance.currentUser == null) {
+      throw StateError('Please sign in to start this topic.');
+    }
 
     await LearnContentService.instance.ensureLoaded();
 
-    var progressData =
-        await TopicProgressService.instance.getTopicProgress(topicId);
-    var preQuizDone = progressData?['preQuizCompleted'] == true;
+    var progressData = _progressByTopic[topicId];
+    progressData ??= await TopicProgressService.instance.getTopicProgress(topicId);
+    progressData ??= <String, dynamic>{};
+
+    var preQuizDone = progressData['preQuizCompleted'] == true;
     var shouldAutoStartFlow = false;
 
     if (!context.mounted) return;
 
     final preQuizQuestions = _getPreQuizQuestionsForTopic(topicId);
-    final preQuizTotal = (progressData?['preQuizTotal'] as num?)?.toInt() ?? -1;
+    final preQuizTotal = (progressData['preQuizTotal'] as num?)?.toInt() ?? -1;
 
     // If this topic previously had no pre-quiz, we auto-marked it as completed
     // with a 0/0 result. Now that questions exist, show the pre-quiz again.
@@ -117,7 +310,7 @@ class _LearnScreenState extends State<LearnScreen> {
     }
 
     if (!preQuizDone && preQuizQuestions.isNotEmpty) {
-      await Navigator.push(
+      final quizResult = await Navigator.push<Map<String, dynamic>?>(
         context,
         MaterialPageRoute(
           builder: (context) => QuizScreen(
@@ -127,32 +320,40 @@ class _LearnScreenState extends State<LearnScreen> {
             showCompletionFlow: false,
             revealAnswerFeedback: false,
             onQuizFinished: (score, totalQuestions) {
-              return TopicProgressService.instance
-                  .savePreQuizResult(
-                    topicId: topicId,
-                    score: score,
-                    totalQuestions: totalQuestions,
-                  )
-                  .then((_) async {
-                await XpService.instance.earnXpOnce(
-                  amount: 25,
-                  source: 'pre_quiz_completion',
-                  awardKey: 'pre_quiz:$topicId',
-                );
-              });
+              return TopicProgressService.instance.savePreQuizResult(
+                topicId: topicId,
+                score: score,
+                totalQuestions: totalQuestions,
+              );
             },
           ),
         ),
       );
 
-      progressData =
-          await TopicProgressService.instance.getTopicProgress(topicId);
-      preQuizDone = progressData?['preQuizCompleted'] == true;
+      if (quizResult == null) return;
 
-      if (!preQuizDone) return;
+      preQuizDone = true;
       shouldAutoStartFlow = true;
+      progressData = {
+        ...progressData,
+        'preQuizCompleted': true,
+        'preQuizScore': quizResult['score'],
+        'preQuizTotal': quizResult['totalQuestions'],
+      };
+
+      unawaited(
+        XpService.instance
+            .earnXpOnce(
+              amount: 25,
+              source: 'pre_quiz_completion',
+              awardKey: 'pre_quiz:$topicId',
+            )
+            .catchError((Object error) {
+          debugPrint('Pre-quiz XP award failed: $error');
+          return const XpEarnResult(xp: 0, awarded: false);
+        }),
+      );
     } else if (!preQuizDone && preQuizQuestions.isEmpty) {
-      // Topics with no pre-quiz should not block the learning flow.
       await TopicProgressService.instance.savePreQuizResult(
         topicId: topicId,
         score: 0,
@@ -164,10 +365,12 @@ class _LearnScreenState extends State<LearnScreen> {
 
     if (!context.mounted) return;
 
-    final persistedLessonsCompleted =
-        (progressData?['lessonsCompleted'] as int?)?.clamp(0, meta.totalLessons) ?? 0;
+    final persistedLessonsCompleted = TopicProgressService.lessonsCompletedFrom(
+      progressData,
+      meta.totalLessons,
+    );
 
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => SubtopicDetailScreen(
@@ -181,59 +384,12 @@ class _LearnScreenState extends State<LearnScreen> {
         ),
       ),
     );
-  }
 
-  Future<void> _resetTopicProgressOnce() async {
-    final prefs = await SharedPreferences.getInstance();
-    final alreadyReset = prefs.getBool(_topicResetFlagKey) ?? false;
-    if (alreadyReset) return;
-    final resetSucceeded = await TopicProgressService.instance.clearAllTopicProgress();
-    if (!resetSucceeded) return;
-    await prefs.setBool(_topicResetFlagKey, true);
-  }
-
-  Future<void> _resetBudgetingTopicProgressOnce() async {
-    final prefs = await SharedPreferences.getInstance();
-    final alreadyReset = prefs.getBool(_budgetTopicResetFlagKey) ?? false;
-    if (alreadyReset) return;
-    await TopicMetaService.instance.ensureLoaded();
-    final resetSucceeded = await TopicProgressService.instance
-        .clearTopicProgress(TopicMetaService.instance.byId['budgeting_and_expense_tracking']!.id);
-    if (!resetSucceeded) return;
-    await prefs.setBool(_budgetTopicResetFlagKey, true);
-  }
-
-  Future<void> _resetSavingTopicProgressOnce() async {
-    final prefs = await SharedPreferences.getInstance();
-    final alreadyReset = prefs.getBool(_savingTopicResetFlagKey) ?? false;
-    if (alreadyReset) return;
-    await TopicMetaService.instance.ensureLoaded();
-    final resetSucceeded = await TopicProgressService.instance
-        .clearTopicProgress(TopicMetaService.instance.byId['saving_and_emergency_funds']!.id);
-    if (!resetSucceeded) return;
-    await prefs.setBool(_savingTopicResetFlagKey, true);
-  }
-
-  Future<void> _resetDebtTopicProgressOnce() async {
-    final prefs = await SharedPreferences.getInstance();
-    final alreadyReset = prefs.getBool(_debtTopicResetFlagKey) ?? false;
-    if (alreadyReset) return;
-    await TopicMetaService.instance.ensureLoaded();
-    final resetSucceeded = await TopicProgressService.instance
-        .clearTopicProgress(TopicMetaService.instance.byId['debt_management']!.id);
-    if (!resetSucceeded) return;
-    await prefs.setBool(_debtTopicResetFlagKey, true);
-  }
-
-  Future<void> _resetPlanningTopicProgressOnce() async {
-    final prefs = await SharedPreferences.getInstance();
-    final alreadyReset = prefs.getBool(_planningTopicResetFlagKey) ?? false;
-    if (alreadyReset) return;
-    await TopicMetaService.instance.ensureLoaded();
-    final resetSucceeded = await TopicProgressService.instance.clearTopicProgress(
-        TopicMetaService.instance.byId['financial_planning_for_big_goals']!.id);
-    if (!resetSucceeded) return;
-    await prefs.setBool(_planningTopicResetFlagKey, true);
+    try {
+      await _reloadTopicProgressFromServer();
+    } catch (_) {
+      // Ignore refresh errors after returning from a topic.
+    }
   }
 
   Future<void> _loadBudgetSimulatorProgress() async {
@@ -344,7 +500,7 @@ class _LearnScreenState extends State<LearnScreen> {
                   progress: _budgetSimulatorProgress,
                   totalLevels: 3,
                   duration: '5 min',
-                  xp: 40,
+                  xp: 100,
                   imageAsset: null,
                   onTap: () async {
                     await Navigator.push(
@@ -368,7 +524,7 @@ class _LearnScreenState extends State<LearnScreen> {
                   progress: 2,
                   totalLevels: 4,
                   duration: '7 min',
-                  xp: 50,
+                  xp: 100,
                   imageAsset: null,
                   onTap: () {
                     Navigator.push(
@@ -519,154 +675,131 @@ class _LearnScreenState extends State<LearnScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          for (int i = 0; i < _topicsInOrder.length; i++) ...[
-            _buildTopicCard(meta: _topicsInOrder[i]),
-            if (i < _topicsInOrder.length - 1) const SizedBox(height: 12),
-          ],
+          if (!_topicMetaReady)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            for (int i = 0; i < _topicsInOrder.length; i++) ...[
+              _buildTopicCard(meta: _topicsInOrder[i]),
+              if (i < _topicsInOrder.length - 1) const SizedBox(height: 12),
+            ],
         ],
       ),
     );
   }
 
   Widget _buildTopicCard({required TopicMeta meta}) {
-    return StreamBuilder<Map<String, dynamic>?>(
-      stream: TopicProgressService.instance.topicProgressStream(meta.id),
-      builder: (context, snapshot) {
-        final persistedLessons =
-            (snapshot.data?['lessonsCompleted'] as int?)?.clamp(0, meta.totalLessons);
-        final displayProgress = persistedLessons ?? 0;
-        final activeLessonNumber = snapshot.data?['activeLessonNumber'] as int?;
-        final activeLessonStep = snapshot.data?['activeLessonStep'] as int?;
-        final activeLessonTotalSteps =
-            snapshot.data?['activeLessonTotalSteps'] as int?;
+    final locked = !_isTopicUnlocked(meta);
+    final displayProgress = _lessonsCompletedForTopic(meta);
+    final displayProgressValue = displayProgress.toDouble();
 
-        final hasStepProgress = activeLessonNumber == displayProgress + 1 &&
-            (activeLessonTotalSteps ?? 0) > 0 &&
-            (activeLessonStep ?? 0) > 0;
+    if (locked) {
+      return _buildLockedTopicCard(meta: meta);
+    }
 
-        final partial = hasStepProgress
-            ? ((activeLessonStep! / activeLessonTotalSteps!).clamp(0.0, 1.0))
-            : 0.0;
-
-        final displayProgressValue =
-            (displayProgress + partial).clamp(0.0, meta.totalLessons.toDouble());
-
-        Widget buildCard({required bool locked}) {
-          if (locked) {
-            return _buildLockedTopicCard(meta: meta);
-          }
-          return GestureDetector(
-            onTap: () async => _startTopicFlow(topicId: meta.id),
-            child: _buildUnlockedTopicCard(
-              meta: meta,
-              displayProgress: displayProgress,
-              displayProgressValue: displayProgressValue,
-            ),
-          );
-        }
-
-        final lockedBecauseDisabled = !meta.enabled;
-
-        if (meta.prerequisiteTopicId == null) {
-          return buildCard(locked: lockedBecauseDisabled);
-        }
-
-        final prereqId = meta.prerequisiteTopicId!;
-        final prereqMeta = TopicMetaService.instance.byId[prereqId];
-        if (prereqMeta == null) return buildCard(locked: true);
-
-        return StreamBuilder<Map<String, dynamic>?>(
-          stream: TopicProgressService.instance.topicProgressStream(prereqId),
-          builder: (context, prereqSnap) {
-            final prereqData = prereqSnap.data;
-            final prereqLessons =
-                (prereqData?['lessonsCompleted'] as num?)?.toInt() ?? 0;
-            final prereqAllLessonsCompleted =
-                prereqData?['allLessonsCompleted'] == true;
-            final prereqTopicCompleted = prereqData?['topicCompleted'] == true;
-            final prereqComplete = prereqTopicCompleted ||
-                prereqAllLessonsCompleted ||
-                prereqLessons >= prereqMeta.totalLessons;
-
-            return buildCard(locked: lockedBecauseDisabled || !prereqComplete);
-          },
-        );
-      },
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _openingTopic ? null : () => _openTopic(meta.id),
+      child: SizedBox(
+        width: double.infinity,
+        child: _buildUnlockedTopicCard(
+          meta: meta,
+          displayProgress: displayProgress,
+          displayProgressValue: displayProgressValue,
+        ),
+      ),
     );
   }
 
   Widget _buildLockedTopicCard({required TopicMeta meta}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
+    final prereqTitle = _prerequisiteTitle(meta);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: meta.iconBgColor,
-              borderRadius: BorderRadius.circular(10),
+        onTap: () {
+          final message = prereqTitle != null
+              ? 'Finish "$prereqTitle" to unlock this topic.'
+              : 'Complete the previous topic to unlock this one.';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              behavior: SnackBarBehavior.floating,
             ),
-            child: Center(
-              child: Icon(
-                meta.icon,
-                color: meta.iconColor.withValues(alpha: 0.6),
-                size: 24,
-              ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1B1D33) : Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  meta.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? const Color(0xFFAAB0C6)
-                        : Colors.black.withValues(alpha: 0.65),
-                    letterSpacing: -0.408,
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: meta.iconBgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Icon(
+                    meta.icon,
+                    color: meta.iconColor.withValues(alpha: 0.6),
+                    size: 24,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Locked',
+                      meta.title,
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFFAAB0C6)
+                            : Colors.black.withValues(alpha: 0.65),
                         letterSpacing: -0.408,
                       ),
                     ),
-                    Icon(Icons.lock_outline, size: 16, color: Colors.grey),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text(
+                          'Locked',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey,
+                            letterSpacing: -0.408,
+                          ),
+                        ),
+                        Icon(Icons.lock_outline, size: 16, color: Colors.grey),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _buildLessonProgressBar(
+                      value: 0,
+                      color: Colors.grey,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: const LinearProgressIndicator(
-                    value: 0.0,
-                    minHeight: 7,
-                    backgroundColor: Color(0xFFEBEBEB),
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -729,15 +862,11 @@ class _LearnScreenState extends State<LearnScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: LinearProgressIndicator(
-                    value: displayProgressValue / meta.totalLessons,
-                    minHeight: 7,
-                    backgroundColor: const Color(0xFFEBEBEB),
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(meta.progressColor),
-                  ),
+                _buildLessonProgressBar(
+                  value: meta.totalLessons > 0
+                      ? displayProgressValue / meta.totalLessons
+                      : 0,
+                  color: meta.progressColor,
                 ),
               ],
             ),

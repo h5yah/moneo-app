@@ -42,6 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _pendingResumeTopicId;
   bool _pendingAutoOpenResumeTopic = false;
 
+  final GlobalKey<LearnScreenState> _learnTabKey = GlobalKey<LearnScreenState>();
+  final GlobalKey _financeTabKey = GlobalKey();
+  final GlobalKey _dealsTabKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +57,19 @@ class _HomeScreenState extends State<HomeScreen> {
   String get _displayName {
     if (widget.userName == null || widget.userName!.trim().isEmpty) return 'there';
     return widget.userName!.trim();
+  }
+
+  int _tabStackIndex(int navIndex) {
+    switch (navIndex) {
+      case 1:
+        return 1;
+      case 3:
+        return 2;
+      case 4:
+        return 3;
+      default:
+        return 0;
+    }
   }
 
   String get _formattedDate {
@@ -248,14 +265,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 : _selectedIndex == 4
                     ? const Color(0xFFF0F0F0)
                     : const Color(0xFFF5F7FB);
-    Widget body;
-
-    switch (_selectedIndex) {
-      case 0:
-        body = _buildHomeBody();
-        break;
-      case 1:
-        body = LearnScreen(
+    // Keep tabs mounted so Learn does not reload (spinner / progress flicker).
+    final Widget body = IndexedStack(
+      index: _tabStackIndex(_selectedIndex),
+      sizing: StackFit.expand,
+      children: [
+        _buildHomeBody(),
+        LearnScreen(
+          key: _learnTabKey,
           resumeTopicId: _pendingResumeTopicId,
           autoOpenResumeTopic: _pendingAutoOpenResumeTopic,
           onIndexChanged: (i) {
@@ -266,24 +283,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 _pendingAutoOpenResumeTopic = false;
               }
             });
-            // Refresh active topic progress when returning to Home
             if (i == 0) _loadActiveTopicProgress();
           },
-        );
-        break;
-      case 2:
-        body = _buildHomeBody();
-        break;
-      case 3:
-        body = FinanceScreen(onIndexChanged: (i) => setState(() => _selectedIndex = i));
-        break;
-      case 4:
-        body = DealsScreen(onIndexChanged: (i) => setState(() => _selectedIndex = i));
-        break;
-      default:
-        body = _buildHomeBody();
-        break;
-    }
+        ),
+        FinanceScreen(
+          key: _financeTabKey,
+          onIndexChanged: (i) => setState(() => _selectedIndex = i),
+        ),
+        DealsScreen(
+          key: _dealsTabKey,
+          onIndexChanged: (i) => setState(() => _selectedIndex = i),
+        ),
+      ],
+    );
 
     return Scaffold(
       backgroundColor: scaffoldBgColor,
@@ -414,12 +426,24 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: headerCardColor,
                 shape: BoxShape.circle,
                 border: Border.all(color: headerBorderColor),
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
               ),
-              child: Icon(Icons.person_rounded, color: secondaryTextColor, size: 28),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/profile_avatar.jpg',
+                  width: 52,
+                  height: 52,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: headerCardColor,
+                      child: Icon(Icons.person_rounded, color: secondaryTextColor, size: 28),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -1076,7 +1100,12 @@ class _HomeScreenState extends State<HomeScreen> {
             return;
           }
           setState(() => _selectedIndex = i);
-          if (i == 0) _loadActiveTopicProgress();
+          if (i == 0) {
+            _loadActiveTopicProgress();
+          } else if (i == 1) {
+            // Light sync when re-selecting Learn (tab state is preserved).
+            _learnTabKey.currentState?.refreshTopicProgress();
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: isDark ? const Color(0xFF17192B) : Colors.white,

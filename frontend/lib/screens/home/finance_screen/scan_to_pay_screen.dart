@@ -418,7 +418,7 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
       },
     );
 
-    if (confirm != true) return;
+    if (confirm != true || !mounted) return;
 
     setState(() {
       _isPaying = true;
@@ -475,13 +475,6 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Paid Rs ${amount.toStringAsFixed(2)} to $_merchantName successfully.',
-          ),
-        ),
-      );
       Navigator.pop(context, true);
     } on StateError catch (error) {
       if (!mounted) return;
@@ -490,17 +483,17 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
           : 'Payment failed. Please try again.';
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
+      setState(() {
+        _isPaying = false;
+      });
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Payment failed. Please try again.')),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isPaying = false;
-        });
-      }
+      setState(() {
+        _isPaying = false;
+      });
     }
   }
 }

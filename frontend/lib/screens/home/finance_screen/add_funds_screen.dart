@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fintech/services/wallet_card_service.dart';
 import 'add_card_screen.dart';
 
 class AddFundsScreen extends StatefulWidget {
@@ -32,23 +33,11 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
   }
 
   Future<void> _fetchSavedCard() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
-
-    final doc = await FirebaseFirestore.instance
-        .collection('cards')
-        .doc(userId)
-        .get();
-
-    if (doc.exists) {
-      final data = doc.data();
-      if (data != null && mounted) {
-        setState(() {
-          _savedCard = {
-            'last4': data['last4'] ?? '0000',
-            'type': data['type'] ?? 'debit',
-          };
-        });
-      }
+    final card = await WalletCardService.loadCard();
+    if (card != null && mounted) {
+      setState(() {
+        _savedCard = card;
+      });
     }
   }
 
@@ -176,16 +165,13 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
     );
 
     if (result != null && mounted) {
-      final userId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
-
-      await FirebaseFirestore.instance.collection('cards').doc(userId).set({
-        'last4': result['last4'] ?? '0000',
-        'type': result['type'] ?? 'debit',
-      }, SetOptions(merge: true));
-
       setState(() {
-        _savedCard = result;
+        _savedCard = {
+          'last4': result['last4'] ?? '0000',
+          'type': result['type'] ?? 'debit',
+        };
       });
+      await _fetchSavedCard();
     }
   }
 

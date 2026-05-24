@@ -44,6 +44,10 @@ class AuthService {
   }
 
   Future<void> _ensureGoogleUserFirestoreDoc(User user) async {
+    await _ensureUserFirestoreDoc(user);
+  }
+
+  Future<void> _ensureUserFirestoreDoc(User user) async {
     final docRef = _firestore.collection('users').doc(user.uid);
     final snap = await docRef.get();
     if (snap.exists) return;
@@ -107,7 +111,11 @@ class AuthService {
         email: email,
         password: password,
       );
-      return result.user;
+      final user = result.user;
+      if (user != null) {
+        await _ensureUserFirestoreDoc(user);
+      }
+      return user;
     } catch (e) {
       debugPrint('Login Error: $e');
       return null;

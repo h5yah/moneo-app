@@ -1,76 +1,96 @@
 # Backend Cloud Functions
 
-This backend includes secure XP and Finance operations using Firebase Cloud Functions.
+Secure XP operations, finance summary read, and the Miro AI assistant for the Monéo app.
 
-## Functions
+**Deploy from the `backend/` directory** (not the repo root).
 
-- `getXp` - returns authenticated user XP total.
-- `earnXp` - increments XP atomically.
-- `earnXpOnce` - increments XP only once per `awardKey` (stored under `users/{uid}/xpAwards`).
-- `spendXp` - decrements XP atomically, blocks overspending.
+## Deployed functions
 
-### Finance functions
+### XP (server-side)
 
-- `getFinanceSummary` - returns authenticated user balances (`available`, `income`, `spent`, `saved`, `weeklyBudget`).
-- `addFunds` - atomically adds funds and logs a transaction.
-- `logExpense` - atomically deducts from available balance and logs an expense.
-- `scanToPay` - atomically performs merchant QR payment and logs transaction metadata.
-- `payBill` - atomically pays a bill and logs it as `bill_payment`.
+- `getXp` — returns authenticated user XP total.
+- `earnXp` — increments XP atomically.
+- `earnXpOnce` — increments XP only once per `awardKey` (stored under `users/{uid}/xpAwards`).
+- `spendXp` — decrements XP atomically; blocks overspending.
+
+### Finance (read-only on server)
+
+- `getFinanceSummary` — returns authenticated user balances (`available`, `income`, `spent`, `saved`).
+
+Wallet mutations (add funds, send money, pay bill, scan to pay) are performed **client-side** via Firestore transactions in the Flutter app. Server finance write callables are not deployed.
 
 ### AI assistant
 
-- `miroChat` - authenticated chat with **OpenAI** (used by the Monéo “Ask Miro” screen).  
-  - **Secret:** create an API key in the OpenAI dashboard, then run:  
-    `firebase functions:secrets:set OPENAI_API_KEY`  
-    (paste the key when prompted).  
-  - **Deploy:** `cd backend/functions && npm install && npm run deploy`  
-  - Flutter calls `httpsCallable('miroChat')` with `{ "message": "<user text>", "lessonContext": "<optional excerpt>" }` and reads `{ "reply": "..." }`. When `lessonContext` is sent, the model is instructed to use it only if the question matches the curriculum; otherwise it answers from general knowledge.
+- `miroChat` — authenticated chat with **OpenAI** (Monéo “Ask Miro” screen).
+  - **Secret:** `firebase functions:secrets:set OPENAI_API_KEY` (run from `backend/`).
+  - **Local emulator:** copy `backend/functions/.env.example` to `.env.local` with your key (not deployed; do not use `.env`).
+  - Flutter calls `httpsCallable('miroChat')` with `{ "message": "...", "knowledgeContext": "..." }` and reads `{ "reply": "..." }`.
 
 All functions require Firebase Authentication (`request.auth.uid`).
 
 ## Data model
 
-- Main user XP: `users/{uid}.xp`
-- Audit log: `users/{uid}/xpTransactions/{transactionId}`
+- User XP: `users/{uid}.xp`
+- XP audit: `users/{uid}/xpTransactions/{id}`
+- One-time awards: `users/{uid}/xpAwards/{awardKey}`
 
-Finance collections:
+Finance collections (client writes + rules in `firestore.rules`):
 
 - Balances: `balances/{uid}`
 - Transactions: `transactions/{transactionId}`
+- Expenses: `expenses/{expenseId}`
 
 ## Setup
 
-1. Install Firebase CLI (if needed):
-   - `npm i -g firebase-tools`
-2. Login:
-   - `firebase login`
-3. Update project id in `.firebaserc`.
-4. Install function dependencies:
-   - `cd backend/functions && npm install`
+1. Install Firebase CLI: `npm i -g firebase-tools`
+2. Login: `firebase login`
+3. Project id: `backend/.firebaserc` (`fyp-fintech-app`)
+4. Install dependencies: `cd backend/functions && npm install`
+5. Set OpenAI secret (production): `cd backend && firebase functions:secrets:set OPENAI_API_KEY`
 
 ## Run locally
 
-- From `backend/functions`:
-  - `npm run serve`
+```bash
+cd backend/functions
+npm run serve
+```
 
 ## Deploy
 
-- From `backend/functions`:
-  - `npm run deploy`
+```bash
+cd backend/functions
+npm install
+npm run deploy
+```
+
+This deploys Cloud Functions and Firestore security rules.
+
+**Do not** put `OPENAI_API_KEY` in `backend/functions/.env` — Firebase uploads that as a plain env var and conflicts with the secret. Use Secret Manager only (or `.env.local` for the emulator).
+
+If `miroChat` fails with *Secret environment variable overlaps non secret environment variable*, delete and redeploy:
+
+```bash
+cd backend
+firebase functions:delete miroChat --region us-central1 --force
+cd functions && npm run deploy
+```
 
 ## Suggested frontend calls
 
-Use Flutter `cloud_functions` package and call:
-
-- `FirebaseFunctions.instance.httpsCallable('getXp')`
-- `FirebaseFunctions.instance.httpsCallable('earnXp').call({'amount': 10, 'source': 'quiz_correct'})`
-- `FirebaseFunctions.instance.httpsCallable('earnXpOnce').call({'amount': 20, 'source': 'lesson_completion', 'awardKey': 'lesson:budgeting:1'})`
-- `FirebaseFunctions.instance.httpsCallable('spendXp').call({'amount': 500, 'source': 'deal_claim'})`
-
-Finance call examples:
-
-- `FirebaseFunctions.instance.httpsCallable('getFinanceSummary').call()`
-- `FirebaseFunctions.instance.httpsCallable('addFunds').call({'amount': 1000, 'destination': 'general', 'source': 'card'})`
-- `FirebaseFunctions.instance.httpsCallable('logExpense').call({'amount': 300, 'expenseName': 'Groceries', 'category': 'food', 'source': 'manual'})`
-- `FirebaseFunctions.instance.httpsCallable('scanToPay').call({'amount': 250, 'merchantName': 'Cafe', 'merchantId': 'M123', 'merchantAccount': 'cafe@bank', 'rawPayload': '...raw qr...'})`
-- `FirebaseFunctions.instance.httpsCallable('payBill').call({'amount': 850, 'billName': 'Electricity Bill', 'billerId': 'LECO-55'})`
+```dart
+FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('getXp');
+FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('earnXpOnce').call({
+  'amount': 20,
+  'source': 'lesson_completion',
+  'awardKey': 'lesson:budgeting:1',
+});
+FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('spendXp').call({
+  'amount': 500,
+  'source': 'deal_claim',
+});
+FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('getFinanceSummary').call();
+FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('miroChat').call({
+  'message': 'How do I pay a bill?',
+  'knowledgeContext': '...',
+});
+```

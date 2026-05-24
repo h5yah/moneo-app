@@ -11,6 +11,8 @@ class LearnContentService {
 
   Map<String, dynamic>? _raw;
 
+  bool get isLoaded => _raw != null;
+
   Future<void> ensureLoaded() async {
     if (_raw != null) return;
     final jsonString = await rootBundle.loadString('assets/learn_content.json');

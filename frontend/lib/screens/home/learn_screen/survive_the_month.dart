@@ -316,6 +316,7 @@ class _SurviveTheMonthScreenState extends State<SurviveTheMonthScreen> {
 
   void _resetSimulation() {
     setState(() {
+      _xpAwarded = false;
       _simulationStarted = false;
       _simulationEnded = false;
       _currentEventIndex = 0;
@@ -779,10 +780,9 @@ class _SurviveTheMonthScreenState extends State<SurviveTheMonthScreen> {
     Future.microtask(() async {
       if (!_xpAwarded && _budgetLeft >= 0) {
         _xpAwarded = true;
-        await XpService.instance.earnXpOnce(
-          amount: 100,
+        await XpService.instance.earnXp(
+          amount: XpService.scenarioCompletionXp,
           source: 'survive_the_month',
-          awardKey: 'scenario:survive_the_month',
         );
       }
     });

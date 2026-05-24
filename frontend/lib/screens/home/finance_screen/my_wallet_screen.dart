@@ -151,7 +151,10 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
       if (merchant.isNotEmpty) return 'Payment to $merchant';
       return 'Scan to Pay';
     }
-    if (type == 'bill_payment') return 'Bill Payment';
+    if (type == 'bill_payment') {
+      if (expenseName.isNotEmpty) return expenseName;
+      return 'Bill Payment';
+    }
     if (_isCashInType(type)) return 'Funds Added';
     return 'Expense';
   }

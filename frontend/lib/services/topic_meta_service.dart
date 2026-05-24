@@ -65,8 +65,8 @@ class TopicMetaService {
         iconColor: _colorFromHex((m['iconColor'] as String?)?.trim() ?? '#000000'),
         iconBgColor: _colorFromHex((m['iconBgColor'] as String?)?.trim() ?? '#000000'),
         progressColor: _colorFromHex((m['progressColor'] as String?)?.trim() ?? '#000000'),
-        enabled: m['enabled'] == true,
-        prerequisiteTopicId: (m['prerequisiteTopicId'] as String?)?.trim(),
+        enabled: m['enabled'] != false,
+        prerequisiteTopicId: _optionalString(m['prerequisiteTopicId']),
       );
     }
 
@@ -76,6 +76,12 @@ class TopicMetaService {
 
   // NOTE: Icons are a Flutter runtime type. We keep the mapping minimal and
   // driven by JSON values so the app can change icon choices without editing UI code.
+  String? _optionalString(dynamic value) {
+    if (value == null) return null;
+    final trimmed = value.toString().trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   IconData _iconFromName(String name) {
     switch (name) {
       case 'list_alt_outlined':

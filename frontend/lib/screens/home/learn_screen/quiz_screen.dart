@@ -34,6 +34,8 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
+  static const int _correctAnswerXp = 50;
+
   int _currentQuestionIndex = 0;
   String? _selectedAnswer;
   bool _answered = false;
@@ -219,7 +221,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Widget _buildProgressSection() {
     final progress = (_currentQuestionIndex + 1) / widget.questions.length;
-    final xpForQuestion = 10;
+    final xpForQuestion = _correctAnswerXp;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
@@ -305,20 +307,10 @@ class _QuizScreenState extends State<QuizScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: GestureDetector(
-            onTap: (widget.revealAnswerFeedback && _answered)
+            onTap: (widget.revealAnswerFeedback && _answered) ||
+                    (!widget.revealAnswerFeedback && _answered)
                 ? null
-                : () {
-                    setState(() {
-                      _selectedAnswer = option;
-                    });
-
-                    if (widget.revealAnswerFeedback) {
-                      _submitAnswer(markAnswered: true);
-                    } else {
-                      _submitAnswer(markAnswered: false);
-                      _nextQuestion();
-                    }
-                  },
+                : () => _onAnswerSelected(option),
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -487,6 +479,25 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
+  void _onAnswerSelected(String option) {
+    setState(() {
+      _selectedAnswer = option;
+      _answered = true;
+    });
+
+    if (widget.revealAnswerFeedback) {
+      _submitAnswer(markAnswered: true);
+      return;
+    }
+
+    // Pre-quiz: brief highlight, then advance (no blocking save on last question).
+    _submitAnswer(markAnswered: true);
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (!mounted || !_answered) return;
+      _nextQuestion();
+    });
+  }
+
   void _submitAnswer({required bool markAnswered}) {
     if (_selectedAnswer == _currentQuestion.correctAnswer) {
       _score++;
@@ -504,7 +515,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _persistCorrectAnswerXp() {
     final future = XpService.instance.earnXpOnce(
-      amount: 50,
+      amount: _correctAnswerXp,
       source: 'quiz_correct_answer',
       awardKey: 'quiz_correct:$_quizAwardScope:$_currentQuestionIndex',
     );
@@ -513,7 +524,7 @@ class _QuizScreenState extends State<QuizScreen> {
     future.then((result) {
       if (!result.awarded || !mounted) return;
       setState(() {
-        _totalXP += 50;
+        _totalXP += _correctAnswerXp;
         _showXpPopup = true;
         _xpPopupTick++;
       });
@@ -540,12 +551,35 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Future<void> _showResults() async {
-    if (_pendingXpWrites.isNotEmpty) {
+    if (widget.awardXp && _pendingXpWrites.isNotEmpty) {
       try {
         await Future.wait(_pendingXpWrites);
       } catch (error) {
         debugPrint('Failed waiting for quiz XP writes: $error');
       }
+    }
+
+    if (!widget.showCompletionFlow) {
+      if (!mounted) {
+        return;
+      }
+
+      final payload = {
+        'score': _score,
+        'totalQuestions': widget.questions.length,
+      };
+
+      // Close immediately; save progress in the background (Firestore/XP are slow).
+      if (widget.onQuizFinished != null) {
+        widget
+            .onQuizFinished!(_score, widget.questions.length)
+            .catchError((error) {
+          debugPrint('Failed running quiz finish callback: $error');
+        });
+      }
+
+      Navigator.of(context).pop(payload);
+      return;
     }
 
     if (widget.onQuizFinished != null) {
@@ -556,16 +590,18 @@ class _QuizScreenState extends State<QuizScreen> {
       }
     }
 
-    if (!widget.showCompletionFlow) {
-      if (!mounted) {
-        return;
+    var topicCompletionBonus = 0;
+    if (widget.topicId != null && widget.topicId!.isNotEmpty) {
+      topicCompletionBonus = XpService.topicCompletionBonusXp;
+      try {
+        await XpService.instance.earnXpOnce(
+          amount: topicCompletionBonus,
+          source: 'topic_completion',
+          awardKey: 'post_quiz:${widget.topicId}',
+        );
+      } catch (error) {
+        debugPrint('Failed to award topic completion XP: $error');
       }
-
-      Navigator.of(context).pop({
-        'score': _score,
-        'totalQuestions': widget.questions.length,
-      });
-      return;
     }
 
     var currentLevel = 1;
@@ -609,7 +645,9 @@ class _QuizScreenState extends State<QuizScreen> {
         builder: (context) => QuizCompletionScreen(
           score: _score,
           totalQuestions: widget.questions.length,
-          earnedXP: _totalXP,
+          earnedXP: topicCompletionBonus > 0
+              ? topicCompletionBonus
+              : _totalXP,
           currentLevel: currentLevel,
           xpToNextLevel: xpToNextLevel,
           topicId: widget.topicId,

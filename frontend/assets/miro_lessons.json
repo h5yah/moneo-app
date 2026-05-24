@@ -1,0 +1,1306 @@
+{
+  "generatedAt": "2026-05-23T12:50:53.409Z",
+  "lessonCount": 44,
+  "lessons": [
+    {
+      "title": "Introduction to Budgeting",
+      "topicId": "budgeting_and_expense_tracking",
+      "steps": [
+        {
+          "title": "Where does the money go?",
+          "body": "Ask most people where their money went last month and they genuinely cannot tell you. Not because they were careless but because spending happens in small decisions, spread across the whole month, and no single one feels significant enough to remember.\n\nA budget fixes that. It is simply a plan you make before you spend, so you are not guessing at the end of the month."
+        },
+        {
+          "title": "What a budget actually is",
+          "body": "A budget is not a punishment. It is not a list of things you cannot buy.\n\nIt is just a decision you make once at the start of the month about where your money is going. Housing gets this much. Food gets this much. Savings gets this much. What is left over is yours to enjoy without guilt.\n\nThe goal is not restriction. The goal is intention."
+        },
+        {
+          "title": "A simple way to split your money",
+          "body": "One of the most practical starting points is the 50/30/20 split.\n\nHalf your income covers the things you have to pay: rent, food, transport, bills. Thirty percent goes to the things you enjoy: eating out, hobbies, subscriptions. Twenty percent goes to savings and paying off any debt.\n\nIt is not a rule set in stone. But it gives you a starting shape to work from."
+        },
+        {
+          "title": "What this looks like in real life",
+          "body": "Say you take home MUR 22,000 a month.\n\nUsing 50/30/20, about MUR 11,000 goes to the essentials, i.e, rent, groceries, transport. Around MUR 6,600 is yours to spend on things you enjoy. And MUR 4,400 goes straight to savings before you touch the rest.\n\nEvery rupee has somewhere to go. Nothing is left to disappear on its own."
+        },
+        {
+          "title": "The one thing to remember",
+          "body": "A budget you never look at does not help you. The point is not to create a perfect spreadsheet, it is to check in regularly and see if your actual spending matches your plan.\n\nWeekly is better than monthly. Ten minutes on a Sunday is enough.",
+          "bullets": [
+            "Always work from your net income - what actually arrives in your account",
+            "Cover essentials first, savings second, enjoyment third",
+            "Check your budget at least once a week"
+          ],
+          "note": "People who plan their spending tend to save more and stress less, even on the same income."
+        }
+      ]
+    },
+    {
+      "title": "Understanding Income",
+      "topicId": "budgeting_and_expense_tracking",
+      "steps": [
+        {
+          "title": "You earn more than you think you receive",
+          "body": "Your salary and your income are not the same number.\n\nYour salary is what your employer agreed to pay you. Your income is what actually arrives in your account — after tax, NPF, NSF, and any other deductions. For most people in Mauritius, those deductions take between 10 and 20 percent off the top.\n\nIf you build your budget from the salary figure, you will overspend every single month without knowing why."
+        },
+        {
+          "title": "Gross vs net — the one that matters",
+          "body": "Gross income is the big number on your contract. Net income is the smaller number that hits your bank account.\n\nWhen you sit down to plan your finances, only net income is real. The gross figure is irrelevant until you are negotiating a raise.\n\nCheck your payslip. Find the number after all deductions. That is your starting point for every financial decision you make."
+        },
+        {
+          "title": "What if your income changes every month?",
+          "body": "If you freelance, work on commission, or have multiple income sources, your monthly income will not be the same each time.\n\nThe safest thing to do is build your budget around the lowest amount you reliably earn — not your best month, not your average, but the floor. That way, a slow month does not break you. A good month becomes a bonus."
+        },
+        {
+          "title": "An example that makes it concrete",
+          "body": "Gross salary: MUR 30,000.\n\nAfter income tax, NPF, and NSF deductions, the amount that lands in your account is closer to MUR 27,750.\n\nIf you plan your life around MUR 30,000, you will be short MUR 2,250 every single month. That gap does not disappear — it quietly becomes debt."
+        },
+        {
+          "title": "The habit that changes everything",
+          "body": "Look at your payslip every month. Not just the total — the breakdown. Know what was taken, why, and what you actually have to work with.\n\nMost people skip this step. That is exactly why most people are confused about where their money went.",
+          "bullets": [
+            "Net income only — never plan from gross",
+            "If your income varies, use the lowest amount you reliably earn",
+            "Your payslip is the most important document you receive each month"
+          ],
+          "note": "One small habit: read your payslip the same day you receive it."
+        }
+      ]
+    },
+    {
+      "title": "Classifying Expenses",
+      "topicId": "budgeting_and_expense_tracking",
+      "steps": [
+        {
+          "title": "Not all spending is the same",
+          "body": "Some of your expenses are fixed — they show up at the same amount every month no matter what you do. Others change depending on your choices. And some are completely optional.\n\nKnowing which category each expense falls into tells you something important: where you have control and where you do not."
+        },
+        {
+          "title": "The expenses you cannot easily change",
+          "body": "Fixed expenses are the commitments you have already made. Rent. Loan repayments. Insurance. Your internet plan. Tuition.\n\nThese come out first, before you make any other financial decision. You cannot easily reduce them in the short term, so they need to be respected in your budget — not estimated, not guessed. Written down and planned for."
+        },
+        {
+          "title": "Where most of your control actually lives",
+          "body": "Variable expenses change based on how you behave. Your grocery bill, transport costs, electricity — all of these respond to your choices.\n\nThen there are discretionary expenses, which are fully optional. Dining out. Subscriptions you barely use. Online shopping. Entertainment.\n\nThis is where budgets are won or lost. Not because these things are bad — but because people consistently underestimate how much they are actually spending here."
+        },
+        {
+          "title": "What categorising actually reveals",
+          "body": "Imagine you think you spend MUR 15,000 a month on living expenses.\n\nWhen you break it down: rent is MUR 8,000, groceries MUR 3,200, transport MUR 1,400, three forgotten subscriptions MUR 600, takeaway and dining MUR 2,100.\n\nSuddenly the MUR 600 in subscriptions and MUR 2,100 in food delivery are visible. You did not decide to spend that — it just happened. Now you can decide."
+        },
+        {
+          "title": "The simple takeaway",
+          "body": "You cannot control what you cannot see. Putting your spending into categories takes maybe twenty minutes — and it will show you something about your money you did not know.",
+          "bullets": [
+            "Fixed: rent, loans, insurance — list these first, always",
+            "Variable: groceries, transport — set a weekly limit",
+            "Discretionary: dining, shopping — choose these consciously"
+          ],
+          "note": "Most people find 10 to 15 percent of spending they never consciously chose — once they look."
+        }
+      ]
+    },
+    {
+      "title": "Needs vs Wants",
+      "topicId": "budgeting_and_expense_tracking",
+      "steps": [
+        {
+          "title": "One question that changes how you spend",
+          "body": "Before you buy something that is not planned, ask yourself one thing: do I actually need this, or do I just want it right now?\n\nIt sounds simple. But most people skip this step entirely — and that is why money disappears faster than expected."
+        },
+        {
+          "title": "What a need actually is",
+          "body": "A need is whatever you genuinely require to function — for work, for health, for daily life.\n\nFood is a need. But a meal delivery order every night is not. Transport to work is a need. A taxi when the bus runs fine is not. The distinction is not about what is comfortable — it is about what is necessary at its most basic level."
+        },
+        {
+          "title": "Wants are not the enemy",
+          "body": "Wants are not bad things. Enjoying your money is part of living a good life.\n\nThe problem is not spending on wants — it is spending on them automatically, without noticing, and then wondering why there is nothing left. A want that you chose consciously and planned for is fine. A want that silently consumed three months of savings is the issue.\n\nMost people underestimate their want spending significantly. Not because they are irresponsible — because small purchases do not feel like spending until you add them up."
+        },
+        {
+          "title": "The 24-hour rule",
+          "body": "Here is a practical trick that works surprisingly well.\n\nWhen you want to buy something unplanned, wait 24 hours. Do not talk yourself out of it — just wait. If you still want it the next day and it fits your budget, buy it without guilt.\n\nThe urgency almost always fades. Most unplanned purchases never happen once you sleep on them."
+        },
+        {
+          "title": "Why this matters",
+          "body": "Every rupee you redirect from something you did not really want goes somewhere that actually matters — savings, goals, debt repayment.\n\nNot because you are being strict with yourself. Because you made a real decision instead of a reflex one.",
+          "bullets": [
+            "A need is the functional minimum — not the nicest version of it",
+            "Wants are fine when they are chosen, not just automatic",
+            "The 24-hour pause is the simplest way to filter impulse spending"
+          ],
+          "note": "People who can distinguish needs from wants consistently save more over time — on identical incomes."
+        }
+      ]
+    },
+    {
+      "title": "Developing a Budget Plan",
+      "topicId": "budgeting_and_expense_tracking",
+      "steps": [
+        {
+          "title": "Why most budgets fail before they start",
+          "body": "Most budgets fail not because people lack willpower — but because the plan was built on numbers that were not true.\n\nThey use their gross salary instead of net. They underestimate their fixed costs. They assume variable spending will somehow be less than it always is.\n\nA budget built on optimistic numbers collapses within the first week of the month."
+        },
+        {
+          "title": "Start with what is real",
+          "body": "Step one: write down exactly what lands in your bank account after all deductions. Not your salary — your actual net income.\n\nStep two: list every fixed commitment — rent, loan repayments, insurance, subscriptions. These leave first, before you make any other decision.\n\nWhat remains is your working money for the rest of the month."
+        },
+        {
+          "title": "Savings come before enjoyment",
+          "body": "Once you know what is left after fixed costs, do not spend any of it yet.\n\nMove your savings amount first — whatever percentage you have committed to. Even MUR 1,000 counts. Transfer it before you touch anything else.\n\nThen set weekly limits for your variable categories: groceries, transport, dining, entertainment. Weekly limits are easier to track than monthly totals — you notice when you are going over before it is too late."
+        },
+        {
+          "title": "A complete example",
+          "body": "Net income: MUR 22,000\n\nFixed costs: rent MUR 7,500, loan repayment MUR 1,500, internet MUR 500.\nSavings: emergency fund MUR 2,000, goal savings MUR 1,500.\nEssentials: groceries MUR 3,000, transport MUR 1,500.\nFlexible spending: dining and entertainment MUR 4,000, buffer MUR 500.\n\nTotal: MUR 22,000. Everything has somewhere to go."
+        },
+        {
+          "title": "The goal is zero unassigned money",
+          "body": "The most effective budgets give every single rupee a purpose before the month starts. Not because you cannot be spontaneous — but because if you do not decide where money goes, it disappears into small decisions you will not remember.\n\nAssign it yourself. Then you are in control.",
+          "bullets": [
+            "Net income first — always from what actually arrives",
+            "Fixed costs out, then savings, then everything else",
+            "Set weekly limits, not just monthly totals"
+          ],
+          "note": "Budgeting, goal-setting, and financial knowledge are the three foundations of long-term financial well-being."
+        }
+      ]
+    },
+    {
+      "title": "Monitoring & Tracking Spending",
+      "topicId": "budgeting_and_expense_tracking",
+      "steps": [
+        {
+          "title": "A plan without tracking is just a guess",
+          "body": "You can build the best budget in the world — and if you never check how your actual spending compares to it, nothing changes.\n\nTracking is not complicated. It is just the habit of recording what you spend, so you can see the truth instead of guessing at it."
+        },
+        {
+          "title": "The method that actually works",
+          "body": "The best tracking method is the one you will actually do. A note in your phone. A simple spreadsheet. A budgeting app. The FinLit wallet.\n\nThe one habit that matters more than the tool: record each expense at the moment it happens. Not that evening. Not at the weekend. Right when you spend.\n\nMemory is unreliable. Small purchases — the ones that add up the fastest — are the easiest to forget."
+        },
+        {
+          "title": "Check in once a week",
+          "body": "Once a week — ten minutes is enough — look at what you actually spent versus what you planned.\n\nAsk yourself three questions. Which category did I go over in? Was it a one-off situation or is this a pattern? What do I adjust for next week?\n\nWeekly check-ins catch problems early. Monthly reviews often find them too late to fix."
+        },
+        {
+          "title": "What tracking actually reveals",
+          "body": "Most people estimate they spend around MUR 3,000 a month on food.\n\nOne week of honest tracking often looks like this: groceries MUR 850, delivery apps MUR 620, snacks and cafeteria MUR 390, dining out MUR 1,100.\n\nThat is almost MUR 3,000 in a single week — nearly MUR 12,000 a month. The estimate was off by four times. Tracking does not judge you for this. It just shows you the truth so you can make a real decision."
+        },
+        {
+          "title": "You cannot fix what you cannot see",
+          "body": "Tracking your spending is not about restriction or punishment. It is just information — the same way checking your phone battery tells you when to charge it.\n\nOnce you know where the money actually goes, you can decide if that is where you want it to go.",
+          "bullets": [
+            "Log expenses at the moment of purchase — not later",
+            "Do a 10-minute review once a week",
+            "One over-budget week is normal — a pattern is a signal to act"
+          ],
+          "note": "People who track spending consistently save more than those who rely on memory — even when their incomes are the same."
+        }
+      ]
+    },
+    {
+      "title": "The Habit: Paying Yourself First",
+      "topicId": "saving_and_emergency_funds",
+      "steps": [
+        {
+          "title": "Why saving last never works",
+          "body": "Most people plan to save whatever is left at the end of the month.\n\nThe problem is that nothing is ever left. Spending quietly expands to fill every rupee available. This is not a discipline problem — it is just how money behaves when there is no prior commitment on it.\n\nThe fix is not trying harder. It is changing the order."
+        },
+        {
+          "title": "Save first, spend what remains",
+          "body": "Paying yourself first means your savings move out of your account before you spend a single rupee.\n\nThe moment income arrives, a fixed amount transfers to a separate savings account. Not at the end of the month. Not when you remember. Immediately.\n\nThen you live on what is left. After a few weeks, your brain adjusts to the smaller number and you stop noticing what was moved."
+        },
+        {
+          "title": "How much should you move?",
+          "body": "Start with what is realistic, even if it feels small. Five percent is a real start. Ten percent is a solid habit. Fifteen to twenty percent is where you start building real momentum.\n\nFor someone taking home MUR 20,000, ten percent is MUR 2,000 a month. By the end of the year, that is MUR 24,000 sitting in savings — without any extra effort after the first setup.\n\nEvery time your salary increases, increase the percentage before you increase your spending."
+        },
+        {
+          "title": "The key insight",
+          "body": "The difference between people who save consistently and people who never quite manage it is almost never income.\n\nIt is almost always sequence. The people who save do it first. The people who struggle do it last.",
+          "bullets": [
+            "Decide your percentage — even 5% is a real start",
+            "Set up a transfer that moves on payday automatically",
+            "Increase it with every salary raise, before anything else"
+          ],
+          "note": "Saving automatically is more reliable than any approach that depends on remembering to do it."
+        }
+      ]
+    },
+    {
+      "title": "The Shield: Emergency Funds",
+      "topicId": "saving_and_emergency_funds",
+      "steps": [
+        {
+          "title": "What happens when life breaks your plan",
+          "body": "At some point, something will go wrong. A phone screen. A medical bill. A car that will not start. A job that ends without warning.\n\nWithout savings, any of these forces you to borrow money — often at high interest — just to get through it. With savings, the same event is an inconvenience. Not a crisis."
+        },
+        {
+          "title": "Build it in two stages",
+          "body": "You do not need to save six months of expenses before this fund starts protecting you.\n\nStart with MUR 5,000 to MUR 10,000 — enough to handle the most common emergencies: a broken device, an unexpected medical visit, an urgent transport cost. This alone prevents most people from reaching for a credit card.\n\nOnce you have that, build toward three to six months of essential expenses. That is the level that protects you even if you lose your income entirely."
+        },
+        {
+          "title": "Not every crisis counts",
+          "body": "An emergency fund is for things that are unplanned, necessary, and urgent — all three at once.\n\nA sale at your favourite store is not an emergency. A concert ticket is not an emergency. A friend's birthday dinner is not an emergency.\n\nA broken water heater in monsoon season is. A hospital visit is. Protecting this fund from non-emergencies is half the discipline."
+        },
+        {
+          "title": "Where to keep it",
+          "body": "Your emergency fund needs to be two things: easy to access within a day or two, and completely separate from your daily spending account.\n\nA standard savings account at your bank works well — as long as you are not using that account for anything else. Do not put it in a fixed deposit where you would lose access in a real crisis."
+        },
+        {
+          "title": "Why this changes more than your bank balance",
+          "body": "Having an emergency fund does not just protect your money. It changes how you make decisions every day.\n\nWhen you know you can handle a sudden expense, you stop making financial decisions from a place of fear. That calm is worth more than the number in the account.",
+          "bullets": [
+            "First target: MUR 5,000 to MUR 10,000",
+            "Final target: 3 to 6 months of essential expenses",
+            "Keep it liquid and in a separate account"
+          ],
+          "note": "Even a small emergency fund dramatically reduces financial stress — and the likelihood of falling into debt when something goes wrong."
+        }
+      ]
+    },
+    {
+      "title": "The Tool: Savings Accounts",
+      "topicId": "saving_and_emergency_funds",
+      "steps": [
+        {
+          "title": "Where money lives changes how it behaves",
+          "body": "Money sitting in your daily current account does two things: it earns nothing, and it is available every time you open your banking app.\n\nThat combination is the enemy of savings. The more visible and accessible your savings are, the more likely you are to spend them — even without realising it."
+        },
+        {
+          "title": "The accounts worth knowing about",
+          "body": "A standard savings account earns a little interest and stays accessible. Good for your emergency fund.\n\nA high-yield savings account earns more while staying liquid. Better if your bank offers one.\n\nA fixed deposit locks your money for a set period in exchange for a higher rate. Good for medium-term goals — but do not use it for your emergency fund. If something goes wrong, you cannot get to the money without a penalty."
+        },
+        {
+          "title": "Use separate accounts for separate goals",
+          "body": "One of the most practical things you can do is open multiple savings accounts and name each one after its purpose.\n\nOne account for your emergency fund — untouchable. One for a specific goal like a laptop or travel. One for something further out like a car deposit.\n\nWhen they are separate, goal money cannot accidentally become spending money. And seeing each balance grow makes the goal feel more real."
+        },
+        {
+          "title": "The simple rule",
+          "body": "Emergency fund: a separate savings account, accessible within a day, never linked to your debit card.\n\nShort-term goals: a high-yield savings account if your bank offers one.\n\nMedium-term goals: a fixed deposit — only if you are confident you will not need the money before it matures.",
+          "bullets": [
+            "Open a savings account separate from your daily account",
+            "Name it after its purpose",
+            "Never put emergency savings in a fixed deposit"
+          ],
+          "note": "Naming an account after its goal is one of the simplest and most effective ways to protect that money from being spent."
+        }
+      ]
+    },
+    {
+      "title": "The Growth: Compound Interest",
+      "topicId": "saving_and_emergency_funds",
+      "steps": [
+        {
+          "title": "Money that earns money on its own earnings",
+          "body": "When you earn interest on savings, that interest gets added to your balance. Next month, you earn interest on the larger balance — including the interest from before.\n\nThis is compounding. The longer it runs, the faster it grows — not in a straight line, but in a curve that gets steeper the further you go."
+        },
+        {
+          "title": "The snowball on a hill",
+          "body": "Think of a small snowball rolling down a long hill. At first it barely picks up anything. But as it gets bigger, each rotation collects more snow. Eventually it is rolling so fast and growing so large that nothing can slow it down.\n\nThat is what happens to savings over time. Year one looks boring. Year ten looks interesting. Year twenty looks dramatic. Year thirty looks like a completely different number than you started with."
+        },
+        {
+          "title": "Why starting early beats saving more later",
+          "body": "Two people save MUR 1,500 a month. Person A starts at 20 and stops at 30 — ten years total. Person B starts at 30 and saves until 60 — thirty years total.\n\nPerson B contributes three times more money over their lifetime. But Person A, because of that ten-year head start, ends up with more wealth at 60.\n\nTime in the system matters more than the amount going in."
+        },
+        {
+          "title": "The Rule of 72",
+          "body": "Here is a quick way to understand compounding: divide 72 by your interest rate to find how many years it takes to double your money.\n\nAt 4% interest, your money doubles in 18 years. At 6%, in 12 years. At 8%, in 9 years.\n\nMUR 10,000 saved at 22 at 8% becomes MUR 20,000 by 31, MUR 40,000 by 40, MUR 80,000 by 49 — without adding anything after the first deposit."
+        },
+        {
+          "title": "The one thing you cannot buy back",
+          "body": "You can always earn more money. You can always save a larger percentage. But you cannot go back in time and start earlier.\n\nEvery year you wait costs you a doubling cycle. Starting small now is worth far more than starting big later.",
+          "bullets": [
+            "Never withdraw savings early — you reset the clock",
+            "Reinvest any interest rather than spending it",
+            "Use the Rule of 72 to see how fast your money actually grows"
+          ],
+          "note": "The impact of starting early is genuinely difficult to feel until you see the numbers — because growth is exponential, not linear."
+        }
+      ]
+    },
+    {
+      "title": "The Strategy: Automating Stability",
+      "topicId": "saving_and_emergency_funds",
+      "steps": [
+        {
+          "title": "Willpower is a bad financial strategy",
+          "body": "Every month, deciding whether to save requires willpower. And willpower is unreliable — it gets used up, it weakens under stress, and it loses to any enjoyable thing competing with it.\n\nThe people who save most consistently are not more disciplined than anyone else. They just set things up so the decision does not have to be made every month."
+        },
+        {
+          "title": "How automation actually works",
+          "body": "Most banks let you set up a standing order — an automatic transfer that moves a fixed amount from your main account to a savings account on a date you choose.\n\nSet the date for the day after payday. Set the amount to your savings target. Then leave it alone.\n\nFrom that point forward, savings happen every month without you deciding anything."
+        },
+        {
+          "title": "Why it works psychologically",
+          "body": "When money moves before you see it, your brain treats what remains as your total income. You adjust your spending to the smaller number — and after a few weeks, you genuinely stop noticing.\n\nThis is exactly how pension deductions work. The money is gone before the payslip arrives, so you never build a lifestyle around it. Automation applies the same logic to your own savings."
+        },
+        {
+          "title": "Layer it up over time",
+          "body": "Start with one automatic transfer — your emergency fund. Once that reaches its target, either keep the transfer going for a different goal, or add a second one.\n\nOver time you can have a transfer for your emergency fund, one for a specific goal, one toward investments. Each one runs without you making a decision every month.\n\nYour financial progress becomes something that just happens in the background."
+        },
+        {
+          "title": "The simplest financial system",
+          "body": "The best financial system is one that requires the least ongoing effort from you. Set it up once. Review it every six months. Increase the amounts when your income goes up.\n\nThat is it.",
+          "bullets": [
+            "Create a standing order on the day after payday",
+            "Start with one transfer for your emergency fund",
+            "Add more layers as your savings habits settle"
+          ],
+          "note": "Savings that happen automatically are far more consistent than savings that depend on remembering to do them."
+        }
+      ]
+    },
+    {
+      "title": "Understanding Debt: The Mechanics of Borrowing",
+      "topicId": "debt_management",
+      "steps": [
+        {
+          "title": "Borrowing is not getting money — it is promising future money",
+          "body": "When you take a loan, you are not receiving a gift. You are making a legal agreement to hand over a portion of your future income — plus a fee for the service.\n\nEvery loan is a claim on your future self. The question is whether the thing you are buying today is worth what your future self will give up to pay for it."
+        },
+        {
+          "title": "The three numbers that tell the real story",
+          "body": "The principal is the amount you actually borrowed. The interest rate is the annual cost of borrowing it. And the APR — Annual Percentage Rate — is the number that tells you the complete, honest price.\n\nA loan might advertise zero percent interest, then add a monthly admin fee that turns it into a sixty percent APR when you do the maths. The APR is the only figure worth comparing between different loans."
+        },
+        {
+          "title": "Simple interest vs compound interest on debt",
+          "body": "With simple interest, you pay a fixed amount on the original loan. With compound interest — which most credit cards and personal loans use — the interest gets added to your balance, and then you pay interest on that too.\n\nLeft unpaid, a MUR 10,000 debt at twelve percent compound interest becomes roughly MUR 14,000 after three years — without borrowing another rupee."
+        },
+        {
+          "title": "What a real loan actually costs",
+          "body": "A personal loan of MUR 50,000 at eighteen percent APR over three years costs about MUR 1,808 per month to repay.\n\nBy the time it is paid off, you will have handed back MUR 65,088. The extra MUR 15,088 is just the price of having that money early.\n\nThat is roughly three months of salary for many workers — paid entirely to the bank."
+        },
+        {
+          "title": "The one question to ask before any loan",
+          "body": "Before you sign anything: what is the APR, and what is the total amount I will repay?\n\nNot the monthly payment. Not the interest rate alone. The total you will hand back by the end.\n\nIf that number is worth whatever you are buying, borrow. If it is not, do not.",
+          "bullets": [
+            "Ask for the APR — not just the interest rate",
+            "Calculate monthly payment multiplied by number of months",
+            "Compare that total against the real value of what you are buying"
+          ],
+          "note": "Understanding the true cost of borrowing is one of the most financially valuable skills you can develop."
+        }
+      ]
+    },
+    {
+      "title": "The \"Pay Later\" Illusion (Digital Debt)",
+      "topicId": "debt_management",
+      "steps": [
+        {
+          "title": "Why small payments feel like not spending",
+          "body": "When you hand over MUR 2,000 in cash, your brain notices. When you tap \"four payments of MUR 500,\" it barely registers.\n\nThe total is identical. But your brain experiences them completely differently. Buy Now Pay Later platforms are designed around this exact effect — they make spending feel smaller so you do more of it."
+        },
+        {
+          "title": "The problem is not one plan — it is all of them together",
+          "body": "One BNPL plan for MUR 500 a month feels manageable. But add a second for MUR 800, a third for MUR 1,200, a fourth for MUR 600 — and suddenly you have committed MUR 3,100 of next month's income before the month has even started.\n\nAnd you probably could not list all of them without checking your phone first. That is the design. Each plan is forgettable on its own."
+        },
+        {
+          "title": "A real example of how it adds up",
+          "body": "Your take-home income is MUR 15,000. You sign up for three BNPL plans — shoes, a watch, a trip — totalling MUR 4,600 per month.\n\nBefore you pay rent, buy groceries, or cover transport, nearly a third of your income is already gone. And those are legal obligations — you cannot simply choose not to pay them."
+        },
+        {
+          "title": "The test to run before any BNPL purchase",
+          "body": "Before accepting a Pay Later offer, ask yourself one question: could I afford to buy this item twice in cash, right now?\n\nIf yes — the instalments are just convenience. If no — you are taking out a loan for something your current income cannot actually support."
+        },
+        {
+          "title": "BNPL is credit with better marketing",
+          "body": "There is nothing wrong with using Pay Later products occasionally for things you could afford anyway. The danger is treating them as a way to buy things you cannot yet afford.\n\nEvery instalment plan is a legal claim on your future income. Name it what it is.",
+          "bullets": [
+            "Add up all your current BNPL commitments — total monthly amount",
+            "Run the \"twice in cash\" test before any new plan",
+            "If BNPL exceeds 10% of your net income, pause everything new"
+          ],
+          "note": "People with multiple BNPL plans are significantly more likely to struggle with debt elsewhere — because the commitments are invisible until they collide."
+        }
+      ]
+    },
+    {
+      "title": "The Minimum Payment Trap",
+      "topicId": "debt_management",
+      "steps": [
+        {
+          "title": "Why banks only ask for a little",
+          "body": "When you owe MUR 10,000 on a credit card and the bank asks for MUR 200, that is not generosity. That is a business decision.\n\nThe less you pay each month, the longer you carry a balance. The longer you carry a balance, the more interest you pay. The minimum payment keeps you in debt as long as possible — which is profitable for the bank and expensive for you."
+        },
+        {
+          "title": "What the minimum actually does to your debt",
+          "body": "On a MUR 10,000 credit card balance at 24% annual interest, with a minimum payment of MUR 200, almost all of that MUR 200 goes straight to interest. Barely anything reduces the balance.\n\nAt that rate, it takes roughly ten years to clear MUR 10,000 — and you end up paying back close to MUR 20,000 in total."
+        },
+        {
+          "title": "What paying more actually does",
+          "body": "Same debt. Same rate. But paying MUR 500 a month instead of MUR 200 clears it in about two years and saves you thousands in interest.\n\nPaying MUR 1,000 a month clears it in under a year. The difference between paying the minimum and paying aggressively is not small — it is years of your life and a significant amount of money."
+        },
+        {
+          "title": "The minimum is not a target — it is a floor",
+          "body": "The minimum payment is the lowest amount the bank will accept before they take action against you. It is not a recommendation. It is not calculated with your interests in mind.\n\nTreat the full balance as the amount you owe. Anything less is just paying rent on the debt.",
+          "bullets": [
+            "Always pay more than the minimum — even MUR 100 extra helps",
+            "Use any loan calculator to see how long your debt will actually last",
+            "Think of the total balance as the real number due"
+          ],
+          "note": "People who consistently pay only the minimum on credit often end up paying two to three times the original amount by the time the debt is cleared."
+        }
+      ]
+    },
+    {
+      "title": "Your Financial \"Grade\" (The MCIB)",
+      "topicId": "debt_management",
+      "steps": [
+        {
+          "title": "Someone is keeping score",
+          "body": "In Mauritius, every time you borrow money — through a bank loan, a hire purchase agreement, or even a postpaid phone contract — that arrangement is reported to the Mauritius Credit Information Bureau.\n\nThe MCIB keeps a record of every credit facility you have held, whether you paid on time, and whether anything was left unpaid. Banks check this before deciding whether to lend to you."
+        },
+        {
+          "title": "What a good record opens up for you",
+          "body": "A clean credit record means banks see you as reliable. That translates into lower interest rates on loans, higher amounts approved, better terms on a mortgage, and sometimes lower insurance premiums.\n\nA damaged record does the opposite — for three to seven years."
+        },
+        {
+          "title": "What damages it",
+          "body": "Late payments are flagged. Partial payments when the full amount was due are flagged. Defaults are flagged. And the MCIB does not distinguish between a large missed payment and a small one.\n\nA forgotten balance on a MUR 1,000 phone plan can show up three years later and block you from a car loan or a mortgage. The amount does not matter — only whether you paid."
+        },
+        {
+          "title": "Building a good record takes time — and paying on time",
+          "body": "You build a strong credit record by borrowing and repaying consistently. Not by avoiding credit entirely.\n\nPay every bill on time. Pay the full agreed amount. Keep hire purchase agreements current. And check your own MCIB record once a year — errors happen, and you are entitled to see it."
+        },
+        {
+          "title": "Every payment is a data point",
+          "body": "Your credit record is not built in a moment — it is built across years of small decisions. Every on-time payment adds to it. Every missed payment leaves a mark.\n\nTreat every financial commitment as a promise. Not because someone is watching — because you will need that record to work in your favour one day.",
+          "bullets": [
+            "Pay every bill on time, every time",
+            "Late is almost as damaging as not paying at all",
+            "Request your MCIB report once a year to check for errors"
+          ],
+          "note": "Your credit history affects your interest rates, your loan eligibility, and in some cases your employment — for years."
+        }
+      ]
+    },
+    {
+      "title": "Escaping the Debt Hole: The Exit Strategy",
+      "topicId": "debt_management",
+      "steps": [
+        {
+          "title": "First: stop making it worse",
+          "body": "The most important step in clearing debt is one most people skip.\n\nBefore any strategy, before any method, you need to stop adding new debt. Trying to pay off what you owe while still borrowing is like bailing water from a boat with a hole in the bottom.\n\nFreeze all new credit. No exceptions until the existing debt is gone."
+        },
+        {
+          "title": "The Avalanche — the mathematically correct approach",
+          "body": "List every debt you have, with its interest rate. Pay the minimum on all of them. Then put every extra rupee you can find toward the one with the highest rate.\n\nOnce that is cleared, take everything that was going toward it and redirect it to the next highest rate. Repeat until you are done.\n\nThis approach costs you the least in total interest over time."
+        },
+        {
+          "title": "The Snowball — when you need motivation more than maths",
+          "body": "The Snowball method works differently: you target the smallest balance first, regardless of interest rate. You pay it off quickly, get a genuine win, then roll that energy and that freed-up payment toward the next smallest.\n\nIt costs slightly more in interest than the Avalanche. But for people who need visible progress to stay motivated, it works better in practice.\n\nBoth methods beat minimum payments by an enormous margin. Pick the one you will actually stick to."
+        },
+        {
+          "title": "A real example",
+          "body": "Three debts: a credit card at 24%, a store loan at 12%, a personal loan at 9%.\n\nUsing the Avalanche, you throw everything extra at the credit card first. It clears in roughly seven months. Then all that money shifts to the store loan. Then the personal loan.\n\nCompared to paying only minimums, this saves around MUR 4,200 in interest — and years of repayment."
+        },
+        {
+          "title": "Debt has a finish line",
+          "body": "One of the most powerful things you can do is calculate your debt-free date. Work out how long each debt will take at your current extra payment rate. Write it down.\n\nWhen you know there is an end, the sacrifice feels different. It is not forever — it is until a specific month.",
+          "bullets": [
+            "Stop all new debt first — nothing else matters until this is done",
+            "Avalanche for minimum interest paid, Snowball for motivation",
+            "Calculate your debt-free date and keep it visible"
+          ],
+          "note": "Structured repayment with a clear end date is far more likely to succeed than open-ended minimum payments."
+        }
+      ]
+    },
+    {
+      "title": "Short-Term vs. Long-Term Goals",
+      "topicId": "financial_planning_for_big_goals",
+      "steps": [
+        {
+          "title": "Money without a name gets spent",
+          "body": "When your savings sit in one unnamed account, they feel like a surplus. And surplus money gets spent — on a holiday, on something you did not plan, on nothing in particular.\n\nThe moment you name a savings goal, the money changes character. It stops being available. It becomes something you are protecting."
+        },
+        {
+          "title": "Three different timelines, three different strategies",
+          "body": "Short-term goals are things you want within the next year — an emergency fund, a new device, a trip. These need to be kept in a liquid savings account so you can access them easily.\n\nMedium-term goals — a car deposit, further education, a home deposit — need one to five years. A fixed deposit or higher-yield account makes sense here.\n\nLong-term goals are five years or more away: a home, retirement, your children's education. These need to grow, which means investing, not just saving."
+        },
+        {
+          "title": "Why mixing goals breaks both of them",
+          "body": "When all your savings are in one pot, your house deposit and your laptop fund compete with each other.\n\nYou see MUR 80,000 in an account, feel financially comfortable, and spend MUR 20,000 on a holiday. You tell yourself you will replace it. You usually do not.\n\nSeparate accounts make the cost of that decision visible. It is no longer \"taking from savings.\" It is taking from the house fund, specifically."
+        },
+        {
+          "title": "An example that shows it working",
+          "body": "Take-home income: MUR 25,000.\n\nThree goals, three accounts: emergency fund getting MUR 2,500 a month, laptop fund getting MUR 3,000, car deposit getting MUR 2,800 in a fixed deposit.\n\nEach goal has a separate account, a clear target, and a monthly contribution. Progress is visible. Goals do not compete."
+        },
+        {
+          "title": "A goal without an account is just a wish",
+          "body": "Having a goal in your head is not a plan. Having a named savings account with a monthly transfer going into it is a plan.\n\nThe difference between people who reach their goals and people who perpetually almost reach them is usually this one step.",
+          "bullets": [
+            "Give every goal its own account with its own name",
+            "Separate short, medium, and long-term savings physically",
+            "Review goal timelines quarterly — adjust the amount, never drop the goal"
+          ],
+          "note": "Goal-based saving with defined timelines is one of the most reliable predictors of long-term financial well-being."
+        }
+      ]
+    },
+    {
+      "title": "Estimating Future Costs & The 10% Buffer",
+      "topicId": "financial_planning_for_big_goals",
+      "steps": [
+        {
+          "title": "The sticker price is never the real price",
+          "body": "Most people save for the number on the price tag and are surprised when it is not enough.\n\nEvery significant purchase comes with additional costs that are not in the headline figure: registration fees, transfer taxes, insurance, delivery, setup costs. If you only saved for the sticker price, you arrive at your goal and discover you are still short."
+        },
+        {
+          "title": "Add ten percent on top of everything",
+          "body": "A ten percent buffer on top of your true total cost covers the things you did not think of: a fee you did not know existed, a price that went up while you were saving, a small repair that was needed on day one.\n\nIf you use every rupee of the buffer — no problem, you planned for it. If you do not — you start your next goal with a head start."
+        },
+        {
+          "title": "What this looks like with a real purchase",
+          "body": "You want a second-hand car with a sticker price of MUR 180,000.\n\nOnce you add registration transfer, first-year insurance, road tax, and a minor repair discovered at inspection, the actual total is closer to MUR 201,000.\n\nSomeone who saved exactly MUR 180,000 is short and has to borrow. Someone who saved MUR 198,000 — price plus ten percent — gets through with almost no gap."
+        },
+        {
+          "title": "For goals more than a year away, add inflation too",
+          "body": "Prices do not stay the same. Inflation in Mauritius has averaged three to six percent in recent years.\n\nA goal that costs MUR 50,000 today might cost MUR 53,000 in a year. If you save exactly MUR 50,000, you finish short through no fault of your own.\n\nFor goals more than twelve months away, add an inflation adjustment on top of the ten percent buffer."
+        },
+        {
+          "title": "Save for what it actually costs",
+          "body": "The gap between what something appears to cost and what it actually costs is where most goal failures happen. Not from lack of effort — from incomplete research.",
+          "bullets": [
+            "Research all costs — not just the headline price",
+            "Add 10% buffer on top of the real total",
+            "For goals over 12 months, also add an inflation adjustment"
+          ],
+          "note": "Always plan for the complete cost. A buffer is cheaper than borrowing to close the gap at the finish line."
+        }
+      ]
+    },
+    {
+      "title": "Creating a Financial Plan (S.M.A.R.T. Goals)",
+      "topicId": "financial_planning_for_big_goals",
+      "steps": [
+        {
+          "title": "The difference between a wish and a plan",
+          "body": "\"I want to save for a trip\" is a wish.\n\n\"I will save MUR 44,000 for a trip to Réunion by December 2026, by setting aside MUR 2,445 every month starting now\" is a plan.\n\nThe difference is not motivation. It is specificity. A wish leaves every decision open. A plan closes them."
+        },
+        {
+          "title": "What S.M.A.R.T. actually means in practice",
+          "body": "Specific: what exactly are you saving for?\nMeasurable: what is the exact amount you need?\nAchievable: can you realistically save that much each month?\nRelevant: does this goal actually improve your life?\nTime-bound: what is the deadline?\n\nEvery question you cannot answer is a gap that will let the goal slip through."
+        },
+        {
+          "title": "Reverse-engineer the monthly number",
+          "body": "Once you have a clear goal with a clear deadline, the maths is simple.\n\nTotal amount needed, divided by months until the deadline, equals your monthly savings target.\n\nMUR 44,000 divided by 18 months is MUR 2,445 per month. Can you do that? If yes, set up the transfer. If no, extend the deadline or adjust the goal."
+        },
+        {
+          "title": "What to do when life gets in the way",
+          "body": "Things will happen. A month where you could not contribute, an unexpected expense that set you back.\n\nWhen this happens, the right response is to adjust the deadline — not to abandon the goal. Work out how many months you missed. Push the end date by that amount.\n\nThe goal survives. The timeline just shifts."
+        },
+        {
+          "title": "A deadline is not pressure — it is clarity",
+          "body": "Knowing you need to save MUR 2,445 this month tells you exactly how much you can spend on everything else. Without a deadline, every month is just \"saving something.\"\n\nWith one, every decision has context.",
+          "bullets": [
+            "Write every goal with all five S.M.A.R.T. elements",
+            "Calculate the monthly target — if it is impossible, extend the deadline",
+            "Review every three months and update if needed"
+          ],
+          "note": "Goal-setting combined with regular review is one of the most reliable ways to actually reach what you are working toward."
+        }
+      ]
+    },
+    {
+      "title": "Tracking Progress Toward Goals",
+      "topicId": "financial_planning_for_big_goals",
+      "steps": [
+        {
+          "title": "Goals die without check-ins",
+          "body": "Setting a goal and never looking at it again is one of the most common reasons people fail to reach them. Not because they gave up dramatically — but because they drifted gradually and never noticed.\n\nRegular progress reviews are not a formality. They are the mechanism that keeps the goal alive."
+        },
+        {
+          "title": "Why separate accounts work as a tracking tool",
+          "body": "When your goal savings are in a separate, named account, you can see progress at a glance — the balance grows, and you can feel it working.\n\nWhen they are mixed with your daily money, the number changes for all kinds of reasons and progress is invisible.\n\nSeparate accounts do not just protect savings. They make the goal feel real and tangible in a way that one combined balance never does."
+        },
+        {
+          "title": "Five minutes, once a month",
+          "body": "A monthly review does not need to be long. Ask three things: am I on track? If not, was it a one-off or a pattern? What do I adjust?\n\nIf it was a one-off — a medical bill, an unexpected expense — just resume next month. If it is a pattern — spending consistently more than planned — either increase contributions or extend the deadline."
+        },
+        {
+          "title": "Make progress visible",
+          "body": "Something happens psychologically when you can see progress building. Motivation increases the closer you get to a visible goal.\n\nA savings thermometer drawn on paper. A bar in a spreadsheet. The goal tracker in FinLit. It does not matter what the tool is — just that you can see the balance moving toward a target."
+        },
+        {
+          "title": "Adjust, but never delete",
+          "body": "Life will interrupt your savings. The professional response is to adjust the timeline — not to abandon the goal.\n\nThe goal is not the money. The goal is what the money makes possible. Keep that in view.",
+          "bullets": [
+            "Check goal progress once a month — five minutes is enough",
+            "Use separate named accounts so progress is always visible",
+            "When life disrupts — adjust the date, keep the goal"
+          ],
+          "note": "Regular review is more important than income level when it comes to actually reaching financial goals."
+        }
+      ]
+    },
+    {
+      "title": "Introduction to Investing",
+      "topicId": "investing_basics",
+      "steps": [
+        {
+          "title": "Saving keeps your money. Investing grows it.",
+          "body": "A savings account protects your money and earns a small amount of interest. That is valuable — but it is not enough on its own.\n\nInflation quietly reduces what your money can buy each year. If your savings earn two percent but inflation is five percent, you are losing ground in real terms. Investing is how you stay ahead of that."
+        },
+        {
+          "title": "What investing actually means",
+          "body": "Investing means putting money into something — a business, a government bond, a fund — with the expectation that it will grow over time.\n\nUnlike a savings account, investments can lose value in the short term. That is the trade-off. More potential growth comes with more uncertainty. How much of that uncertainty you take on is a decision you get to make."
+        },
+        {
+          "title": "Get your foundation right first",
+          "body": "Before investing anything, two things need to be in place.\n\nFirst, a fully funded emergency fund — because if something goes wrong and you have no savings, you might have to sell investments at a loss just to cover the cost.\n\nSecond, freedom from high-interest debt — because paying twenty percent interest on credit card debt while earning eight percent on investments is a losing trade."
+        },
+        {
+          "title": "Why it matters more than most people realise",
+          "body": "MUR 500 per month invested from age 22, at eight percent annual return, becomes over MUR 1.6 million by age 60.\n\nThe same MUR 500 sitting in a zero-interest account becomes MUR 228,000.\n\nThe difference is not luck or salary. It is the decision to invest, and the patience to leave it alone.",
+          "bullets": [
+            "Emergency fund first — fully funded before investing",
+            "Clear high-interest debt before anything else",
+            "Then invest consistently, for as long as possible"
+          ],
+          "note": "Investing is how ordinary people build significant wealth over time — but only when the financial foundation is solid first."
+        }
+      ]
+    },
+    {
+      "title": "Risk and Return",
+      "topicId": "investing_basics",
+      "steps": [
+        {
+          "title": "More potential return always means more risk",
+          "body": "This is the one law of investing that never changes.\n\nIf something offers very high returns with no risk, it is either a lie or something you do not fully understand yet. Real investments offer a trade-off: accept more uncertainty, and you get access to more potential growth."
+        },
+        {
+          "title": "What kinds of risk actually exist",
+          "body": "Market risk is the most obvious: the value of your investment can fall when economic conditions shift.\n\nInflation risk is subtler: your returns might not keep pace with rising prices. Liquidity risk means you might not be able to sell quickly when you need cash. Concentration risk comes from putting too much into one thing.\n\nUnderstanding which risks you are exposed to is more useful than trying to avoid risk entirely."
+        },
+        {
+          "title": "How much risk makes sense for you",
+          "body": "Three things shape your risk tolerance.\n\nTime horizon: the longer until you need the money, the more short-term volatility you can absorb. Income stability: a reliable salary means you can invest aggressively without worrying about needing the money unexpectedly. Financial cushion: a solid emergency fund means a bad investment year does not become a personal crisis.\n\nA 22-year-old with stable income and a full emergency fund can take considerably more risk than a 55-year-old approaching retirement."
+        },
+        {
+          "title": "Risk is not the enemy",
+          "body": "Avoiding all risk means your money barely grows. Taking on appropriate risk for your situation is how wealth is built.\n\nThe skill is not finding zero-risk options — it is understanding the risks you are taking and making sure they match your timeline and your life.",
+          "bullets": [
+            "How many years until I need this money?",
+            "How would I feel if this investment dropped 30% in one year?",
+            "Do I have an emergency fund so I would not need to sell in a crisis?"
+          ],
+          "note": "Match your investment risk level to your timeline and personal circumstances — not to what anyone else is doing."
+        }
+      ]
+    },
+    {
+      "title": "Types of Investments (Stocks, Bonds, Funds)",
+      "topicId": "investing_basics",
+      "steps": [
+        {
+          "title": "Stocks: owning a piece of a business",
+          "body": "When you buy a stock, you become a part-owner of that company. If the company grows and becomes more valuable, your share is worth more. If it struggles, your share loses value.\n\nStocks offer the highest potential return over long periods — but also the most volatility in the short term."
+        },
+        {
+          "title": "Bonds: lending your money for interest",
+          "body": "When you buy a bond, you lend money to a government or company. They agree to pay you a fixed interest rate over a set period, then return your original amount at the end.\n\nBonds are generally safer than stocks but grow more slowly. They are most useful for protecting capital or balancing out a riskier portfolio."
+        },
+        {
+          "title": "Funds: investing in many things at once",
+          "body": "A fund pools money from many investors and buys a collection of stocks, bonds, or other assets.\n\nAn index fund tracks a market index — for example, the five hundred largest companies in a given market — at very low cost. You get broad exposure without picking individual companies.\n\nFor most people starting out, a low-cost index fund is the most sensible place to begin."
+        },
+        {
+          "title": "How to think about them together",
+          "body": "Stocks for growth over the long term. Bonds for stability and income. Funds for broad diversification without needing to pick individual investments.\n\nMost practical investment strategies use a combination of all three, adjusted based on how many years you have and how much volatility you can tolerate.",
+          "bullets": [
+            "Stocks: highest growth potential, most volatility",
+            "Bonds: lower growth, more stable, good for balance",
+            "Index funds: broad diversification at low cost — a good starting point"
+          ],
+          "note": "Most beginners are well served by a low-cost index fund before exploring individual stocks or bonds."
+        }
+      ]
+    },
+    {
+      "title": "Diversification",
+      "topicId": "investing_basics",
+      "steps": [
+        {
+          "title": "Do not put everything in one place",
+          "body": "Diversification means spreading your investments across different assets, sectors, and regions.\n\nThe goal is straightforward: when one investment falls in value, others may hold steady or rise — so the damage to your overall portfolio is limited."
+        },
+        {
+          "title": "What happens without it",
+          "body": "Imagine you put all your savings into one airline company.\n\nA global event grounds all flights. That investment drops eighty percent.\n\nBut if your money was spread across airlines, technology, healthcare, and bonds — the airline falls eighty percent, but other parts of the portfolio behave differently, and your overall loss is far smaller."
+        },
+        {
+          "title": "How to actually diversify",
+          "body": "Invest across different sectors — not just technology, not just one industry. Invest across different countries — not just your home market. Mix asset types — some stocks, some bonds.\n\nAnd avoid holding more than ten percent of your portfolio in any single company. No matter how confident you feel about it.\n\nIndex funds do all of this automatically. That is one of the main reasons they are so widely recommended."
+        },
+        {
+          "title": "What diversification does and does not do",
+          "body": "Diversification does not eliminate risk. If the entire global economy contracts, almost everything falls together.\n\nWhat it does is protect you from the risk of any one investment collapsing and taking everything with it.",
+          "bullets": [
+            "Spread across sectors, countries, and asset types",
+            "Never put more than 10% in a single company",
+            "Index funds provide automatic diversification at low cost"
+          ],
+          "note": "A diversified portfolio gives you the best chance of steady long-term growth while protecting against catastrophic loss from a single bad investment."
+        }
+      ]
+    },
+    {
+      "title": "The Power of Long-Term Investing",
+      "topicId": "investing_basics",
+      "steps": [
+        {
+          "title": "The best time to invest is as early as possible",
+          "body": "Many people wait for the right moment to invest. The market seems high. There is uncertainty. They will start when things feel more stable.\n\nThe problem is that time spent waiting is time spent not compounding. Every year of delay costs you growth you cannot recover."
+        },
+        {
+          "title": "Markets fall. They also recover.",
+          "body": "In the short term, markets go up and down constantly. A drop in value looks alarming — but it is only a loss if you sell.\n\nInvestors who held through the 2008 financial crisis and the 2020 pandemic crash saw both recoveries — and both eventually reached new highs.\n\nThe long-term investor's job is not to predict the market. It is to stay invested while it does what it has always done over time."
+        },
+        {
+          "title": "Starting early matters more than the amount",
+          "body": "Person A invests MUR 2,000 per month from age 22 to 32 and then stops. Person B invests MUR 2,000 per month from age 32 to 62 and never stops.\n\nPerson A invests for ten years. Person B invests for thirty. At a standard long-term return rate, Person A ends up with more wealth at 60.\n\nThe ten-year head start did more than thirty years of consistent contributions could overcome."
+        },
+        {
+          "title": "The strategy that works is the one you stick to",
+          "body": "The most sophisticated investment strategy in the world fails if you panic and sell during a downturn. The simplest strategy — invest regularly, leave it alone, do not react to short-term noise — succeeds if you actually follow it.\n\nConsistency over decades is what builds wealth. Not timing, not picking the right stock, not watching the market daily.",
+          "bullets": [
+            "Start investing as early as possible, even with small amounts",
+            "Do not check your portfolio daily — it will make you anxious without helping",
+            "Stay invested through downturns — selling at a loss locks in the loss"
+          ],
+          "note": "Time in the market consistently outperforms trying to time the market."
+        }
+      ]
+    },
+    {
+      "title": "Common Investment Mistakes",
+      "topicId": "investing_basics",
+      "steps": [
+        {
+          "title": "Selling when the market drops",
+          "body": "When investments fall in value, the emotional response is to sell before things get worse.\n\nThis is almost always the wrong decision. Selling during a downturn turns a temporary paper loss into a permanent real one — and means you are often out of the market when the recovery happens.\n\nThe investors who come out ahead are usually the ones who did nothing during the crash."
+        },
+        {
+          "title": "Chasing what everyone is talking about",
+          "body": "By the time a stock or investment becomes popular news, the people who benefit most have already bought in.\n\nInvesting in something because it is trending on social media or because a friend mentioned it is not a strategy — it is speculation. Most people who follow trends into investments lose money."
+        },
+        {
+          "title": "Ignoring fees",
+          "body": "Two funds. One charges two percent per year in fees. The other charges 0.1 percent. They track the same index.\n\nOver thirty years, the fee difference alone can cost you nearly forty percent of your final wealth through lost compounding. A small annual percentage does not feel significant until you calculate what it compounds to over decades.\n\nAlways check the expense ratio before investing in any fund."
+        },
+        {
+          "title": "The biggest mistakes are emotional, not analytical",
+          "body": "Most investment errors come from reacting to fear or excitement rather than following a plan.\n\nA boring, consistent, low-cost investment strategy held for decades outperforms almost everything else — including active strategies run by professionals.",
+          "bullets": [
+            "Stay calm in downturns — do not sell into a falling market",
+            "Ignore tips and trends — stick to your plan",
+            "Always check the annual fee before buying any fund"
+          ],
+          "note": "A simple, consistent, low-cost approach to investing beats excitement almost every time."
+        }
+      ]
+    },
+    {
+      "title": "Protecting from Fraud & Scams",
+      "topicId": "protecting_yourself_from_fraud_and_scams",
+      "steps": [
+        {
+          "title": "Scams are not obvious — that is the point",
+          "body": "Financial scams are not designed to fool foolish people. They are designed by skilled professionals to fool anyone.\n\nThey use legitimate-looking websites, real bank names, convincing voices, and carefully crafted urgency. Anyone can be targeted. The only protection is knowing how they work."
+        },
+        {
+          "title": "The rule that protects you from almost everything",
+          "body": "Legitimate organisations — banks, government agencies, employers — never contact you out of nowhere to demand urgent action, ask for your PIN or password, or request upfront payment to release money you are owed.\n\nIf any of these happen, stop. Do not act. Verify through an official number you find yourself — not one provided in the message."
+        },
+        {
+          "title": "Who gets targeted",
+          "body": "Scammers look for people who are expecting money, people under financial stress, people unfamiliar with digital payments, and anyone reachable online.\n\nThat covers most people at some point in their lives. Awareness is not a guarantee — but it dramatically reduces the chance of being caught."
+        },
+        {
+          "title": "The habit that works",
+          "body": "Before any financial action triggered by an unexpected contact — a call, a message, an email — pause.\n\nStop. Think. Verify independently. Then decide.\n\nScams depend on you acting before you think. The pause is the protection.",
+          "bullets": [
+            "No legitimate organisation asks for your PIN or OTP",
+            "No real prize or payment requires an upfront fee",
+            "When in doubt — stop and verify through official channels"
+          ],
+          "note": "Your best protection is a habit of pausing before any unexpected financial action."
+        }
+      ]
+    },
+    {
+      "title": "Common Types of Financial Scams",
+      "topicId": "protecting_yourself_from_fraud_and_scams",
+      "steps": [
+        {
+          "title": "Phishing: pretending to be someone you trust",
+          "body": "Phishing is when a scammer impersonates a trusted organisation — your bank, a government agency, a company — to steal your login details or personal information.\n\nIt usually arrives by email or SMS with a link to a fake website that looks identical to the real one. You enter your credentials. The scammer now has them."
+        },
+        {
+          "title": "Investment scams: guaranteed returns that are not real",
+          "body": "Investment scams promise extraordinary returns with no risk. They take several forms.\n\nPonzi schemes pay early investors using money from new investors — until the scheme collapses. Pump and dump schemes inflate the price of a worthless asset, then sell it to people who bought the hype. Crypto scams show you fake profits in a fake platform and never let you withdraw.\n\nThe constant: if returns sound extraordinary, they are not real."
+        },
+        {
+          "title": "Impersonation scams: creating fear to demand money",
+          "body": "A voice on the phone claims to be a police officer, a tax official, or a bank employee. They say you owe money, or that your account has been compromised, or that someone used your identity.\n\nThey create urgency and fear — demanding immediate action, threatening arrest or account closure.\n\nNo legitimate authority works this way. Real agencies send official correspondence. They do not demand wire transfers over the phone."
+        },
+        {
+          "title": "The pattern behind every scam",
+          "body": "Every scam uses one of three emotions to make you act before you think.\n\nGreed: this is a rare opportunity you will miss if you hesitate. Fear: something bad will happen if you do not act immediately. Urgency: you have minutes, not days.\n\nRecognise the emotion being triggered. Then pause.",
+          "bullets": [
+            "Greed: too-good-to-be-true opportunity",
+            "Fear: threat of arrest, account closure, legal action",
+            "Urgency: act now or lose everything"
+          ],
+          "note": "Recognise the trigger — and walk away."
+        }
+      ]
+    },
+    {
+      "title": "Online Payment and Banking Security",
+      "topicId": "protecting_yourself_from_fraud_and_scams",
+      "steps": [
+        {
+          "title": "Your banking login is worth more than your wallet",
+          "body": "A stolen wallet loses whatever cash was in it. A stolen banking password loses everything in your account.\n\nOnline banking is enormously convenient — and it creates risks that did not exist with physical cash. Simple security habits dramatically reduce those risks."
+        },
+        {
+          "title": "The habits that actually protect you",
+          "body": "Use a strong, unique password for every financial account — not the same one you use elsewhere. Enable two-factor authentication on all banking apps.\n\nNever do banking on public WiFi. Never click a link in an SMS or email asking you to verify your account. Log out of banking apps after each session.\n\nThese take a few minutes to set up and they prevent most attacks."
+        },
+        {
+          "title": "Verify before you pay",
+          "body": "Fraudsters send fake payment requests that look identical to real ones from suppliers, employers, or landlords.\n\nBefore any payment: verify the recipient's account details through a phone number you already have on record — not a number in the payment request. Be suspicious of any last-minute change to payment details. Check that any website asking for card details starts with https."
+        },
+        {
+          "title": "Slow down before every payment",
+          "body": "Most financial fraud online happens because someone acted quickly on something that felt legitimate.\n\nA thirty-second pause to verify can save your account. Speed is the scammer's advantage. Caution is yours.",
+          "bullets": [
+            "Unique strong password for every financial account",
+            "Two-factor authentication on all banking apps",
+            "Never verify payment details using a number from the payment request"
+          ],
+          "note": "Online security is not about technology — it is about habits. Simple ones, done consistently."
+        }
+      ]
+    },
+    {
+      "title": "Protecting Personal Information",
+      "topicId": "protecting_yourself_from_fraud_and_scams",
+      "steps": [
+        {
+          "title": "Your personal data is worth money to criminals",
+          "body": "Your name, ID number, date of birth, and bank details are enough for a scammer to open accounts in your name, take out loans you never applied for, and damage your credit record — sometimes before you even notice anything is wrong."
+        },
+        {
+          "title": "What you should never share",
+          "body": "Your National ID or passport number. Your full bank account details. Your card's CVV number. Your PIN. Your one-time password. Your security question answers.\n\nNo bank and no government agency will ever ask for your PIN or OTP. If someone does — regardless of how official they sound — it is a scam."
+        },
+        {
+          "title": "How to know if your identity has been misused",
+          "body": "Watch for transactions on your bank statement you do not recognise. Watch for loan or credit applications you never made. Watch for bills arriving for accounts that are not yours. Watch for being denied credit for no reason you can identify.\n\nIf any of these happen, contact your bank and check your MCIB record immediately."
+        },
+        {
+          "title": "Be careful with what you share, and where",
+          "body": "Be careful about what personal information you share online — on social media, in forms, in response to unsolicited messages.\n\nScammers use small pieces of information gathered over time to build a profile convincing enough to impersonate you or to manipulate you.",
+          "bullets": [
+            "Never share your PIN, OTP, or CVV with anyone",
+            "Check your bank statement regularly for unfamiliar transactions",
+            "Be selective about what personal data you share online"
+          ],
+          "note": "Protecting your personal information is as important as protecting your cash."
+        }
+      ]
+    },
+    {
+      "title": "Recognizing Warning Signs of Fraud",
+      "topicId": "protecting_yourself_from_fraud_and_scams",
+      "steps": [
+        {
+          "title": "Red flag one: pressure to act immediately",
+          "body": "\"You have thirty minutes to claim this or it expires.\" \"Act now before someone else takes your spot.\" \"This offer ends at midnight.\"\n\nLegitimate opportunities do not expire in minutes. Real financial situations allow time to verify, to think, to ask someone else. Any genuine pressure to act immediately is a warning sign."
+        },
+        {
+          "title": "Red flag two: upfront payment required to receive money",
+          "body": "\"Pay a small processing fee to release your prize.\" \"Transfer a deposit to unlock your loan.\" \"Send the tax amount before we can send your inheritance.\"\n\nNo legitimate prize, loan, or inheritance requires an upfront fee. Once you pay the first fee, another reason for another fee will appear. This is the structure of the scam."
+        },
+        {
+          "title": "Red flag three: guaranteed returns that are extraordinary",
+          "body": "\"Earn fifty percent per month — guaranteed.\" \"Double your money in sixty days.\" \"Risk-free investment with fifteen percent weekly returns.\"\n\nNo legitimate investment offers guaranteed high returns. The word \"guaranteed\" combined with an extraordinary rate is not a feature — it is the lie."
+        },
+        {
+          "title": "Why smart people get caught",
+          "body": "Scams work not because people are gullible — but because scammers are skilled at triggering emotions that override rational thinking.\n\nExcitement, fear, and urgency all reduce your ability to think clearly. The scam counts on that window.\n\nThe pause is the defence. One moment of deliberate calm is enough to break the effect.",
+          "bullets": [
+            "Urgency is a red flag, not a reason to act faster",
+            "Upfront fees to receive money are always a scam",
+            "Guaranteed extraordinary returns do not exist"
+          ],
+          "note": "When emotions spike, pause. That pause is what separates the people who get caught from the people who do not."
+        }
+      ]
+    },
+    {
+      "title": "What To Do If You Are Scammed",
+      "topicId": "protecting_yourself_from_fraud_and_scams",
+      "steps": [
+        {
+          "title": "Act as fast as possible",
+          "body": "The speed of your response makes a real difference.\n\nCall your bank immediately. Explain what happened and ask them to freeze the account or attempt to reverse the transaction. Change the passwords for all financial accounts that could be compromised. Enable two-factor authentication on anything that does not already have it."
+        },
+        {
+          "title": "Report it",
+          "body": "Report the fraud to your bank's fraud team first — they are best placed to act quickly.\n\nThen report to the Mauritius Police Force Economic Crime Office. If it involved an investment, report to the Financial Services Commission. If it involved a SIM swap, contact your mobile operator.\n\nReporting does not guarantee recovery — but it helps authorities identify patterns and protects other people."
+        },
+        {
+          "title": "Watch for the follow-up scam",
+          "body": "After someone is scammed, they often receive another approach — this time from a \"recovery agent\" or \"fraud investigator\" who claims to be able to retrieve the lost money for a fee.\n\nThis is a second scam. There are no legitimate recovery agents who cold-contact scam victims. Anyone offering this service is taking advantage of people who are already distressed."
+        },
+        {
+          "title": "Protect yourself going forward",
+          "body": "Check your MCIB credit record for any accounts or loans that appeared without your knowledge. Review your bank statements weekly for a period after the incident. Let family members know — scammers sometimes use information from one victim to target people connected to them.",
+          "bullets": [
+            "Call your bank immediately — ask to freeze and reverse",
+            "Report to police and relevant regulators",
+            "Ignore any recovery agent who contacts you — it is another scam"
+          ],
+          "note": "Being scammed is not a personal failure. These are professional criminals. Act fast and protect yourself from what comes next."
+        }
+      ]
+    },
+    {
+      "title": "Introduction to Taxes",
+      "topicId": "taxes_and_tax_planning",
+      "steps": [
+        {
+          "title": "What a tax actually is",
+          "body": "A tax is a mandatory contribution to the government — not optional, not negotiable, and built into most financial transactions you make as an adult.\n\nIn Mauritius, taxes are collected by the Mauritius Revenue Authority. They fund everything from public hospitals and schools to roads, police, and social services."
+        },
+        {
+          "title": "How taxes show up in your life",
+          "body": "Income tax is deducted from your salary before you receive it — through a system called PAYE, Pay As You Earn. Your employer handles this on your behalf.\n\nVAT — Value Added Tax — is added to most goods and services you buy. When you purchase a phone or pay for a meal at a restaurant, a portion of that price is VAT.\n\nThere are also taxes on property, on imported goods, and mandatory contributions like NPF and NSF."
+        },
+        {
+          "title": "Why it matters to understand them",
+          "body": "Taxes affect your real income, the true price of purchases, and the cost of financial decisions like buying property or running a business.\n\nUnderstanding how they work helps you plan more accurately, claim what you are entitled to, and avoid mistakes that can be costly."
+        },
+        {
+          "title": "Taxes are your financial starting point",
+          "body": "Every financial plan starts with the money actually available after tax. Understanding what comes out — and why — is the foundation of every other financial decision.",
+          "bullets": [
+            "Income tax is deducted at source through PAYE",
+            "VAT is added to most purchases — 15% in Mauritius",
+            "NPF and NSF contributions are also mandatory deductions"
+          ],
+          "note": "Understanding your tax obligations helps you plan, comply, and avoid costly mistakes."
+        }
+      ]
+    },
+    {
+      "title": "Why Governments Collect Taxes",
+      "topicId": "taxes_and_tax_planning",
+      "steps": [
+        {
+          "title": "The things no individual could afford alone",
+          "body": "A public hospital. A national road network. A school system. A police force.\n\nNo individual could fund any of these. Taxes pool contributions from everyone so that services everyone depends on can actually exist."
+        },
+        {
+          "title": "Taxes do more than pay for services",
+          "body": "Taxes also shape behaviour and balance economic gaps.\n\nHigher earners contribute more, which funds support for those who earn less. Tax breaks encourage things governments want more of — investment in renewable energy, for example. Higher taxes on cigarettes and alcohol reduce harmful consumption.\n\nTax policy is one of the main levers governments use to shape how an economy functions."
+        },
+        {
+          "title": "What happens when taxes are not paid",
+          "body": "When individuals or businesses avoid paying taxes illegally, public services are underfunded, honest taxpayers carry a heavier share, and governments may raise rates to compensate.\n\nTax evasion — deliberately hiding income or making false claims — is a criminal offence. Tax planning — legally using allowances and deductions to reduce your bill — is entirely different, and entirely within your rights."
+        },
+        {
+          "title": "A different way to think about it",
+          "body": "Taxes are not just money leaving your account. They are your share of the infrastructure, services, and protections that make daily life possible.\n\nUnderstanding why they exist makes it easier to think about them clearly — and to engage with tax planning without resentment.",
+          "bullets": [
+            "Tax evasion: hiding income illegally — a criminal offence",
+            "Tax avoidance: using legal allowances — entirely your right",
+            "Tax compliance: filing accurately and on time — a legal requirement"
+          ],
+          "note": "Understanding why taxes exist helps you see them as an investment in shared infrastructure — not just a cost."
+        }
+      ]
+    },
+    {
+      "title": "Common Types of Taxes Individuals Pay",
+      "topicId": "taxes_and_tax_planning",
+      "steps": [
+        {
+          "title": "Income tax",
+          "body": "Income tax is charged on what you earn. In Mauritius, it is deducted from your salary before you receive it — through PAYE — so most employees never actually handle the payment.\n\nThe rate is fifteen percent on chargeable income, which is your income after personal exemptions are subtracted."
+        },
+        {
+          "title": "VAT",
+          "body": "Value Added Tax is charged on most goods and services at fifteen percent.\n\nWhen you buy something for MUR 1,150, MUR 150 of that is VAT going to the government. You pay it without thinking about it because it is built into the price.\n\nBusinesses collect it on behalf of the government — you are the one bearing the cost."
+        },
+        {
+          "title": "Other contributions you may not have noticed",
+          "body": "Beyond income tax and VAT, there are several other mandatory contributions.\n\nNPF — National Pension Fund — is deducted from your salary and goes toward your retirement. NSF — National Savings Fund — is another mandatory deduction. If you own property, there is land tax. Buying or selling property involves registration duties."
+        },
+        {
+          "title": "Taxes are everywhere in a financial life",
+          "body": "Almost every significant financial transaction has a tax dimension — employment, purchases, property, savings, inheritance.\n\nKnowing which ones apply to your situation lets you plan accurately and avoid surprises.",
+          "bullets": [
+            "Income tax: 15% on chargeable income, deducted through PAYE",
+            "VAT: 15% on most goods and services you buy",
+            "NPF and NSF: mandatory salary deductions for pension and savings"
+          ],
+          "note": "Taxes affect almost every financial transaction in your life — knowing which apply to you helps you budget accurately."
+        }
+      ]
+    },
+    {
+      "title": "Understanding Income Tax",
+      "topicId": "taxes_and_tax_planning",
+      "steps": [
+        {
+          "title": "How your income tax is calculated",
+          "body": "In Mauritius, income tax is calculated on your chargeable income — which is your gross income minus your personal exemption threshold.\n\nThe exemption threshold is a tax-free allowance based on your household situation: single, married, with dependents, and so on. If your income is below the threshold, you pay no income tax."
+        },
+        {
+          "title": "The flat rate",
+          "body": "Mauritius uses a flat income tax rate of fifteen percent on everything above the exemption threshold.\n\nThis means if your income is below the threshold, you pay nothing. If it is above, everything over that threshold is taxed at fifteen percent — regardless of how far above it you are."
+        },
+        {
+          "title": "A concrete example",
+          "body": "Annual income: MUR 300,000.\nPersonal exemption threshold for a single person: approximately MUR 325,000.\n\nChargeable income: MUR 0. Tax due: MUR 0.\n\nIf income were MUR 400,000: chargeable income is MUR 75,000. Tax at 15%: MUR 11,250.\n\nYour employer deducts this monthly through PAYE — but knowing the calculation helps you verify it is correct."
+        },
+        {
+          "title": "Why you should check your payslip",
+          "body": "Most people never look at the deductions section of their payslip. But errors happen — incorrect tax codes, wrong exemption categories, miscalculated deductions.\n\nChecking your payslip monthly takes two minutes and ensures you are not overpaying — or underpaying and building a tax liability without knowing it.",
+          "bullets": [
+            "Chargeable income = gross income minus personal exemption threshold",
+            "Income tax rate: 15% on everything above the threshold",
+            "PAYE means your employer handles the deduction monthly"
+          ],
+          "note": "Understanding the calculation means you can verify your payslip is correct — and plan your finances more accurately."
+        }
+      ]
+    },
+    {
+      "title": "Basic Tax Planning Concepts",
+      "topicId": "taxes_and_tax_planning",
+      "steps": [
+        {
+          "title": "Tax planning versus tax evasion",
+          "body": "Tax evasion is hiding income, falsifying records, or deliberately not filing returns. It is illegal.\n\nTax planning is using the allowances, deductions, and reliefs that the government has built into the tax system to reduce your bill. It is completely legal — and it is exactly what the government intended when it created those allowances."
+        },
+        {
+          "title": "Allowances you may be entitled to",
+          "body": "In Mauritius, you can reduce your taxable income through your personal exemption threshold based on family situation. You may be able to deduct interest paid on a housing loan. Medical insurance contributions may be deductible up to certain limits. Supporting dependent relatives may qualify for an additional allowance.\n\nMost people claim only the basic personal exemption and miss everything else."
+        },
+        {
+          "title": "Timing can matter",
+          "body": "Some tax decisions benefit from being made before the end of the tax year.\n\nContributing to an approved pension scheme before the year ends. Declaring certain income in the most tax-efficient year. Timing the sale of property to minimise registration duties.\n\nNone of this requires complex strategies — just awareness of the deadlines."
+        },
+        {
+          "title": "You are allowed to pay less than the maximum",
+          "body": "There is nothing morally complex about using legal allowances to reduce your tax bill. The government created them intentionally. Using them is not a loophole — it is the system working as designed.",
+          "bullets": [
+            "Know every allowance and exemption you qualify for",
+            "Check before year-end whether any contributions could reduce your tax",
+            "File on time — the penalties for late filing outweigh any small saving"
+          ],
+          "note": "Tax planning is not about avoiding responsibility — it is about not paying more than the law requires."
+        }
+      ]
+    },
+    {
+      "title": "Avoiding Common Tax Mistakes",
+      "topicId": "taxes_and_tax_planning",
+      "steps": [
+        {
+          "title": "Not filing because you think you owe nothing",
+          "body": "Some people assume that if they do not owe any tax, there is no reason to file a return.\n\nIn Mauritius, you may be legally required to file regardless of whether you owe anything — depending on your income level and circumstances. Missing the deadline brings penalties and interest, even if the tax due is zero."
+        },
+        {
+          "title": "Not claiming everything you are entitled to",
+          "body": "Dependent relative allowances. Housing loan interest relief. Medical insurance deductions.\n\nMany people pay more tax than they need to simply because they never checked what they were entitled to claim. Reviewing your full entitlement once a year — before you file — can make a real difference."
+        },
+        {
+          "title": "Not declaring side income",
+          "body": "Income from freelance work, selling goods online, renting out a room, or any other source is taxable — even if you did not receive a formal payslip.\n\nMany people assume small amounts do not need to be declared. The law does not make this distinction. Undeclared income can result in back taxes, interest, and penalties."
+        },
+        {
+          "title": "The good news",
+          "body": "All of these mistakes are completely avoidable with about an hour of attention once a year.\n\nFile on time. Claim everything you are entitled to. Declare all income sources. When in doubt, the MRA website has guidance — or consult a qualified tax professional.",
+          "bullets": [
+            "Not filing — even if you think you owe nothing, you may still need to file",
+            "Missing deductions — review your full entitlement before submitting",
+            "Not declaring side income — all income sources are taxable"
+          ],
+          "note": "A small amount of attention each year prevents the most common and costly tax mistakes."
+        }
+      ]
+    },
+    {
+      "title": "Introduction to Retirement Planning",
+      "topicId": "retirement_planning",
+      "steps": [
+        {
+          "title": "What retirement actually means financially",
+          "body": "Retirement is the period of your life when you stop working for income — and everything you need to live on comes from what you built beforehand.\n\nFor most people, that period lasts twenty to thirty years. That is a long time to fund without a salary."
+        },
+        {
+          "title": "Why the state pension alone is not enough",
+          "body": "In Mauritius, the Basic Retirement Pension provides a foundation — but it is designed as a safety net, not a living wage.\n\nIf your goal is to maintain anything close to your pre-retirement lifestyle, you need personal savings and investments alongside whatever the government provides."
+        },
+        {
+          "title": "The three layers of retirement income",
+          "body": "The most secure retirements are built on three layers.\n\nThe first is the state pension — what the government provides to everyone. The second is an occupational or employer pension scheme, if you have access to one. The third is what you build personally — your own savings and investments.\n\nMost financially secure retirees have all three. Most people in difficulty have only the first."
+        },
+        {
+          "title": "The earlier you start, the easier it becomes",
+          "body": "Retirement planning is not something you do at fifty-five. Every year you delay means you need to contribute significantly more each month to reach the same outcome.\n\nThe people who have the most comfortable retirements are almost always the ones who started thinking about it early — not because they were particularly wealthy, but because time did the work for them.",
+          "bullets": [
+            "State pension: a starting point, not a full solution",
+            "Build personal savings alongside any employer scheme",
+            "Start as early as possible — time is the most valuable resource"
+          ],
+          "note": "Every year of delay in retirement planning costs you compounding growth that can never be fully recovered."
+        }
+      ]
+    },
+    {
+      "title": "Why Retirement Planning Matters",
+      "topicId": "retirement_planning",
+      "steps": [
+        {
+          "title": "The retirement gap",
+          "body": "Even with a pension, most people face a gap between what they receive and what they need to live comfortably.\n\nState pensions typically replace around thirty to fifty percent of pre-retirement income. If you were living on MUR 30,000 a month, a pension covering half of that leaves you short — for potentially twenty-five years."
+        },
+        {
+          "title": "People are living longer",
+          "body": "Life expectancy has increased significantly. Someone retiring at sixty today may live another twenty-five to thirty-five years.\n\nThat means retirement savings need to last much longer than previous generations planned for — and healthcare costs, which typically rise with age, need to be factored in."
+        },
+        {
+          "title": "What waiting costs you",
+          "body": "If you need MUR 5,000,000 to retire comfortably, and you start at twenty-five, you might need to save around MUR 3,800 per month.\n\nStart at thirty-five and that rises to around MUR 9,200 per month. Start at forty-five and it becomes MUR 26,000 per month.\n\nWaiting ten years does not make the problem ten years harder. It makes it roughly two to three times harder."
+        },
+        {
+          "title": "It is preventable — with time",
+          "body": "Financial difficulty in retirement is one of the few financial problems that is almost entirely preventable if you start early enough.\n\nThe income you need does not appear automatically. It has to be built — and the earlier the building starts, the less effort each individual contribution requires.",
+          "bullets": [
+            "Start at 25: around MUR 3,800/month needed",
+            "Start at 35: around MUR 9,200/month needed",
+            "Start at 45: around MUR 26,000/month needed"
+          ],
+          "note": "Retirement poverty is real — and almost entirely preventable with early, consistent action."
+        }
+      ]
+    },
+    {
+      "title": "Pension Systems and Retirement Funds",
+      "topicId": "retirement_planning",
+      "steps": [
+        {
+          "title": "How the Mauritius pension system works",
+          "body": "Mauritius has two main pension layers built into the system.\n\nThe Basic Retirement Pension is a universal payment available to all citizens at retirement age — regardless of employment history. The National Pension Fund is a contributory scheme where you and your employer both contribute a percentage of your salary throughout your working life."
+        },
+        {
+          "title": "What NPF actually provides",
+          "body": "The NPF builds up over your working years through mandatory contributions. At retirement, it pays you a monthly income based on your contribution history.\n\nFor most people, the NPF and BRP together cover the basics — housing costs, food, essential utilities. They rarely cover the lifestyle most people expect to maintain into retirement."
+        },
+        {
+          "title": "Building your own layer on top",
+          "body": "Beyond the state system, you can build personal retirement wealth through several paths.\n\nApproved private pension schemes offer tax-deductible contributions. Long-term savings and investment accounts grow independently. Property can generate rental income in retirement. A diversified investment portfolio can be drawn down gradually.\n\nThe more sources you have, the more resilient your retirement becomes."
+        },
+        {
+          "title": "Do not rely on one source",
+          "body": "The state system protects everyone from the worst outcomes. But a comfortable retirement requires more than the minimum.\n\nEvery contribution you make to your own pension or investments during your working years reduces the gap between what the state provides and what you actually need.",
+          "bullets": [
+            "BRP: universal state pension — available to all at retirement age",
+            "NPF: contributory scheme — builds with your salary deductions",
+            "Personal savings: your own layer — needs to be built deliberately"
+          ],
+          "note": "Do not rely solely on the state pension. Build your own retirement fund alongside the mandatory contributions."
+        }
+      ]
+    },
+    {
+      "title": "The Power of Starting Early",
+      "topicId": "retirement_planning",
+      "steps": [
+        {
+          "title": "The most powerful financial decision you can make",
+          "body": "Of all the factors that determine how much wealth you retire with — income, savings rate, investment choices — time is the most powerful by a significant margin.\n\nA person who starts saving at twenty-two and stops at thirty-two can accumulate more than someone who saves from thirty-two to sixty-two — even though the second person contributes three times as much money."
+        },
+        {
+          "title": "Why the numbers work this way",
+          "body": "Compounding means that returns are reinvested, and then earn returns themselves. Over decades, the growth becomes exponential rather than linear.\n\nIn the early years, it looks slow. In the middle years, it looks steady. In the later years, it accelerates dramatically. The ten-year head start captures the most powerful part of that curve."
+        },
+        {
+          "title": "What small amounts actually become",
+          "body": "MUR 500 per month from age twenty-two, invested at eight percent annual return.\n\nBy forty: approximately MUR 290,000. By fifty: approximately MUR 700,000. By sixty: approximately MUR 1,600,000.\n\nMUR 500 a month is the price of a few meals out. Over forty years, it becomes over a million and a half rupees."
+        },
+        {
+          "title": "You cannot buy back time",
+          "body": "You can always earn more. You can always save a higher percentage. You can always find a slightly better investment.\n\nBut you cannot go back in time and start earlier. Every year of delay costs you a compounding cycle you cannot recover.",
+          "bullets": [
+            "Starting at 22 vs 32 matters more than doubling your savings rate",
+            "Even MUR 300 to 500 a month, started early, becomes significant",
+            "The best time to start was earlier. The second best time is now."
+          ],
+          "note": "Starting early is the single most powerful retirement decision available to you."
+        }
+      ]
+    },
+    {
+      "title": "Estimating Retirement Needs",
+      "topicId": "retirement_planning",
+      "steps": [
+        {
+          "title": "How much will you actually need?",
+          "body": "A common estimate is that most people need around seventy to eighty percent of their pre-retirement income to maintain their lifestyle in retirement.\n\nWork expenses disappear. Mortgage payments may be finished. But healthcare typically increases. Leisure spending often stays. The overall number is lower than your working income — but not dramatically so."
+        },
+        {
+          "title": "How to calculate your personal target",
+          "body": "Start with your desired monthly retirement income. Subtract whatever you expect to receive from the state pension. The gap that remains is what your personal savings need to cover.\n\nMultiply that annual gap by twenty-five. That is your savings target — based on the principle that withdrawing four percent of a well-invested portfolio per year is sustainable over a long retirement."
+        },
+        {
+          "title": "A worked example",
+          "body": "You want MUR 30,000 a month in retirement. Your expected pension covers MUR 10,000.\n\nPersonal savings need to cover MUR 20,000 a month — MUR 240,000 a year.\n\nMUR 240,000 multiplied by twenty-five: your savings target is MUR 6,000,000.\n\nDivide that by the number of years until retirement to find your annual contribution target. Then divide by twelve to get the monthly amount."
+        },
+        {
+          "title": "The number is less scary when it is broken down",
+          "body": "MUR 6,000,000 feels enormous. But MUR 4,000 a month for thirty-five years, at reasonable investment returns, gets you there — and that is before factoring in employer contributions or any additional savings.\n\nThe goal is not to save MUR 6,000,000 at once. It is to build toward it, one month at a time.",
+          "bullets": [
+            "Desired monthly income minus expected pension = monthly gap",
+            "Multiply annual gap by 25 to find total savings target",
+            "Divide by years remaining to get your monthly contribution target"
+          ],
+          "note": "Calculate your number. Then build a plan around it — starting as early as possible."
+        }
+      ]
+    },
+    {
+      "title": "Building Long-Term Financial Security",
+      "topicId": "retirement_planning",
+      "steps": [
+        {
+          "title": "Security is built in layers, in order",
+          "body": "Long-term financial security is not the result of one good decision. It is the result of many consistent decisions, made in the right order over many years.\n\nThe order matters. Trying to invest before you have an emergency fund means one bad month forces you to sell investments. Paying for lifestyle upgrades before clearing high-interest debt costs you years."
+        },
+        {
+          "title": "The order that works",
+          "body": "Phase one: build the emergency fund and clear high-interest debt. These protect you from the financial shocks that derail everything else.\n\nPhase two: maximise pension and retirement contributions. Time is still on your side here — every year you contribute earlier compounds significantly.\n\nPhase three: build an investment portfolio beyond retirement. Diversify across assets.\n\nPhase four: protect everything you have built with appropriate insurance."
+        },
+        {
+          "title": "The quiet threat: lifestyle inflation",
+          "body": "As income grows, there is a natural pull to spend more. A bigger flat. A newer car. More dining out. More subscriptions.\n\nNone of this is wrong — but doing it automatically, without intention, is how people earn significantly more than they used to and still feel like they are not getting ahead.\n\nThe habit that changes this: every time your income increases, direct at least half of the increase to savings or investments before adjusting your lifestyle."
+        },
+        {
+          "title": "What consistent decisions actually produce",
+          "body": "Thirty years of modest, consistent decisions — saving a percentage every month, investing regularly, avoiding high-interest debt, maintaining insurance — produce outcomes that feel extraordinary to people who never started.\n\nNot because they required sacrifice every day. Because they compounded quietly in the background while life went on.",
+          "bullets": [
+            "Protect first: emergency fund and insurance before everything else",
+            "Grow consistently: invest every month regardless of amount",
+            "Resist lifestyle inflation: save half of every raise before spending it"
+          ],
+          "note": "Small, consistent decisions over thirty years produce outcomes that look dramatic — because compounding is exponential."
+        }
+      ]
+    }
+  ]
+}

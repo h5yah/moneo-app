@@ -449,13 +449,25 @@ class _FinanceScreenState extends State<FinanceScreen> {
                     icon: Icons.receipt_long_outlined,
                     label: 'Pay\nBills',
                     iconColor: const Color(0xFFAF52DE),
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      final paid = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PayTheBillScreen(),
+                          builder: (context) => PayTheBillScreen(
+                            availableBalance: _availableBalance,
+                          ),
                         ),
                       );
+                      if (!context.mounted) return;
+                      if (paid == true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Bill paid successfully.'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        await _refreshFinanceStats();
+                      }
                     },
                   ),
                 ),
@@ -475,7 +487,14 @@ class _FinanceScreenState extends State<FinanceScreen> {
       ),
     );
 
+    if (!context.mounted) return;
     if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment successful.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       await _refreshFinanceStats();
     }
   }
@@ -1052,8 +1071,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 .where('userId', isEqualTo: _userId)
                 .snapshots(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData) {
+                return const SizedBox(
+                  height: 170,
+                  child: Center(child: CircularProgressIndicator()),
+                );
               }
 
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -1240,8 +1263,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 .doc(userId)
                 .snapshots(),
             builder: (context, budgetSnapshot) {
-              if (budgetSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+              if (budgetSnapshot.connectionState == ConnectionState.waiting &&
+                  !budgetSnapshot.hasData) {
+                return const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()),
+                );
               }
 
               if (!budgetSnapshot.hasData || !budgetSnapshot.data!.exists) {
@@ -1423,6 +1450,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
                     .where('date', isEqualTo: today)
                     .snapshots(),
                 builder: (context, expenseSnapshot) {
+                  if (expenseSnapshot.connectionState ==
+                          ConnectionState.waiting &&
+                      !expenseSnapshot.hasData) {
+                    return const SizedBox(
+                      height: 200,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
                   double spentToday = 0.0;
 
                   if (expenseSnapshot.hasData) {

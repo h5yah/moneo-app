@@ -171,7 +171,7 @@ class QuizCompletionScreen extends StatelessWidget {
             ),
           ),
         ),
-        // +10 badge
+        // Earned XP badge
         Positioned(
           top: -10,
           right: -10,
@@ -186,9 +186,9 @@ class QuizCompletionScreen extends StatelessWidget {
               ),
             ),
             child: Text(
-              '+$earnedXP',
+              '+$earnedXP XP',
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF007AFF),
               ),

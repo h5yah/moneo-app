@@ -1,0 +1,83 @@
+{
+  "overview": "Monéo is a financial literacy and demo fintech app for users in Mauritius. Currency is Mauritian Rupees (Rs or MUR). Bottom navigation has five areas: Home, Learn, Finance, Deals, and Profile. Ask Miro (AI coach) opens from the floating button on Home. Users earn XP from lessons, quizzes, and daily deal mini-games; XP increases level on Profile and Deals. Topics in Learn unlock in order (each may require completing the previous topic).",
+  "sections": [
+    {
+      "id": "home",
+      "title": "Home tab",
+      "keywords": ["home", "streak", "notification", "greeting", "dashboard", "continue learning", "resume"],
+      "content": "Home shows a personalised greeting, today's date, streak days, and a notification bell (Notifications screen lists in-app alerts such as streak reminders and lesson nudges). The 'Continue learning' card opens the active Learn topic. Tools section has four calculators: Currency (convert between MUR and other currencies using live-style rates), Savings (goal timeline: how long to reach a target), Loan (monthly payment estimate), Bill splitter (split a bill including tip among people). A floating 'Ask Miro' button opens the AI assistant. Home also shows a financial tip card and quick access to Rewards & deals."
+    },
+    {
+      "id": "learn",
+      "title": "Learn tab",
+      "keywords": ["learn", "lesson", "topic", "unit", "curriculum", "course", "study", "quiz", "pre-quiz", "post-quiz", "final quiz"],
+      "content": "Learn lists financial topics (Budgeting, Saving & Emergency Funds, Debt Management, Financial Planning for Big Goals, Investing Basics, Fraud & Scams, Taxes, Retirement Planning). Each topic has a pre-quiz, numbered lesson steps with swipeable content and optional text-to-speech, then a post/final quiz. Completing lessons and quizzes awards XP. Topics may be locked until the previous topic is completed. Tapping a topic opens its detail screen with lesson list and progress. Lesson content teaches concepts using Mauritius examples (MUR amounts, NPF/NSF, MCIB credit bureau, etc.)."
+    },
+    {
+      "id": "learn_games",
+      "title": "Learn mini-games",
+      "keywords": ["game", "simulator", "emergency fund builder", "survive the month", "practice", "interactive"],
+      "content": "On the Learn screen, two interactive games: (1) Emergency Fund Builder — build and stress-test an emergency fund scenario. (2) Survive the Month — budget simulation game where choices affect whether you finish the month. These supplement lessons; they do not replace quizzes."
+    },
+    {
+      "id": "finance",
+      "title": "Finance tab",
+      "keywords": ["finance", "wallet", "balance", "money", "transaction", "income", "spent", "available"],
+      "content": "Finance is a demo wallet area (balances stored per user in Firebase). Shows available balance, income, and spent totals. Quick actions: Add Funds (top up available balance), Send Money (transfer to another user/demo flow), Scan to Pay (QR scan to pay a merchant), Pay Bills (pay utility-style bills from balance). Sections include My Wallet (transaction history), Budget Planner (plan categories and limits), and Savings Goals (create goals with title, target Rs amount, and target date; track progress). Scan receipt (camera/OCR) can log expenses from a receipt photo where available."
+    },
+    {
+      "id": "deals",
+      "title": "Deals & Rewards tab",
+      "keywords": ["deals", "rewards", "coupon", "discount", "offer", "merchant", "claim", "xp", "loyalty", "tier"],
+      "content": "Deals (labelled Rewards in the header) shows your XP level ring, loyalty tier (open Loyalty Tier screen for tier benefits), and daily mini-games: Spin & Win, Guess & Win, Shake & Win (each once per day; awards XP/coupons). Exclusive Deals lists merchant offers; tap for Deal Detail then claim to get a coupon code. My Coupons holds active and expired coupons. All Deals browses the full catalogue. Claimed coupons can be shared; show code and validity at checkout."
+    },
+    {
+      "id": "profile",
+      "title": "Profile tab",
+      "keywords": ["profile", "account", "settings", "theme", "dark mode", "sign out", "logout", "level", "name", "email"],
+      "content": "Profile shows user name, email, total XP, level progress bar, and level-up celebrations. Settings include app theme (light/dark/system). Sign out returns to login. Progress reflects learning and app engagement."
+    },
+    {
+      "id": "miro",
+      "title": "Ask Miro AI",
+      "keywords": ["miro", "assistant", "ai", "chat", "ask", "help", "coach"],
+      "content": "Ask Miro is the in-app AI financial coach on Home. Ask about money concepts, Monéo features, lessons, or which tool to use. You must be signed in. Miro uses app curriculum and feature documentation when relevant, and general financial literacy otherwise. Answers use Rs/MUR for money."
+    },
+    {
+      "id": "tools_currency",
+      "title": "Currency converter tool",
+      "keywords": ["currency", "convert", "exchange", "rate", "mur", "usd", "eur", "foreign"],
+      "content": "Home → Tools → Currency. Convert amounts between MUR and other currencies (USD, EUR, GBP, INR, etc.). Pick from/to currency and enter amount to see converted value and rate date."
+    },
+    {
+      "id": "tools_savings",
+      "title": "Savings calculator",
+      "keywords": ["savings calculator", "savings goal", "how long", "target", "reach goal"],
+      "content": "Home → Tools → Savings. Enter a savings target in Rs and how much you can save per month to estimate months needed to reach the goal."
+    },
+    {
+      "id": "tools_loan",
+      "title": "Loan calculator",
+      "keywords": ["loan", "emi", "monthly payment", "interest rate", "borrow"],
+      "content": "Home → Tools → Loan. Estimate monthly loan payments from principal, interest rate, and term — useful before taking personal or car finance."
+    },
+    {
+      "id": "tools_splitter",
+      "title": "Bill splitter / tip splitter",
+      "keywords": ["split", "bill", "tip", "restaurant", "friends", "share cost"],
+      "content": "Home → Tools → Bill splitter. Enter total bill, tip, and number of people (or custom shares) to see each person's share in Rs."
+    },
+    {
+      "id": "auth",
+      "title": "Sign in and onboarding",
+      "keywords": ["login", "sign up", "register", "onboarding", "google", "password", "account create"],
+      "content": "New users see onboarding slides then can sign up or log in (email/password or Google sign-in). Pre-quiz on first launch may assess baseline knowledge. Splash screen loads Firebase auth state."
+    },
+    {
+      "id": "xp",
+      "title": "XP and levels",
+      "keywords": ["xp", "experience", "level", "points", "reward", "earn"],
+      "content": "XP is earned from completing lessons (~100 XP), quizzes, correct quiz answers, and daily Deals mini-games. Level increases as total XP crosses thresholds (higher levels need more XP per level). XP appears on Learn completion screens, Deals header, and Profile."
+    }
+  ]
+}

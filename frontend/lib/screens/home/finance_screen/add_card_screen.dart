@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fintech/services/wallet_card_service.dart';
 
 class AddCardScreen extends StatefulWidget {
   const AddCardScreen({super.key});
@@ -16,7 +16,16 @@ class _AddCardScreenState extends State<AddCardScreen> {
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
   String _selectedCardType = 'debit'; // 'debit' or 'credit'
-  bool _saveForFuture = false;
+  bool _saveForFuture = true;
+  bool _isSaving = false;
+
+  Future<void> _persistCard(Map<String, String> cardData) async {
+    await WalletCardService.saveCard(
+      last4: cardData['last4']!,
+      type: cardData['type']!,
+      holder: cardData['holder'] ?? '',
+    );
+  }
 
   @override
   void dispose() {
@@ -282,26 +291,67 @@ class _AddCardScreenState extends State<AddCardScreen> {
                         ),
                         elevation: 0,
                       ),
-                      onPressed: () async {
-                        final cardNum = _cardNumberController.text.replaceAll(RegExp(r'\D'), '');
-                        if (cardNum.length >= 4) {
-                          final cardData = {
-                            'last4': cardNum.substring(cardNum.length - 4),
-                            'type': _selectedCardType,
-                            'holder': _cardHolderController.text,
-                          };
-                          if (_saveForFuture) {
-                            final userId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
-                            await FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(userId)
-                                .set({'card': cardData}, SetOptions(merge: true));
-                          }
-                          Navigator.pop(context, cardData);
-                        } else {
-                          Navigator.pop(context);
-                        }
-                      },
+                      onPressed: _isSaving
+                          ? null
+                          : () async {
+                              final cardNum = _cardNumberController.text
+                                  .replaceAll(RegExp(r'\D'), '');
+                              if (cardNum.length < 4) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Enter a valid card number.',
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              final cardData = <String, String>{
+                                'last4': cardNum.substring(cardNum.length - 4),
+                                'type': _selectedCardType,
+                                'holder': _cardHolderController.text.trim(),
+                              };
+
+                              if (!_saveForFuture) {
+                                if (!mounted) return;
+                                Navigator.pop(context, cardData);
+                                return;
+                              }
+
+                              setState(() => _isSaving = true);
+                              try {
+                                await _persistCard(cardData);
+                                if (!mounted) return;
+                                Navigator.pop(context, cardData);
+                              } on StateError catch (e) {
+                                if (!mounted) return;
+                                final message = e.message == 'not_signed_in'
+                                    ? 'Sign in to save a card.'
+                                    : 'Could not save card. Try again.';
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(message),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              } catch (_) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Could not save card. Check your connection and try again.',
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isSaving = false);
+                                }
+                              }
+                            },
                       child: const Text(
                         'Add Card',
                         style: TextStyle(

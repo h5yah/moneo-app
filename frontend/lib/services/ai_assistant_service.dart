@@ -1,6 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fintech/services/learn_content_service.dart';
+import 'package:fintech/services/miro_knowledge_service.dart';
 
 /// Calls the `miroChat` HTTPS callable (see `backend/functions/index.js`).
 class AiAssistantService {
@@ -24,15 +24,14 @@ class AiAssistantService {
       throw ArgumentError('Message is empty.');
     }
 
-    await LearnContentService.instance.ensureLoaded();
-    final lessonContext =
-        await LearnContentService.instance.contextExcerptForAiQuestion(trimmed);
+    final knowledgeContext =
+        await MiroKnowledgeService.instance.buildKnowledgeContext(trimmed);
 
     final callable = _functions.httpsCallable('miroChat');
-    final payload = <String, dynamic>{'message': trimmed};
-    if (lessonContext != null && lessonContext.isNotEmpty) {
-      payload['lessonContext'] = lessonContext;
-    }
+    final payload = <String, dynamic>{
+      'message': trimmed,
+      if (knowledgeContext.isNotEmpty) 'knowledgeContext': knowledgeContext,
+    };
 
     final response = await callable.call(payload);
 

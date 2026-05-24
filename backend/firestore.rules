@@ -1,0 +1,131 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function onlyXpAndUpdatedAtChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['xp', 'updatedAt']);
+    }
+
+    function isValidXpEarnUpdate() {
+      let previousXp = resource.data.get('xp', 0);
+      let nextXp = request.resource.data.xp;
+      return nextXp is int
+        && previousXp is int
+        && nextXp > previousXp
+        && (nextXp - previousXp) <= 500;
+    }
+
+    function isValidXpSpendUpdate() {
+      let previousXp = resource.data.get('xp', 0);
+      let nextXp = request.resource.data.xp;
+      return nextXp is int
+        && previousXp is int
+        && nextXp < previousXp
+        && nextXp >= 0
+        && (previousXp - nextXp) <= 5000;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId)
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['xp'])
+          || (
+            onlyXpAndUpdatedAtChanged()
+            && (isValidXpEarnUpdate() || isValidXpSpendUpdate())
+          )
+        );
+      allow delete: if isOwner(userId);
+
+      match /notifications/{notificationId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /coupons/{couponId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /xpAwards/{awardId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && !exists(/databases/$(database)/documents/users/$(userId)/xpAwards/$(awardId))
+          && request.resource.data.keys().hasAll(['amount', 'source'])
+          && request.resource.data.amount is int
+          && request.resource.data.amount > 0
+          && request.resource.data.amount <= 500;
+        allow update, delete: if false;
+      }
+
+      match /xpTransactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      match /contacts/{contactId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /topicProgress/{topicId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /balances/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /expenses/{expenseId} {
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+    }
+
+    match /goals/{goalId} {
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+    }
+
+    match /budgets/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /cards/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /wallet_users/{contactId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /merchants/{merchantId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}

@@ -1,12 +1,17 @@
-require("dotenv").config();
+if (process.env.FUNCTIONS_EMULATOR === "true") {
+  require("dotenv").config({ path: ".env.local" });
+}
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const { defineSecret } = require("firebase-functions/params");
 const OpenAI = require("openai");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+const openAiApiKey = defineSecret("OPENAI_API_KEY");
 
 setGlobalOptions({
   region: "us-central1",
@@ -29,12 +34,6 @@ function validatePositiveInteger(value, fieldName) {
   }
 }
 
-function validatePositiveNumber(value, fieldName) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
-    throw new HttpsError("invalid-argument", `${fieldName} must be a positive number.`);
-  }
-}
-
 function sanitizeString(value, fallback = "") {
   if (typeof value !== "string") return fallback;
   return value.trim();
@@ -46,105 +45,17 @@ function toNumber(value, fallback = 0) {
   return normalized;
 }
 
-// ================= TRANSACTIONS =================
-
-function buildTransactionPayload({
-  uid,
-  type,
-  amount,
-  expenseName,
-  category,
-  merchantName,
-  merchantId,
-  merchantAccount,
-  rawPayload,
-  note,
-  metadata,
-}) {
-  return {
-    userId: uid,
-    type,
-    amount,
-    myShare: amount,
-    expenseName,
-    category,
-    merchantName,
-    merchantId,
-    merchantAccount,
-    rawPayload,
-    note,
-    date: new Date().toISOString(),
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    metadata: metadata ?? {},
-  };
-}
-
-async function performFinanceTransaction({
-  uid,
-  amount,
-  type,
-  expenseName,
-  category,
-  note,
-  metadata,
-  merchantName,
-  merchantId,
-  merchantAccount,
-  rawPayload,
-  operation,
-}) {
-  const balanceRef = db.collection("balances").doc(uid);
-  const transactionRef = db.collection("transactions").doc();
-
-  return db.runTransaction(async (tx) => {
-    const balanceSnap = await tx.get(balanceRef);
-    const balanceData = balanceSnap.data() ?? {};
-
-    const currentAvailable = toNumber(balanceData.available, 0);
-    const currentIncome = toNumber(balanceData.income, 0);
-    const currentSpent = toNumber(balanceData.spent, 0);
-    const currentSaved = toNumber(balanceData.saved, 0);
-
-    const next = operation({
-      currentAvailable,
-      currentIncome,
-      currentSpent,
-      currentSaved,
-      amount,
-    });
-
-    tx.set(
-      balanceRef,
-      {
-        available: next.available,
-        income: next.income,
-        spent: next.spent,
-        saved: next.saved,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
-
-    tx.set(
-      transactionRef,
-      buildTransactionPayload({
-        uid,
-        type,
-        amount,
-        expenseName,
-        category,
-        merchantName,
-        merchantId,
-        merchantAccount,
-        rawPayload,
-        note,
-        metadata,
-      }),
-      { merge: true }
-    );
-
-    return next;
-  });
+function resolveOpenAiKey() {
+  try {
+    const secret = openAiApiKey.value();
+    if (secret) return secret;
+  } catch (_) {
+    // Secret not bound (e.g. local emulator without secrets).
+  }
+  if (process.env.FUNCTIONS_EMULATOR === "true") {
+    return process.env.OPENAI_API_KEY || "";
+  }
+  return "";
 }
 
 // ================= XP =================
@@ -312,30 +223,31 @@ exports.getFinanceSummary = onCall(async (request) => {
   };
 });
 
-// ================= AI (FIXED) =================
+// ================= AI =================
 
 exports.miroChat = onCall(
   {
     maxInstances: 5,
+    secrets: [openAiApiKey],
   },
   async (request) => {
-    const uid = requireAuth(request);
+    requireAuth(request);
 
     const message = sanitizeString(request.data?.message);
     if (!message) {
       throw new HttpsError("invalid-argument", "message is required.");
     }
 
-    const lessonContext = sanitizeString(request.data?.lessonContext);
-    const maxContextLen = 8000;
+    const knowledgeContext = sanitizeString(
+      request.data?.knowledgeContext || request.data?.lessonContext,
+    );
+    const maxContextLen = 14000;
     const trimmedContext =
-      lessonContext.length > maxContextLen
-        ? `${lessonContext.slice(0, maxContextLen)}\n…`
-        : lessonContext;
+      knowledgeContext.length > maxContextLen
+        ? `${knowledgeContext.slice(0, maxContextLen)}\n…`
+        : knowledgeContext;
 
-    // ✅ SAFE KEY FROM .env
-    const key = process.env.OPENAI_API_KEY;
-
+    const key = resolveOpenAiKey();
     if (!key) {
       throw new HttpsError("failed-precondition", "Missing API key.");
     }
@@ -349,13 +261,15 @@ exports.miroChat = onCall(
     ];
     if (trimmedContext) {
       systemParts.push(
-        "The user may be asking about material from the app's Learn section. Below is an excerpt from that curriculum (lesson titles and quiz notes).",
-        "If their question clearly relates to this excerpt, base your answer on it and stay consistent with it.",
-        "If the question is unrelated or only loosely related, ignore the excerpt and answer from general financial literacy knowledge.",
+        "Below is official Monéo documentation: app features (tabs, tools, wallet, deals, XP), lesson content, and quiz material.",
+        "When the user asks how to use the app, where to find something, or what a feature does, answer from this documentation — include navigation paths (e.g. Home → Tools → Loan).",
+        "When they ask about a financial concept covered in the lessons, teach using that content and stay consistent with it.",
+        "When the question is general financial literacy not covered above, answer from your own knowledge but keep Rs/MUR and Mauritius context.",
+        "Do not invent features that are not listed. If unsure, say what the app does support.",
         "",
-        "--- App curriculum excerpt ---",
+        "--- Monéo knowledge base ---",
         trimmedContext,
-        "--- End excerpt ---",
+        "--- End knowledge base ---",
       );
     }
 

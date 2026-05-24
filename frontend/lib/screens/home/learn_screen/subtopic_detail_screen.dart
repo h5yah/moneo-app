@@ -34,7 +34,6 @@ class SubtopicDetailScreen extends StatefulWidget {
 
 class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
   static const int _lessonCompletionXp = XpService.lessonCompletionXp;
-  static const int _postQuizCompletionXp = XpService.postQuizCompletionXp;
 
   late int _completedLessons;
   late int _coreLessonCount;
@@ -315,12 +314,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                                       score: score,
                                       totalQuestions: totalQuestions,
                                     );
-                                    // Award XP for quiz completion (not pre-quiz)
-                                    await XpService.instance.earnXpOnce(
-                                      amount: _postQuizCompletionXp,
-                                      source: 'quiz_completion',
-                                      awardKey: 'post_quiz:${widget.topicId}',
-                                    );
                                   }
                                 },
                               ),
@@ -357,39 +350,41 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                                 ? lessonNumber
                                 : previousCompleted;
 
-                            final pending = <Future<dynamic>>[];
+                            var earnedXp = 0;
 
                             if (newCompleted > previousCompleted) {
                               if (!mounted) return;
                               setState(() {
                                 _completedLessons = newCompleted;
                               });
-                              pending.add(
-                                TopicProgressService.instance.saveLessonsCompleted(
-                                  topicId: widget.topicId,
-                                  lessonsCompleted: newCompleted,
-                                  totalLessons: _coreLessonCount,
-                                ),
+                              await TopicProgressService.instance
+                                  .saveLessonsCompleted(
+                                topicId: widget.topicId,
+                                lessonsCompleted: newCompleted,
+                                totalLessons: _coreLessonCount,
                               );
-                              pending.add(
-                                XpService.instance.earnXpOnce(
-                                  amount: _lessonCompletionXp,
-                                  source: 'lesson_completion',
-                                  awardKey:
-                                      'lesson:${widget.topicId}:$lessonNumber',
-                                ),
+                              final xpResult =
+                                  await XpService.instance.earnXpOnce(
+                                amount: _lessonCompletionXp,
+                                source: 'lesson_completion',
+                                awardKey:
+                                    'lesson:${widget.topicId}:$lessonNumber',
                               );
+                              if (xpResult.awarded) {
+                                earnedXp = _lessonCompletionXp;
+                              } else if (mounted) {
+                                debugPrint(
+                                  'Lesson XP not awarded (already earned or sync failed).',
+                                );
+                              }
                             }
+
+                            if (!mounted) return;
 
                             final goToNextLesson = await _showLessonCompletedSheet(
                               lessonTitle: lesson.title,
-                              earnedXp: newCompleted > previousCompleted
-                                  ? _lessonCompletionXp
-                                  : 0,
+                              earnedXp: earnedXp,
                             );
-
-                            if (!mounted) return;
-                            await Future.wait(pending);
 
                             if (!mounted) return;
                             if (goToNextLesson) {
@@ -601,36 +596,34 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
             ? lessonNumber
             : previousCompleted;
 
-        final pending = <Future<dynamic>>[];
+        var earnedXp = 0;
 
         if (newCompleted > previousCompleted) {
           if (!mounted) return;
           setState(() {
             _completedLessons = newCompleted;
           });
-          pending.add(
-            TopicProgressService.instance.saveLessonsCompleted(
-              topicId: widget.topicId,
-              lessonsCompleted: newCompleted,
-              totalLessons: _coreLessonCount,
-            ),
+          await TopicProgressService.instance.saveLessonsCompleted(
+            topicId: widget.topicId,
+            lessonsCompleted: newCompleted,
+            totalLessons: _coreLessonCount,
           );
-          pending.add(
-            XpService.instance.earnXpOnce(
-              amount: _lessonCompletionXp,
-              source: 'lesson_completion',
-              awardKey: 'lesson:${widget.topicId}:$lessonNumber',
-            ),
+          final xpResult = await XpService.instance.earnXpOnce(
+            amount: _lessonCompletionXp,
+            source: 'lesson_completion',
+            awardKey: 'lesson:${widget.topicId}:$lessonNumber',
           );
+          if (xpResult.awarded) {
+            earnedXp = _lessonCompletionXp;
+          }
         }
+
+        if (!mounted) return;
 
         final goToNextLesson = await _showLessonCompletedSheet(
           lessonTitle: nextLesson.title,
-          earnedXp: newCompleted > previousCompleted ? _lessonCompletionXp : 0,
+          earnedXp: earnedXp,
         );
-
-        if (!mounted) return;
-        await Future.wait(pending);
 
         if (!mounted) return;
         if (goToNextLesson) {

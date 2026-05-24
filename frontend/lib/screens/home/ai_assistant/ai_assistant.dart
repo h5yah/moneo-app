@@ -23,18 +23,18 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     _ChatLine(
       isUser: false,
       text:
-          "Hi! I'm Miro. Ask me anything about budgeting, saving, credit, or using Monéo.",
+          "Hi! I'm Miro. Ask about money topics, Monéo features (Learn, Finance, Deals), or which tool to use.",
     ),
   ];
   bool _sending = false;
 
   static const _suggestions = [
+    'How do I claim a coupon?',
+    'Where is the loan calculator?',
+    'What is an emergency fund?',
+    'How do savings goals work in Finance?',
+    'How do I earn XP?',
     'What is compound interest?',
-    'How can I save money faster?',
-    'What is a good monthly budget?',
-    'How do savings goals work?',
-    'Which calculator should I use?',
-    'How can I improve my credit score?',
   ];
 
   @override

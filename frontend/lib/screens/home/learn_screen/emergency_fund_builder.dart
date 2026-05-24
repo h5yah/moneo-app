@@ -372,6 +372,7 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
 
   void _startSimulation() {
     setState(() {
+      _xpAwarded = false;
       _started = true;
       _finished = false;
       _stepIndex = 0;
@@ -427,6 +428,7 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
 
   void _backToIntro() {
     setState(() {
+      _xpAwarded = false;
       _started = false;
       _finished = false;
       _stepIndex = 0;
@@ -1224,10 +1226,9 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
     Future.microtask(() async {
       if (!_xpAwarded && _emergencyFund >= 1500) {
         _xpAwarded = true;
-        await XpService.instance.earnXpOnce(
-          amount: 100,
+        await XpService.instance.earnXp(
+          amount: XpService.scenarioCompletionXp,
           source: 'emergency_fund_builder',
-          awardKey: 'scenario:emergency_fund_builder',
         );
       }
     });

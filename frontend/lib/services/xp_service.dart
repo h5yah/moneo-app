@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 /// Progressive level curve: L1→2 = 500 XP, L2→3 = 700 XP, L3→4 = 900 XP, …
 class XpLevelMeta {
@@ -43,7 +44,15 @@ class XpService {
 
   /// XP for finishing a core lesson (Home learn card, lesson completion modal).
   static const int lessonCompletionXp = 100;
-  static const int postQuizCompletionXp = 100;
+
+  /// XP each time an interactive scenario is completed successfully.
+  static const int scenarioCompletionXp = 100;
+
+  /// One-time bonus when completing a topic (final quiz / "Great job!" screen).
+  static const int topicCompletionBonusXp = 500;
+
+  /// @deprecated Use [topicCompletionBonusXp].
+  static const int postQuizCompletionXp = topicCompletionBonusXp;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -108,6 +117,7 @@ class XpService {
   }
 
   Future<int> earnXp({required int amount, String source = 'unknown'}) async {
+    await ensureUserProfile();
     final result = await earnXpOnce(
       amount: amount,
       source: source,
@@ -138,6 +148,27 @@ class XpService {
     return snap.exists;
   }
 
+  /// Ensures `users/{uid}` exists so Cloud Functions can award XP.
+  Future<void> ensureUserProfile() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final docRef = _firestore.collection('users').doc(user.uid);
+    final snap = await docRef.get();
+    if (snap.exists) return;
+
+    final name = user.displayName?.trim() ?? '';
+    final parts = name.split(RegExp(r'\s+'));
+    await docRef.set({
+      'firstName': parts.isNotEmpty ? parts.first : '',
+      'lastName': parts.length > 1 ? parts.sublist(1).join(' ') : '',
+      'email': user.email ?? '',
+      'phone': '',
+      'xp': 0,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   /// Awards XP only the first time [awardKey] is used for this user.
   Future<XpEarnResult> earnXpOnce({
     required int amount,
@@ -150,29 +181,115 @@ class XpService {
       throw ArgumentError('awardKey must not be empty.');
     }
 
+    await ensureUserProfile();
+
     try {
-      final callable = _functions.httpsCallable('earnXpOnce');
-      final response = await callable.call({
-        'amount': amount,
-        'source': source,
-        'awardKey': normalizedKey,
-      });
-      final data = response.data;
-      if (data is Map) {
-        return XpEarnResult(
-          xp: (data['xp'] as num?)?.toInt() ?? 0,
-          awarded: data['awarded'] == true,
-        );
+      final viaCallable = await _earnXpOnceViaCallable(
+        amount: amount,
+        source: source,
+        awardKey: normalizedKey,
+      );
+      if (viaCallable.awarded) {
+        return viaCallable;
       }
-      return XpEarnResult(xp: _extractXp(data), awarded: true);
-    } catch (_) {
-      return _earnXpOnceViaFirestore(
+      // Award key already used on server — not an error.
+      return viaCallable;
+    } on FirebaseFunctionsException catch (e) {
+      debugPrint(
+        'earnXpOnce callable failed (${e.code}), using Firestore: ${e.message}',
+      );
+    } catch (e) {
+      debugPrint('earnXpOnce callable failed, using Firestore: $e');
+    }
+
+    try {
+      return await _earnXpOnceViaFirestore(
         uid: uid,
         amount: amount,
         source: source,
         awardKey: normalizedKey,
       );
+    } catch (e) {
+      debugPrint('earnXpOnce Firestore fallback failed: $e');
     }
+
+    final currentXp = await _readXpFromFirestore(uid);
+    return XpEarnResult(xp: currentXp, awarded: false);
+  }
+
+  Future<XpEarnResult> _earnXpOnceViaCallable({
+    required int amount,
+    required String source,
+    required String awardKey,
+  }) async {
+    final callable = _functions.httpsCallable('earnXpOnce');
+    final response = await callable.call({
+      'amount': amount,
+      'source': source,
+      'awardKey': awardKey,
+    });
+    final data = response.data;
+    if (data is Map) {
+      return XpEarnResult(
+        xp: (data['xp'] as num?)?.toInt() ?? 0,
+        awarded: data['awarded'] == true,
+      );
+    }
+    return XpEarnResult(xp: _extractXp(data), awarded: true);
+  }
+
+  Future<int> _readXpFromFirestore(String uid) async {
+    try {
+      final snap = await _firestore.collection('users').doc(uid).get();
+      return (snap.data()?['xp'] as num?)?.toInt() ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Client-side earn when Cloud Functions are unavailable (see firestore.rules).
+  Future<XpEarnResult> _earnXpOnceViaFirestore({
+    required String uid,
+    required int amount,
+    required String source,
+    required String awardKey,
+  }) async {
+    final userRef = _firestore.collection('users').doc(uid);
+    final awardRef = userRef.collection('xpAwards').doc(awardKey);
+
+    return _firestore.runTransaction((tx) async {
+      final awardSnap = await tx.get(awardRef);
+      final userSnap = await tx.get(userRef);
+
+      if (awardSnap.exists) {
+        final currentXp = (userSnap.data()?['xp'] as num?)?.toInt() ?? 0;
+        return XpEarnResult(xp: currentXp, awarded: false);
+      }
+
+      if (!userSnap.exists) {
+        throw FirebaseException(
+          plugin: 'cloud_firestore',
+          code: 'not-found',
+          message: 'User profile does not exist.',
+        );
+      }
+
+      final currentXp = (userSnap.data()?['xp'] as num?)?.toInt() ?? 0;
+      final newXp = currentXp + amount;
+
+      tx.set(awardRef, {
+        'amount': amount,
+        'source': source,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      tx.update(userRef, {
+        'xp': newXp,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return XpEarnResult(xp: newXp, awarded: true);
+    });
   }
 
   Future<int> spendXp({required int amount, String source = 'unknown'}) async {
@@ -206,54 +323,6 @@ class XpService {
       );
     }
     return uid;
-  }
-
-  Future<XpEarnResult> _earnXpOnceViaFirestore({
-    required String uid,
-    required int amount,
-    required String source,
-    required String awardKey,
-  }) async {
-    final userRef = _firestore.collection('users').doc(uid);
-    final awardRef = userRef.collection('xpAwards').doc(awardKey);
-
-    return _firestore.runTransaction((tx) async {
-      final awardSnap = await tx.get(awardRef);
-      final userSnap = await tx.get(userRef);
-      final currentXp = (userSnap.data()?['xp'] as num?)?.toInt() ?? 0;
-
-      if (awardSnap.exists) {
-        return XpEarnResult(xp: currentXp, awarded: false);
-      }
-
-      final newXp = currentXp + amount;
-
-      tx.set(userRef, {
-        'xp': newXp,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      tx.set(awardRef, {
-        'amount': amount,
-        'source': source,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      tx.set(
-        userRef.collection('xpTransactions').doc(),
-        {
-          'type': 'earn',
-          'amount': amount,
-          'previousXp': currentXp,
-          'newXp': newXp,
-          'source': source,
-          'awardKey': awardKey,
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-      );
-
-      return XpEarnResult(xp: newXp, awarded: true);
-    });
   }
 
   Future<int> _spendXpViaFirestore({

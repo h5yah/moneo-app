@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fintech/services/device_contacts_service.dart';
 
 class SendMoneyScreen extends StatefulWidget {
   final double availableBalance;
@@ -19,49 +20,12 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   final TextEditingController _recipientController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
 
-  String? _selectedUserId;
-  List<Map<String, dynamic>> _userList = [];
-  bool _loadingUsers = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUsers();
-  }
+  String? _recipientDisplayName;
 
   double get _availableBalance => widget.availableBalance;
 
   double get _enteredAmount {
     return double.tryParse(_amountController.text.trim()) ?? 0;
-  }
-
-  Future<void> _fetchUsers() async {
-    setState(() {
-      _loadingUsers = true;
-    });
-
-    final snapshot = await FirebaseFirestore.instance
-        .collection('wallet_users')
-        .orderBy('name')
-        .get();
-
-    _userList = snapshot.docs.map((doc) {
-      final data = doc.data();
-      return {
-        'id': doc.id,
-        'name': (data['name'] ?? data['fullName'] ?? '').toString(),
-        'phone': (data['phone'] ?? '').toString(),
-      };
-    }).toList();
-
-    debugPrint('Fetched users: ${_userList.length}');
-    debugPrint(_userList.toString());
-
-    if (!mounted) return;
-
-    setState(() {
-      _loadingUsers = false;
-    });
   }
 
   @override
@@ -70,6 +34,30 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     _recipientController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickContactFromPhone() async {
+    try {
+      final picked = await DeviceContactsService.pickFromPhone();
+      if (!mounted || picked == null) return;
+
+      setState(() {
+        _recipientController.text = picked.phone;
+        _recipientDisplayName = picked.displayName;
+      });
+    } on StateError catch (e) {
+      if (!mounted) return;
+      final message = switch (e.message) {
+        'invalid_phone' =>
+          'That contact needs a Mauritius mobile number (8 digits starting with 5).',
+        'no_phone' => 'That contact has no phone number.',
+        _ => 'Could not open contacts.',
+      };
+      _showMessage(message);
+    } catch (_) {
+      if (!mounted) return;
+      _showMessage('Could not open contacts.');
+    }
   }
 
   void _handleSendMoney() {
@@ -114,15 +102,13 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
     String recipient;
     if (query.docs.isEmpty) {
-      recipient = phone;
-      _selectedUserId = null;
+      recipient = _recipientDisplayName != null && _recipientDisplayName!.isNotEmpty
+          ? '${_recipientDisplayName!} ($phone)'
+          : phone;
     } else {
-      final doc = query.docs.first;
-      final user = doc.data();
+      final user = query.docs.first.data();
       final name = (user['name'] ?? user['fullName'] ?? '').toString().trim();
       final foundPhone = (user['phone'] ?? '').toString().trim();
-
-      _selectedUserId = doc.id;
       recipient = name.isNotEmpty ? '$name ($foundPhone)' : foundPhone;
     }
 
@@ -188,7 +174,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                   _noteController.clear();
 
                   setState(() {
-                    _selectedUserId = null;
+                    _recipientDisplayName = null;
                   });
 
                   Navigator.of(context).pop();
@@ -247,9 +233,9 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
       });
 
       final now = DateTime.now();
-      final dateString = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final dateString =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
-      // Save to transactions
       tx.set(txRef, {
         'expenseName': 'Money Sent',
         'myShare': -amount,
@@ -261,7 +247,6 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         'note': _noteController.text.trim(),
       });
 
-      // Save to expenses
       final expenseRef = FirebaseFirestore.instance.collection('expenses').doc();
       tx.set(expenseRef, {
         'expenseName': 'Money Sent',
@@ -274,98 +259,6 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         'note': _noteController.text.trim(),
       });
     });
-  }
-
-  void _openRecipientPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (bottomSheetContext) {
-        if (_loadingUsers) {
-          return const SizedBox(
-            height: 220,
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (_userList.isEmpty) {
-          return const SizedBox(
-            height: 220,
-            child: Center(
-              child: Text(
-                'No contacts found',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          );
-        }
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Select Recipient',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: _userList.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final user = _userList[index];
-                      final name = (user['name'] ?? '').toString().trim();
-                      final phone = (user['phone'] ?? '').toString().trim();
-
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const CircleAvatar(
-                          backgroundColor: Color(0xFF0D1B2A),
-                          child: Icon(Icons.person, color: Colors.white),
-                        ),
-                        title: Text(
-                          name.isNotEmpty ? name : 'Unknown User',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(phone),
-                        onTap: () {
-                          _recipientController.text = phone;
-                          _selectedUserId = user['id'];
-                          Navigator.pop(bottomSheetContext);
-                          setState(() {});
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  String? _getSelectedRecipientName() {
-    final phone = _recipientController.text.trim();
-
-    for (final user in _userList) {
-      if ((user['phone'] ?? '').toString().trim() == phone) {
-        final name = (user['name'] ?? '').toString().trim();
-        return name.isNotEmpty ? name : null;
-      }
-    }
-    return null;
   }
 
   void _showMessage(String message) {
@@ -506,7 +399,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             keyboardType: TextInputType.phone,
             onChanged: (_) {
               setState(() {
-                _selectedUserId = null;
+                _recipientDisplayName = null;
               });
             },
             decoration: InputDecoration(
@@ -522,7 +415,8 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 horizontal: 12,
               ),
               suffixIcon: IconButton(
-                onPressed: _openRecipientPicker,
+                onPressed: _pickContactFromPhone,
+                tooltip: 'Choose from phone contacts',
                 icon: const Icon(
                   Icons.contacts_rounded,
                   color: Color(0xFF0D1B2A),
@@ -530,10 +424,11 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               ),
             ),
           ),
-          if (_getSelectedRecipientName() != null) ...[
+          if (_recipientDisplayName != null &&
+              _recipientDisplayName!.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(
-              'Recipient: ${_getSelectedRecipientName()}',
+              'Recipient: $_recipientDisplayName',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,

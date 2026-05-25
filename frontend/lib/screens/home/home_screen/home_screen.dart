@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,9 +32,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _reviewCompleted = false;
   int _selectedIndex = 0;
+  int _dealsArcReplay = 0;
+  int _learningProgressReplay = 0;
+  int _learnTopicBarsReplay = 0;
+  int _financeProgressReplay = 0;
   bool _showStreakCelebration = false;
   int _celebrationStreakDays = 0;
   bool _hasShownStreakCelebration = false;
+  bool _isCelebratingLevelUp = false;
+  int? _observedLevel;
+  Timer? _levelUpDismissTimer;
+  OverlayEntry? _levelUpOverlay;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _levelSubscription;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -42,7 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _pendingResumeTopicId;
   bool _pendingAutoOpenResumeTopic = false;
 
-  final GlobalKey<LearnScreenState> _learnTabKey = GlobalKey<LearnScreenState>();
+  final GlobalKey<LearnScreenState> _learnTabKey =
+      GlobalKey<LearnScreenState>();
   final GlobalKey _financeTabKey = GlobalKey();
   final GlobalKey _dealsTabKey = GlobalKey();
 
@@ -52,11 +66,110 @@ class _HomeScreenState extends State<HomeScreen> {
     TopicMetaService.instance.ensureLoaded();
     _updateStreakIfNeeded();
     _loadActiveTopicProgress();
+    _watchLevelUps();
+  }
+
+  @override
+  void dispose() {
+    _levelUpDismissTimer?.cancel();
+    _levelUpOverlay?.remove();
+    _levelSubscription?.cancel();
+    super.dispose();
   }
 
   String get _displayName {
-    if (widget.userName == null || widget.userName!.trim().isEmpty) return 'there';
+    if (widget.userName == null || widget.userName!.trim().isEmpty)
+      return 'there';
     return widget.userName!.trim();
+  }
+
+  void _replayLearningProgress() {
+    if (!mounted) return;
+    setState(() => _learningProgressReplay++);
+  }
+
+  void _watchLevelUps() {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    _levelSubscription = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen((snapshot) {
+      if (!mounted || !snapshot.exists) return;
+
+      final data = snapshot.data() ?? <String, dynamic>{};
+      final currentXp = (data['xp'] as num?)?.toInt() ?? 0;
+      final currentLevel = XpService.levelMetaFromTotalXp(currentXp).level;
+      final lastCelebratedRaw = data['lastCelebratedLevel'];
+      final lastCelebratedLevel =
+          lastCelebratedRaw is num ? lastCelebratedRaw.toInt() : null;
+
+      final previousObservedLevel = _observedLevel;
+      if (previousObservedLevel == null) {
+        _observedLevel = currentLevel;
+        if (lastCelebratedLevel == null || lastCelebratedLevel < currentLevel) {
+          _setLastCelebratedLevel(user.uid, currentLevel);
+        }
+        return;
+      }
+
+      _observedLevel = currentLevel;
+
+      if (currentLevel <= previousObservedLevel ||
+          currentLevel <= 1 ||
+          _isCelebratingLevelUp) {
+        return;
+      }
+
+      if (lastCelebratedLevel != null && currentLevel <= lastCelebratedLevel) {
+        return;
+      }
+
+      _celebrateLevelUp(user.uid, currentLevel);
+    });
+  }
+
+  Future<void> _setLastCelebratedLevel(String uid, int level) async {
+    try {
+      await _firestore.collection('users').doc(uid).set({
+        'lastCelebratedLevel': level,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {
+      // This field only prevents duplicate UI celebrations.
+    }
+  }
+
+  Future<void> _celebrateLevelUp(String uid, int level) async {
+    _isCelebratingLevelUp = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final overlay = Overlay.of(context, rootOverlay: true);
+      _levelUpOverlay?.remove();
+      _levelUpOverlay = OverlayEntry(
+        builder: (_) => _LevelUpCelebrationOverlay(level: level),
+      );
+      overlay.insert(_levelUpOverlay!);
+
+      _levelUpDismissTimer?.cancel();
+      _levelUpDismissTimer =
+          Timer(const Duration(milliseconds: 3200), () async {
+        _levelUpOverlay?.remove();
+        _levelUpOverlay = null;
+
+        await _setLastCelebratedLevel(uid, level);
+
+        if (mounted) {
+          setState(() => _isCelebratingLevelUp = false);
+        } else {
+          _isCelebratingLevelUp = false;
+        }
+      });
+    });
   }
 
   int _tabStackIndex(int navIndex) {
@@ -74,8 +187,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String get _formattedDate {
     final now = DateTime.now();
-    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${weekdays[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
   }
 
@@ -92,7 +226,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final meta = metas[id];
       if (meta == null) continue;
       final data = await TopicProgressService.instance.getTopicProgress(id);
-      final lessonsCompleted = (data?['lessonsCompleted'] as num?)?.toInt() ?? 0;
+      final lessonsCompleted =
+          (data?['lessonsCompleted'] as num?)?.toInt() ?? 0;
       final allLessonsCompleted = data?['allLessonsCompleted'] == true;
       final topicCompleted = data?['topicCompleted'] == true;
       final isComplete = topicCompleted ||
@@ -129,7 +264,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final todayKey = _formatDate(DateTime.now());
-      final userSnapshot = await _firestore.collection('users').doc(user.uid).get();
+      final userSnapshot =
+          await _firestore.collection('users').doc(user.uid).get();
       final userData = userSnapshot.data() ?? <String, dynamic>{};
       final streakDays = (userData['streakDays'] as num?)?.toInt() ?? 0;
 
@@ -175,10 +311,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final docRef = _firestore.collection('users').doc(user.uid);
       final snapshot = await docRef.get();
-      final data = snapshot.data() as Map<String, dynamic>? ?? <String, dynamic>{};
+      final data =
+          snapshot.data() as Map<String, dynamic>? ?? <String, dynamic>{};
 
       final String today = _formatDate(DateTime.now());
-      final String yesterday = _formatDate(DateTime.now().subtract(const Duration(days: 1)));
+      final String yesterday =
+          _formatDate(DateTime.now().subtract(const Duration(days: 1)));
 
       final String? lastActiveDate = data['lastActiveDate'] as String?;
       int streakDays = (data['streakDays'] as num?)?.toInt() ?? 0;
@@ -213,7 +351,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       _showStreakCelebrationOverlay(streakDays);
 
-      debugPrint('[Streak] Updated: streakDays=$streakDays, lastActiveDate=$today (doc: users/${user.uid})');
+      debugPrint(
+          '[Streak] Updated: streakDays=$streakDays, lastActiveDate=$today (doc: users/${user.uid})');
     } catch (e, st) {
       debugPrint('[Streak] Error: $e');
       debugPrint(st.toString());
@@ -224,7 +363,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasStartedTopicProgress(Map<String, dynamic>? topicData) {
     if (topicData == null || topicData.isEmpty) return false;
     if (topicData['preQuizCompleted'] == true) return true;
-    final lessonsCompleted = (topicData['lessonsCompleted'] as num?)?.toInt() ?? 0;
+    final lessonsCompleted =
+        (topicData['lessonsCompleted'] as num?)?.toInt() ?? 0;
     if (lessonsCompleted > 0) return true;
     final activeLesson = (topicData['activeLessonNumber'] as num?)?.toInt();
     if (activeLesson != null && activeLesson > 0) return true;
@@ -275,6 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
           key: _learnTabKey,
           resumeTopicId: _pendingResumeTopicId,
           autoOpenResumeTopic: _pendingAutoOpenResumeTopic,
+          progressReplaySeed: _learnTopicBarsReplay,
           onIndexChanged: (i) {
             setState(() {
               _selectedIndex = i;
@@ -282,16 +423,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 _pendingResumeTopicId = null;
                 _pendingAutoOpenResumeTopic = false;
               }
+              if (i == 0) _learningProgressReplay++;
             });
             if (i == 0) _loadActiveTopicProgress();
           },
         ),
         FinanceScreen(
           key: _financeTabKey,
+          progressReplaySeed: _financeProgressReplay,
           onIndexChanged: (i) => setState(() => _selectedIndex = i),
         ),
         DealsScreen(
           key: _dealsTabKey,
+          arcReplaySeed: _dealsArcReplay,
+          isActive: _selectedIndex == 4,
           onIndexChanged: (i) => setState(() => _selectedIndex = i),
         ),
       ],
@@ -330,7 +475,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: isDark ? const Color(0xFF1B1D33) : Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE7EAF2),
+                  color: isDark
+                      ? const Color(0xFF2A2D4A)
+                      : const Color(0xFFE7EAF2),
                 ),
                 boxShadow: const [
                   BoxShadow(
@@ -368,7 +515,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       height: 1.35,
-                      color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280),
+                      color: isDark
+                          ? const Color(0xFFAAB0C6)
+                          : const Color(0xFF6B7280),
                     ),
                   ),
                 ],
@@ -403,9 +552,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final headerCardColor = isDark ? const Color(0xFF1B1D33) : Colors.white;
-    final headerBorderColor = isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE8ECF4);
+    final headerBorderColor =
+        isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE8ECF4);
     final primaryTextColor = isDark ? Colors.white : const Color(0xFF111827);
-    final secondaryTextColor = isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280);
+    final secondaryTextColor =
+        isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
@@ -420,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onIndexChanged: (i) => setState(() => _selectedIndex = i),
                   ),
                 ),
-              );
+              ).then((_) => _replayLearningProgress());
             },
             child: Container(
               width: 52,
@@ -428,7 +579,12 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: headerBorderColor),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4))
+                ],
               ),
               child: ClipOval(
                 child: Image.asset(
@@ -439,7 +595,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       color: headerCardColor,
-                      child: Icon(Icons.person_rounded, color: secondaryTextColor, size: 28),
+                      child: Icon(Icons.person_rounded,
+                          color: secondaryTextColor, size: 28),
                     );
                   },
                 ),
@@ -452,10 +609,16 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Hi, $_displayName',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: primaryTextColor)),
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: primaryTextColor)),
                 const SizedBox(height: 4),
                 Text(_formattedDate,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: secondaryTextColor)),
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: secondaryTextColor)),
               ],
             ),
           ),
@@ -473,7 +636,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   border: Border.all(color: headerBorderColor),
                 ),
                 child: IconButton(
-                  tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+                  tooltip:
+                      isDark ? 'Switch to light mode' : 'Switch to dark mode',
                   icon: Icon(
                     isDark ? Icons.wb_sunny_outlined : Icons.nightlight_round,
                     color: primaryTextColor,
@@ -512,12 +676,13 @@ class _HomeScreenState extends State<HomeScreen> {
           border: Border.all(color: headerBorderColor),
         ),
         child: IconButton(
-          icon: Icon(Icons.notifications_none_rounded, color: primaryTextColor, size: 22),
+          icon: Icon(Icons.notifications_none_rounded,
+              color: primaryTextColor, size: 22),
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-            );
+            ).then((_) => _replayLearningProgress());
           },
         ),
       );
@@ -548,12 +713,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: Border.all(color: headerBorderColor),
               ),
               child: IconButton(
-                icon: Icon(Icons.notifications_none_rounded, color: primaryTextColor, size: 22),
+                icon: Icon(Icons.notifications_none_rounded,
+                    color: primaryTextColor, size: 22),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                  );
+                    MaterialPageRoute(
+                        builder: (_) => const NotificationsScreen()),
+                  ).then((_) => _replayLearningProgress());
                 },
               ),
             ),
@@ -562,7 +729,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 right: -2,
                 top: -2,
                 child: Container(
-                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  constraints:
+                      const BoxConstraints(minWidth: 18, minHeight: 18),
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFF3B30),
@@ -591,9 +759,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final meta = TopicMetaService.instance.byId[_activeTopicId]!;
     final data = _activeTopicData ?? {};
 
-    final lessonsCompleted =
-        (data['lessonsCompleted'] as num?)?.toInt()?.clamp(0, meta.totalLessons) ??
-            0;
+    final lessonsCompleted = (data['lessonsCompleted'] as num?)
+            ?.toInt()
+            ?.clamp(0, meta.totalLessons) ??
+        0;
 
     final activeLessonNumber = data['activeLessonNumber'] as int?;
     final activeLessonStep = data['activeLessonStep'] as int?;
@@ -605,8 +774,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ? (activeLessonStep! / activeLessonTotalSteps!).clamp(0.0, 1.0)
         : 0.0;
 
-    final progressValue = ((lessonsCompleted + partial) / meta.totalLessons)
-        .clamp(0.0, 1.0);
+    final progressValue =
+        ((lessonsCompleted + partial) / meta.totalLessons).clamp(0.0, 1.0);
     final progressPct = (progressValue * 100).toInt();
 
     return Container(
@@ -619,7 +788,12 @@ class _HomeScreenState extends State<HomeScreen> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: const Color(0xFF6D5EF9).withOpacity(0.20), blurRadius: 22, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF6D5EF9).withOpacity(0.20),
+              blurRadius: 22,
+              offset: const Offset(0, 10))
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -629,28 +803,48 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.16),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: const Text('Current learning module',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(height: 16),
                 Text(meta.title,
-                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800)),
                 const SizedBox(height: 6),
-                Text('$lessonsCompleted of ${meta.totalLessons} lessons completed',
-                    style: TextStyle(color: Colors.white.withOpacity(0.88), fontSize: 13, fontWeight: FontWeight.w500)),
+                Text(
+                    '$lessonsCompleted of ${meta.totalLessons} lessons completed',
+                    style: TextStyle(
+                        color: Colors.white.withOpacity(0.88),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500)),
                 const SizedBox(height: 14),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: progressValue,
-                    minHeight: 8,
-                    backgroundColor: Colors.white.withOpacity(0.18),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  child: TweenAnimationBuilder<double>(
+                    key: ValueKey('learning-linear-$_learningProgressReplay'),
+                    tween: Tween(begin: 0, end: progressValue),
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, animatedProgress, _) {
+                      return LinearProgressIndicator(
+                        value: animatedProgress,
+                        minHeight: 8,
+                        backgroundColor: Colors.white.withOpacity(0.18),
+                        valueColor:
+                            const AlwaysStoppedAnimation<Color>(Colors.white),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -704,7 +898,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         elevation: 0,
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF5B4CF0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -734,18 +929,40 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                SizedBox(
-                  width: 72,
-                  height: 72,
-                  child: CircularProgressIndicator(
-                    value: progressValue,
-                    strokeWidth: 8,
-                    backgroundColor: Colors.white.withOpacity(0.15),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
+                TweenAnimationBuilder<double>(
+                  key: ValueKey('learning-circle-$_learningProgressReplay'),
+                  tween: Tween(begin: 0, end: progressValue),
+                  duration: const Duration(milliseconds: 1100),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, animatedProgress, _) {
+                    final animatedPct = (animatedProgress * 100).toInt();
+
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 72,
+                          height: 72,
+                          child: CircularProgressIndicator(
+                            value: animatedProgress,
+                            strokeWidth: 8,
+                            backgroundColor: Colors.white.withOpacity(0.15),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.white),
+                          ),
+                        ),
+                        Text(
+                          '$animatedPct%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-                Text('$progressPct%',
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
               ],
             ),
           ),
@@ -758,7 +975,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sectionTitleColor = isDark ? Colors.white : const Color(0xFF111827);
     final cardColor = isDark ? const Color(0xFF1B1D33) : Colors.white;
-    final cardBorderColor = isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE9ECF4);
+    final cardBorderColor =
+        isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE9ECF4);
     final labelColor = isDark ? Colors.white : const Color(0xFF111827);
     final subColor = isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280);
     final tools = [
@@ -802,7 +1020,10 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Tools',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: sectionTitleColor)),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: sectionTitleColor)),
           const SizedBox(height: 12),
           GridView.count(
             crossAxisCount: 2,
@@ -811,40 +1032,51 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             childAspectRatio: 1.6,
-            children: tools.map((t) => GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => t.screen)),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: cardBorderColor),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(color: t.bg, borderRadius: BorderRadius.circular(12)),
-                      child: Icon(t.icon, color: t.color, size: 20),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(t.label,
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: labelColor)),
-                          Text(t.sub,
-                              style: TextStyle(fontSize: 11, color: subColor)),
-                        ],
+            children: tools
+                .map((t) => GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => t.screen),
+                      ).then((_) => _replayLearningProgress()),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: cardBorderColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                  color: t.bg,
+                                  borderRadius: BorderRadius.circular(12)),
+                              child: Icon(t.icon, color: t.color, size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(t.label,
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: labelColor)),
+                                  Text(t.sub,
+                                      style: TextStyle(
+                                          fontSize: 11, color: subColor)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            )).toList(),
+                    ))
+                .toList(),
           ),
         ],
       ),
@@ -852,10 +1084,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   final List<String> _insights = [
-  "Rent appears to be one of the most frequent financial transactions. Planning housing expenses carefully can improve financial stability.",
-  "Travel and food expenses represent significant spending categories. Setting limits for discretionary spending can help control budgets.",
-  "Frequent transactions across multiple categories highlight the importance of tracking expenses regularly."
-];
+    "Rent appears to be one of the most frequent financial transactions. Planning housing expenses carefully can improve financial stability.",
+    "Travel and food expenses represent significant spending categories. Setting limits for discretionary spending can help control budgets.",
+    "Frequent transactions across multiple categories highlight the importance of tracking expenses regularly."
+  ];
 
   Widget _buildSmartInsight() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -884,7 +1116,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFFEAF2FF),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.psychology_rounded, color: Color(0xFF007AFF), size: 24),
+                child: const Icon(Icons.psychology_rounded,
+                    color: Color(0xFF007AFF), size: 24),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -895,16 +1128,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF111827))),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF111827))),
                     const SizedBox(height: 6),
                     Text(
-  _insights[DateTime.now().day % _insights.length],
-  style: TextStyle(
-    fontSize: 13,
-    height: 1.45,
-    color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280),
-  ),
-),
+                      _insights[DateTime.now().day % _insights.length],
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.45,
+                        color: isDark
+                            ? const Color(0xFFAAB0C6)
+                            : const Color(0xFF6B7280),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -945,7 +1182,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = _auth.currentUser;
     final stream = user == null
         ? Stream<DocumentSnapshot<Map<String, dynamic>>?>.value(null)
-        : _firestore.collection('users').doc(user.uid).snapshots().map((d) => d);
+        : _firestore
+            .collection('users')
+            .doc(user.uid)
+            .snapshots()
+            .map((d) => d);
 
     return Expanded(
       child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
@@ -955,15 +1196,25 @@ class _HomeScreenState extends State<HomeScreen> {
           final streakDays = (data['streakDays'] as num?)?.toInt() ?? 0;
           final activeDays = streakDays.clamp(0, 7);
           const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-          final streakLabel = streakDays <= 0 ? 'Learning\nconsistency' : '$streakDays-day streak';
+          final streakLabel = streakDays <= 0
+              ? 'Learning\nconsistency'
+              : '$streakDays-day streak';
 
           return Container(
             height: 170,
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1B1D33) : Colors.white,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE9ECF7)),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+              border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF2A2D4A)
+                      : const Color(0xFFE9ECF7)),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4))
+              ],
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -977,7 +1228,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: Text(streakLabel,
                             maxLines: 2,
-                            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1F2937), fontSize: 16,
+                            style: TextStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1F2937),
+                                fontSize: 16,
                                 fontWeight: FontWeight.w800)),
                       ),
                     ],
@@ -985,9 +1240,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 14),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: weekDays.map((d) => Text(d,
-                        style: TextStyle(color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280), fontSize: 11,
-                            fontWeight: FontWeight.w700))).toList(),
+                    children: weekDays
+                        .map((d) => Text(d,
+                            style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFFAAB0C6)
+                                    : const Color(0xFF6B7280),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700)))
+                        .toList(),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -999,7 +1260,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Container(
                             height: 8,
                             decoration: BoxDecoration(
-                              color: done ? const Color(0xFF1D89FF) : const Color(0xFFE5E7EB),
+                              color: done
+                                  ? const Color(0xFF1D89FF)
+                                  : const Color(0xFFE5E7EB),
                               borderRadius: BorderRadius.circular(999),
                             ),
                           ),
@@ -1012,8 +1275,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     _reviewCompleted
                         ? 'Nice work — today\'s challenge completed'
                         : 'Keep your streak alive by using the app daily.',
-                    style: TextStyle(color: isDark ? const Color(0xFFAAB0C6) : const Color(0xFF6B7280), fontSize: 11,
-                        fontWeight: FontWeight.w500, height: 1.35),
+                    style: TextStyle(
+                        color: isDark
+                            ? const Color(0xFFAAB0C6)
+                            : const Color(0xFF6B7280),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35),
                   ),
                 ],
               ),
@@ -1037,8 +1305,12 @@ class _HomeScreenState extends State<HomeScreen> {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(28),
-            boxShadow: [BoxShadow(color: const Color(0xFFF67C20).withOpacity(0.26),
-                blurRadius: 16, offset: const Offset(0, 8))],
+            boxShadow: [
+              BoxShadow(
+                  color: const Color(0xFFF67C20).withOpacity(0.26),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8))
+            ],
           ),
           child: Stack(
             children: [
@@ -1047,7 +1319,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 bottom: -8,
                 child: Opacity(
                   opacity: 0.18,
-                  child: const Icon(Icons.card_giftcard_rounded, size: 110, color: Colors.white),
+                  child: const Icon(Icons.card_giftcard_rounded,
+                      size: 110, color: Colors.white),
                 ),
               ),
               Padding(
@@ -1056,20 +1329,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Rewards & deals',
-                        style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
                     Text('Unlock exclusive offers and redeem your rewards.',
-                        style: TextStyle(color: Colors.white.withOpacity(0.92), fontSize: 13,
-                            height: 1.35, fontWeight: FontWeight.w500)),
+                        style: TextStyle(
+                            color: Colors.white.withOpacity(0.92),
+                            fontSize: 13,
+                            height: 1.35,
+                            fontWeight: FontWeight.w500)),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.20),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: const Text('View offers',
-                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ),
@@ -1086,7 +1369,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
+          top: BorderSide(
+              color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
         ),
       ),
       child: BottomNavigationBar(
@@ -1099,12 +1383,19 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             return;
           }
-          setState(() => _selectedIndex = i);
+          setState(() {
+            _selectedIndex = i;
+            if (i == 0) _learningProgressReplay++;
+            if (i == 1) _learnTopicBarsReplay++;
+            if (i == 3) _financeProgressReplay++;
+            if (i == 4) _dealsArcReplay++;
+          });
           if (i == 0) {
             _loadActiveTopicProgress();
           } else if (i == 1) {
             // Light sync when re-selecting Learn (tab state is preserved).
             _learnTabKey.currentState?.refreshTopicProgress();
+            _learnTabKey.currentState?.replayTopicBars();
           }
         },
         type: BottomNavigationBarType.fixed,
@@ -1113,9 +1404,13 @@ class _HomeScreenState extends State<HomeScreen> {
         // Let us control icon sizes via custom widgets.
         iconSize: 0,
         selectedItemColor: const Color(0xFF007AFF),
-        unselectedItemColor: isDark ? const Color(0xFF939BB6) : const Color.fromRGBO(0, 0, 0, 0.55),
-        selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-        unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+        unselectedItemColor: isDark
+            ? const Color(0xFF939BB6)
+            : const Color.fromRGBO(0, 0, 0, 0.55),
+        selectedLabelStyle:
+            const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+        unselectedLabelStyle:
+            const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
         items: const [
           BottomNavigationBarItem(
             icon: SizedBox(
@@ -1161,6 +1456,182 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // AI assistant screen lives in `ai_assistant/ai_assistant.dart`.
 
+class _LevelUpCelebrationOverlay extends StatelessWidget {
+  const _LevelUpCelebrationOverlay({required this.level});
+
+  final int level;
+
+  static double _clamp01(double value) => value.clamp(0.0, 1.0).toDouble();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 6000),
+          curve: Curves.linear,
+          builder: (context, progress, child) {
+            final fadeIn = _clamp01(progress / 0.18);
+            final fadeOut =
+                progress < 0.78 ? 1.0 : 1 - _clamp01((progress - 0.78) / 0.22);
+            final opacity = fadeIn * fadeOut;
+            final pop = Curves.elasticOut.transform(_clamp01(progress / 0.42));
+            final trophyScale = 0.72 + (0.28 * pop);
+            final cardOffset = 22 * (1 - Curves.easeOutCubic.transform(fadeIn));
+
+            return Opacity(
+              opacity: opacity,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.42),
+                alignment: Alignment.center,
+                child: Transform.translate(
+                  offset: Offset(0, cardOffset),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      ...List.generate(14, (index) {
+                        return _LevelUpSparkle(
+                          index: index,
+                          progress: progress,
+                        );
+                      }),
+                      Container(
+                        width: 280,
+                        padding: const EdgeInsets.fromLTRB(22, 26, 22, 24),
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? const Color(0xFF17192B) : Colors.white,
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF2A2D4A)
+                                : const Color(0xFFE4EEFF),
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x300067DD),
+                              blurRadius: 28,
+                              offset: Offset(0, 16),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Transform.scale(
+                              scale: trophyScale,
+                              child: Container(
+                                width: 96,
+                                height: 96,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFF42A5FF),
+                                      Color(0xFF0067DD),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.emoji_events_rounded,
+                                  color: Colors.white,
+                                  size: 48,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Text(
+                              'Level Up!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.w900,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'You reached level $level',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? const Color(0xFFAAB0C6)
+                                    : const Color(0xFF475569),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _LevelUpSparkle extends StatelessWidget {
+  const _LevelUpSparkle({
+    required this.index,
+    required this.progress,
+  });
+
+  final int index;
+  final double progress;
+
+  static double _clamp01(double value) => value.clamp(0.0, 1.0).toDouble();
+
+  @override
+  Widget build(BuildContext context) {
+    final angle = (math.pi * 2 / 14) * index;
+    final burstProgress = Curves.easeOutCubic.transform(
+      _clamp01((progress - 0.08) / 0.62),
+    );
+    final fadeProgress = _clamp01((progress - 0.48) / 0.42);
+    final distance = 48 + (burstProgress * (index.isEven ? 112 : 88));
+    final opacity = (1 - fadeProgress) * _clamp01(progress / 0.22);
+    final size = index.isEven ? 22.0 : 13.0;
+    final color = index % 3 == 0
+        ? const Color(0xFFFFD166)
+        : index % 3 == 1
+            ? const Color(0xFF42A5FF)
+            : const Color(0xFFFFFFFF);
+
+    return Transform.translate(
+      offset: Offset(
+        math.cos(angle) * distance,
+        math.sin(angle) * distance,
+      ),
+      child: Opacity(
+        opacity: opacity,
+        child: Transform.rotate(
+          angle: progress * math.pi * 2,
+          child: Icon(
+            index.isEven ? Icons.star_rounded : Icons.circle,
+            color: color,
+            size: size,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _AiNavIcon extends StatelessWidget {
   const _AiNavIcon();
 
@@ -1180,15 +1651,17 @@ class _AiNavIcon extends StatelessWidget {
   }
 }
 
-
 class _ToolItem {
   final String label, sub;
   final IconData icon;
   final Color color, bg;
   final Widget screen;
   const _ToolItem({
-    required this.label, required this.sub,
-    required this.icon, required this.color,
-    required this.bg, required this.screen,
+    required this.label,
+    required this.sub,
+    required this.icon,
+    required this.color,
+    required this.bg,
+    required this.screen,
   });
 }

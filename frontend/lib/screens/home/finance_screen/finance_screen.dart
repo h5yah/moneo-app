@@ -12,10 +12,12 @@ import 'goal_icon_style.dart';
 
 class FinanceScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
+  final int? progressReplaySeed;
 
   const FinanceScreen({
     super.key,
     this.onIndexChanged,
+    this.progressReplaySeed,
   });
 
   @override
@@ -61,6 +63,29 @@ class _FinanceScreenState extends State<FinanceScreen> {
         _spent = (data['spent'] as num?)?.toDouble() ?? 0.0;
       });
     } catch (_) {}
+  }
+
+  Widget _buildAnimatedProgressBar({
+    required double value,
+    required Color color,
+    required Color backgroundColor,
+    required double minHeight,
+    required Object replayKey,
+  }) {
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(replayKey),
+      tween: Tween(begin: 0, end: value.clamp(0.0, 1.0)),
+      duration: const Duration(milliseconds: 850),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedValue, _) {
+        return LinearProgressIndicator(
+          value: animatedValue,
+          minHeight: minHeight,
+          backgroundColor: backgroundColor,
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+        );
+      },
+    );
   }
 
   @override
@@ -578,12 +603,17 @@ class _FinanceScreenState extends State<FinanceScreen> {
     final parsedDate = _parseGoalDate(dateText);
     if (parsedDate == null) return 'No target date';
 
-    final now = DateTime.now();
-    final difference = parsedDate.difference(now);
-    if (difference.inDays <= 0) return 'This month';
+    final today = DateTime.now();
+    final currentDate = DateTime(today.year, today.month, today.day);
+    final targetDate =
+        DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+    final daysLeft = targetDate.difference(currentDate).inDays;
+    if (daysLeft <= 0) return 'This month';
 
-    final monthsApprox = difference.inDays / 30.44;
-    if (monthsApprox < 1) return '< 1 month remaining';
+    final monthsApprox = daysLeft / 30.44;
+    if (monthsApprox < 1) {
+      return daysLeft == 1 ? '1 day left' : '$daysLeft days left';
+    }
 
     final roundedMonths = monthsApprox.round();
     if (roundedMonths <= 1) return '1 month remaining';
@@ -732,13 +762,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
                                     targetController.text.trim(),
                                   ) ??
                                   0;
-                              final newDate =
-                                  dateController.text.trim().isEmpty
-                                      ? 'No date'
-                                      : dateController.text.trim();
+                              final newDate = dateController.text.trim().isEmpty
+                                  ? 'No date'
+                                  : dateController.text.trim();
                               if (newTitle.isEmpty || newTarget <= 0) {
-                                ScaffoldMessenger.of(sheetContext)
-                                    .showSnackBar(
+                                ScaffoldMessenger.of(sheetContext).showSnackBar(
                                   const SnackBar(
                                     content: Text(
                                       'Please enter a goal title and valid target amount',
@@ -749,8 +777,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                               }
                               setSheetState(() => isLoading = true);
                               try {
-                                final timeLabel =
-                                    _remainingTimeLabel(newDate);
+                                final timeLabel = _remainingTimeLabel(newDate);
                                 await FirebaseFirestore.instance
                                     .collection('goals')
                                     .doc(doc.id)
@@ -794,9 +821,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
                   const SizedBox(height: 8),
                   Center(
                     child: TextButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => Navigator.pop(sheetContext),
+                      onPressed:
+                          isLoading ? null : () => Navigator.pop(sheetContext),
                       child: const Text(
                         'Cancel',
                         style: TextStyle(color: Color(0xFF8E8E93)),
@@ -861,7 +887,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     final category = data['category'] ?? '';
     final target = (data['target'] as num?)?.toDouble() ?? 0;
     final current = (data['current'] as num?)?.toDouble() ?? 0;
-    final remaining = data['remaining'] ?? '1 month remaining';
+    final remaining = _remainingTimeLabel(data['date']?.toString() ?? '');
     final percent = target > 0 ? ((current / target) * 100).round() : 0;
     final iconKey = data['icon']?.toString();
     final iconColors = goalIconAccent(iconKey, isDark: isDark);
@@ -986,13 +1012,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: LinearProgressIndicator(
+            child: _buildAnimatedProgressBar(
               value: target > 0 ? (current / target) : 0,
               minHeight: 9,
               backgroundColor: const Color(0xFFEBEBEB),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                iconColors.foreground,
-              ),
+              color: iconColors.foreground,
+              replayKey: 'goal-${doc.id}-${widget.progressReplaySeed}',
             ),
           ),
           const SizedBox(height: 12),
@@ -1358,7 +1383,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
               final budgetData =
                   budgetSnapshot.data!.data() as Map<String, dynamic>;
-              final dailyBudget = (budgetData['dailyBudget'] as num?)?.toDouble();
+              final dailyBudget =
+                  (budgetData['dailyBudget'] as num?)?.toDouble();
               if (dailyBudget == null || dailyBudget == 0.0) {
                 return Container(
                   width: double.infinity,
@@ -1425,7 +1451,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const BudgetPlannerScreen(),
+                                builder: (context) =>
+                                    const BudgetPlannerScreen(),
                               ),
                             );
                           },
@@ -1524,9 +1551,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    isOverBudget
-                                        ? 'Over budget'
-                                        : 'In budget',
+                                    isOverBudget ? 'Over budget' : 'In budget',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
@@ -1569,15 +1594,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
                         const SizedBox(height: 18),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(99),
-                          child: LinearProgressIndicator(
+                          child: _buildAnimatedProgressBar(
                             value: progress,
                             minHeight: 10,
                             backgroundColor: const Color(0xFFE9EDF5),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isOverBudget
-                                  ? const Color(0xFFFF3B30)
-                                  : const Color(0xFF2D4EFF),
-                            ),
+                            color: isOverBudget
+                                ? const Color(0xFFFF3B30)
+                                : const Color(0xFF2D4EFF),
+                            replayKey:
+                                'budget-$dailyBudget-$spentToday-${widget.progressReplaySeed}',
                           ),
                         ),
                         if (isOverBudget) ...[
@@ -1674,7 +1699,9 @@ class _FinanceScreenState extends State<FinanceScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      isOverBudget ? 'Over Budget' : 'Left Today',
+                                      isOverBudget
+                                          ? 'Over Budget'
+                                          : 'Left Today',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         color: Color(0xFF8E8E93),

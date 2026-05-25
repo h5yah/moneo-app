@@ -13,10 +13,14 @@ import 'loyalty_tier_screen.dart';
 
 class DealsScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
+  final int arcReplaySeed;
+  final bool? isActive;
 
   const DealsScreen({
     super.key,
     this.onIndexChanged,
+    this.arcReplaySeed = 0,
+    this.isActive,
   });
 
   @override
@@ -28,11 +32,32 @@ class _DealsScreenState extends State<DealsScreen> {
   bool _spinPlayedToday = false;
   bool _guessPlayedToday = false;
   bool _shakePlayedToday = false;
+  int _visibleReplaySeed = 0;
 
   @override
   void initState() {
     super.initState();
     _refreshDailyGameStatus();
+    if (widget.isActive == true) {
+      _replayArcWhenVisible();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant DealsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != true && widget.isActive == true) {
+      _replayArcWhenVisible();
+    }
+  }
+
+  void _replayArcWhenVisible() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 120), () {
+        if (!mounted || widget.isActive != true) return;
+        setState(() => _visibleReplaySeed++);
+      });
+    });
   }
 
   Future<void> _refreshDailyGameStatus() async {
@@ -207,7 +232,10 @@ class _DealsScreenState extends State<DealsScreen> {
           Positioned(
             left: 14,
             top: 10,
-            child: _AnimatedArcProgress(targetProgress: progress),
+            child: _AnimatedArcProgress(
+              targetProgress: progress,
+              replaySeed: widget.arcReplaySeed + _visibleReplaySeed,
+            ),
           ),
           // Star Icon
           Positioned(
@@ -970,9 +998,13 @@ class _DealsScreenState extends State<DealsScreen> {
 }
 
 class _AnimatedArcProgress extends StatefulWidget {
-  const _AnimatedArcProgress({required this.targetProgress});
+  const _AnimatedArcProgress({
+    required this.targetProgress,
+    required this.replaySeed,
+  });
 
   final double targetProgress;
+  final int replaySeed;
 
   @override
   State<_AnimatedArcProgress> createState() => _AnimatedArcProgressState();
@@ -980,7 +1012,7 @@ class _AnimatedArcProgress extends StatefulWidget {
 
 class _AnimatedArcProgressState extends State<_AnimatedArcProgress>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 1400);
+  static const _duration = Duration(milliseconds: 1800);
 
   late final AnimationController _controller;
   late Animation<double> _progressAnimation;
@@ -996,8 +1028,11 @@ class _AnimatedArcProgressState extends State<_AnimatedArcProgress>
   @override
   void didUpdateWidget(covariant _AnimatedArcProgress oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.targetProgress != widget.targetProgress) {
-      final from = _progressAnimation.value.clamp(0.0, 1.0);
+    if (oldWidget.targetProgress != widget.targetProgress ||
+        oldWidget.replaySeed != widget.replaySeed) {
+      final from = oldWidget.replaySeed != widget.replaySeed
+          ? 0.0
+          : _progressAnimation.value.clamp(0.0, 1.0);
       _progressAnimation = _buildTween(from, widget.targetProgress);
       _controller
         ..reset()
@@ -1074,6 +1109,21 @@ class _CircleProgressPainter extends CustomPainter {
       false,
       progressPaint,
     );
+
+    if (progress > 0) {
+      final endAngle = startAngle + sweepAngle;
+      final endPoint = Offset(
+        center.dx + math.cos(endAngle) * radius,
+        center.dy + math.sin(endAngle) * radius,
+      );
+      final glowPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.35)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      final dotPaint = Paint()..color = Colors.white;
+
+      canvas.drawCircle(endPoint, 12, glowPaint);
+      canvas.drawCircle(endPoint, 4.5, dotPaint);
+    }
   }
 
   @override

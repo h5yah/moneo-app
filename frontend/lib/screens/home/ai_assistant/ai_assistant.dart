@@ -23,7 +23,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     _ChatLine(
       isUser: false,
       text:
-          "Hi! I'm Miro. Ask about money topics, Monéo features (Learn, Finance, Deals), or which tool to use.",
+          "Hi! I'm Miro, your AI assistant. Ask me questions about money topics or Monéo features like Learn, Finance, Deals, rewards, goals, and tools.",
     ),
   ];
   bool _sending = false;
@@ -102,7 +102,9 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         _messages.add(
           _ChatLine(
             isUser: false,
-            text: e is StateError ? e.message : 'Could not get a reply. Try again.',
+            text: e is StateError
+                ? e.message
+                : 'Could not get a reply. Try again.',
           ),
         );
       });
@@ -263,9 +265,8 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1B1D33)
-                              : Colors.white,
+                          color:
+                              isDark ? const Color(0xFF1B1D33) : Colors.white,
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
                             color: primary.withValues(alpha: 0.12),
@@ -286,7 +287,8 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                           onSubmitted: (_) => _send(),
                           decoration: InputDecoration(
                             hintText: 'Ask anything…',
-                            hintStyle: TextStyle(color: muted.withValues(alpha: 0.7)),
+                            hintStyle:
+                                TextStyle(color: muted.withValues(alpha: 0.7)),
                             border: InputBorder.none,
                           ),
                         ),

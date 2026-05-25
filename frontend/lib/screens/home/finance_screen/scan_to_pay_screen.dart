@@ -51,55 +51,56 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
       appBar: AppBar(
         backgroundColor: _hasScanned ? const Color(0xFFF2F2F7) : Colors.black,
         elevation: 0,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 12, top: 2),
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).maybePop(),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: _hasScanned ? const Color(0xFFF2F2F7) : Colors.black,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 6,
-                      offset: const Offset(2, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(6),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                  color: _hasScanned ? const Color(0xFF007AFF) : Colors.yellowAccent,
-                ),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12, top: 2),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).maybePop(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: _hasScanned ? const Color(0xFFF2F2F7) : Colors.black,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 6,
+                    offset: const Offset(2, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 20,
+                color:
+                    _hasScanned ? const Color(0xFF007AFF) : Colors.yellowAccent,
               ),
             ),
           ),
-          title: Text(
-            'Scan to Pay',
-            style: TextStyle(
-              color: _hasScanned ? const Color(0xFF1C1C1E) : Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
+        ),
+        title: Text(
+          'Scan to Pay',
+          style: TextStyle(
+            color: _hasScanned ? const Color(0xFF1C1C1E) : Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
           ),
-          actions: [
-            if (!_hasScanned)
-              IconButton(
-                onPressed: () async {
-                  await _scannerController.toggleTorch();
-                  if (!mounted) return;
-                  setState(() {
-                    _flashOn = !_flashOn;
-                  });
-                },
-                icon: Icon(
-                  _flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-                  color: Colors.white,
-                ),
+        ),
+        actions: [
+          if (!_hasScanned)
+            IconButton(
+              onPressed: () async {
+                await _scannerController.toggleTorch();
+                if (!mounted) return;
+                setState(() {
+                  _flashOn = !_flashOn;
+                });
+              },
+              icon: Icon(
+                _flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                color: Colors.white,
               ),
-          ],
+            ),
+        ],
       ),
       body: _hasScanned ? _buildPaymentForm(canPay) : _buildScannerView(),
     );
@@ -266,8 +267,7 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
                   : const Text(
@@ -427,6 +427,10 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
     final firestore = FirebaseFirestore.instance;
     final balanceRef = firestore.collection('balances').doc(_userId);
     final transactionRef = firestore.collection('transactions').doc();
+    final expenseRef = firestore.collection('expenses').doc();
+    final now = DateTime.now();
+    final dateString =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
     try {
       await firestore.runTransaction((transaction) async {
@@ -440,8 +444,7 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
           throw StateError('insufficient_balance');
         }
 
-        final currentSpent =
-            (balanceData['spent'] as num?)?.toDouble() ?? 0.0;
+        final currentSpent = (balanceData['spent'] as num?)?.toDouble() ?? 0.0;
         final newAvailable = currentAvailable - amount;
 
         transaction.set(
@@ -468,7 +471,23 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
             'category': 'qr_payment',
             'status': 'success',
             'paymentMethod': 'wallet',
-            'date': DateTime.now().toIso8601String(),
+            'date': now.toIso8601String(),
+            'createdAt': FieldValue.serverTimestamp(),
+          },
+        );
+
+        transaction.set(
+          expenseRef,
+          {
+            'userId': _userId,
+            'merchantId': _merchantId,
+            'merchantName': _merchantName,
+            'amount': amount,
+            'expenseName': 'QR Payment - $_merchantName',
+            'type': 'scan_to_pay',
+            'category': 'qr_payment',
+            'paymentMethod': 'wallet',
+            'date': dateString,
             'createdAt': FieldValue.serverTimestamp(),
           },
         );

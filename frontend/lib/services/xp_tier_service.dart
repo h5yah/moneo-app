@@ -20,22 +20,22 @@ class LoyaltyTier {
     id: 'bronze',
     label: 'Bronze',
     minXp: 0,
-    maxXp: 4999,
+    maxXp: 2499,
     accentColor: 0xFFCD7F32,
   );
 
   static const silver = LoyaltyTier(
     id: 'silver',
     label: 'Silver',
-    minXp: 5000,
-    maxXp: 19999,
+    minXp: 2500,
+    maxXp: 4999,
     accentColor: 0xFF94A3B8,
   );
 
   static const gold = LoyaltyTier(
     id: 'gold',
     label: 'Gold',
-    minXp: 20000,
+    minXp: 5000,
     maxXp: null,
     accentColor: 0xFFF59E0B,
   );

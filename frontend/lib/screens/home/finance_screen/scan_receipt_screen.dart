@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
@@ -25,6 +27,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
   IconData _categoryIcon = Icons.restaurant;
   double _amount = 0.0;
   String _date = 'Today';
+  DateTime _selectedDate = DateTime.now();
   String _merchantName = 'Unknown Merchant';
 
   @override
@@ -247,17 +250,73 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
   }
 
   Future<void> _saveScannedTransaction() async {
-    debugPrint('Saving transaction...');
-    debugPrint('Merchant: $_merchantName');
-    debugPrint('Amount: $_amount');
-    debugPrint('Category: $_category');
-    debugPrint('Date: $_date');
-    debugPrint('Paid with: $_paidWith');
+    if (_amount <= 0) {
+      throw StateError('invalid_amount');
+    }
+
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
+    final firestore = FirebaseFirestore.instance;
+    final balanceRef = firestore.collection('balances').doc(userId);
+    final transactionRef = firestore.collection('transactions').doc();
+    final expenseRef = firestore.collection('expenses').doc();
+    final now = DateTime.now();
+    final expenseDate = _formatExpenseDate(_selectedDate);
+
+    await firestore.runTransaction((transaction) async {
+      if (_paidWith == 'wallet') {
+        final balanceSnap = await transaction.get(balanceRef);
+        final balanceData = balanceSnap.data() ?? <String, dynamic>{};
+        final currentAvailable =
+            (balanceData['available'] as num?)?.toDouble() ?? 0.0;
+
+        if (currentAvailable < _amount) {
+          throw StateError('insufficient_balance');
+        }
+
+        final currentSpent = (balanceData['spent'] as num?)?.toDouble() ?? 0.0;
+        transaction.set(
+          balanceRef,
+          {
+            'available': currentAvailable - _amount,
+            'spent': currentSpent + _amount,
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      }
+
+      transaction.set(transactionRef, {
+        'expenseName': _merchantName,
+        'amount': _amount,
+        'category': _category,
+        'paymentMethod': _paidWith,
+        'userId': userId,
+        'type': 'receipt_scan',
+        'date': now.toIso8601String(),
+        'expenseDate': expenseDate,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      transaction.set(expenseRef, {
+        'expenseName': _merchantName,
+        'amount': _amount,
+        'category': _category,
+        'paymentMethod': _paidWith,
+        'userId': userId,
+        'type': 'receipt_scan',
+        'date': expenseDate,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    });
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Transaction saved')),
     );
+  }
+
+  String _formatExpenseDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -275,7 +334,9 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          if (_isCameraReady && _cameraController != null && previewSize != null)
+          if (_isCameraReady &&
+              _cameraController != null &&
+              previewSize != null)
             Positioned.fill(
               child: FittedBox(
                 fit: BoxFit.cover,
@@ -286,7 +347,6 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                 ),
               ),
             ),
-
           Column(
             children: [
               SafeArea(
@@ -302,11 +362,11 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                           onTap: () => Navigator.pop(context),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.18),
+                              color: Colors.white.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Colors.black.withValues(alpha: 0.08),
                                   blurRadius: 6,
                                   offset: const Offset(2, 2),
                                 ),
@@ -352,7 +412,8 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                                 children: [
                                   Positioned(
                                     top: _scanLineController.value *
-                                        (MediaQuery.of(context).size.width - 96) /
+                                        (MediaQuery.of(context).size.width -
+                                            96) /
                                         0.75 *
                                         0.6,
                                     left: 10,
@@ -363,15 +424,18 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                                         gradient: LinearGradient(
                                           colors: [
                                             Colors.transparent,
-                                            const Color(0xFF007AFF).withOpacity(0.8),
+                                            const Color(0xFF007AFF)
+                                                .withValues(alpha: 0.8),
                                             const Color(0xFF007AFF),
-                                            const Color(0xFF007AFF).withOpacity(0.8),
+                                            const Color(0xFF007AFF)
+                                                .withValues(alpha: 0.8),
                                             Colors.transparent,
                                           ],
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: const Color(0xFF007AFF).withOpacity(0.5),
+                                            color: const Color(0xFF007AFF)
+                                                .withValues(alpha: 0.5),
                                             blurRadius: 12,
                                             spreadRadius: 2,
                                           ),
@@ -386,7 +450,6 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                         ),
                       ),
                     ),
-
                     Positioned(
                       right: 24,
                       bottom: 110,
@@ -408,7 +471,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                           decoration: BoxDecoration(
                             color: _flashOn
                                 ? const Color(0xFF007AFF)
-                                : Colors.white.withOpacity(0.15),
+                                : Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -424,7 +487,6 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
               ),
             ],
           ),
-
           if (!_showReview)
             Positioned(
               bottom: 40,
@@ -458,7 +520,6 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                 ),
               ),
             ),
-
           if (_showReview)
             Positioned(
               left: 0,
@@ -502,7 +563,6 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                 ),
               ),
               const SizedBox(height: 16),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -534,9 +594,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                   ],
                 ),
               ),
-
               const SizedBox(height: 12),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -594,9 +652,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                   ],
                 ),
               ),
-
               const SizedBox(height: 12),
-
               Row(
                 children: [
                   Expanded(
@@ -716,9 +772,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                   ),
                 ],
               ),
-
               const SizedBox(height: 12),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -767,9 +821,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -782,9 +834,26 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                     elevation: 0,
                   ),
                   onPressed: () async {
-                    await _saveScannedTransaction();
-                    if (!mounted) return;
-                    Navigator.pop(context);
+                    try {
+                      await _saveScannedTransaction();
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                    } on StateError catch (error) {
+                      if (!mounted) return;
+                      final message = error.message == 'insufficient_balance'
+                          ? 'Insufficient wallet balance.'
+                          : 'Please enter a valid amount.';
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message)),
+                      );
+                    } catch (_) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Transaction could not be saved.'),
+                        ),
+                      );
+                    }
                   },
                   child: const Text(
                     'Confirm',
@@ -796,9 +865,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -842,7 +909,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),
@@ -955,7 +1022,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
   Future<void> _showDatePickerCustom() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now(),
     );
@@ -967,9 +1034,9 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
           picked.year == now.year;
 
       setState(() {
-        _date = isToday
-            ? 'Today'
-            : '${picked.day}/${picked.month}/${picked.year}';
+        _selectedDate = picked;
+        _date =
+            isToday ? 'Today' : '${picked.day}/${picked.month}/${picked.year}';
       });
     }
   }
@@ -979,7 +1046,7 @@ class _ViewfinderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 

@@ -1,1 +1,44 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"fyp-fintech-app","appId":"1:819485859824:android:daa4ae40d7e52c65638735","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"fyp-fintech-app","appId":"1:819485859824:ios:7411fabc7c2d2739638735","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"fyp-fintech-app","configurations":{"android":"1:819485859824:android:daa4ae40d7e52c65638735","ios":"1:819485859824:ios:7411fabc7c2d2739638735"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fyp-fintech-app",
+          "appId": "1:819485859824:android:daa4ae40d7e52c65638735",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "fyp-fintech-app",
+          "appId": "1:819485859824:ios:7411fabc7c2d2739638735",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fyp-fintech-app",
+          "configurations": {
+            "android": "1:819485859824:android:daa4ae40d7e52c65638735",
+            "ios": "1:819485859824:ios:7411fabc7c2d2739638735"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

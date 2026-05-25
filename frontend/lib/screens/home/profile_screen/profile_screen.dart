@@ -23,152 +23,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthService _authService = AuthService();
 
-  bool _isCelebratingLevelUp = false;
-
-  Future<void> _maybeCelebrateLevelUp({
-    required User user,
-    required int currentLevel,
-    required int lastCelebratedLevel,
-  }) async {
-    if (_isCelebratingLevelUp) return;
-    if (currentLevel <= lastCelebratedLevel) return;
-
-    _isCelebratingLevelUp = true;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-
-      await _showLevelUpDialog(currentLevel);
-
-      try {
-        await _firestore.collection('users').doc(user.uid).set({
-          'lastCelebratedLevel': currentLevel,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      } catch (_) {
-        // Celebration is UI-only; ignore persistence failures.
-      } finally {
-        if (mounted) {
-          setState(() => _isCelebratingLevelUp = false);
-        } else {
-          _isCelebratingLevelUp = false;
-        }
-      }
-    });
-  }
-
-  Future<void> _showLevelUpDialog(int level) async {
-    return showGeneralDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Level up',
-      barrierColor: Colors.black.withValues(alpha: 0.55),
-      transitionDuration: const Duration(milliseconds: 260),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Center(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.86,
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF17192B)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF2A2D4A)
-                      : const Color(0xFFE7EAF2),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x26000000),
-                    blurRadius: 18,
-                    offset: Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 86,
-                    height: 86,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF1F8CFF), Color(0xFF0067DD)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 42),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'Level Up!',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'You reached level $level',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFFAAB0C6)
-                          : Colors.black.withValues(alpha: 0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1F8CFF), Color(0xFF0067DD)],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          minimumSize: const Size.fromHeight(48),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        child: const Text(
-                          'Awesome',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
-        return FadeTransition(
-          opacity: animation,
-          child: ScaleTransition(scale: curved, child: child),
-        );
-      },
-    );
-  }
-
   void _showComingSoon(String label) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$label is coming soon')),
@@ -203,8 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute<void>(
-          builder: (context) =>
-              const LoginScreen(showLoggedOutMessage: true),
+          builder: (context) => const LoginScreen(showLoggedOutMessage: true),
         ),
         (route) => false,
       );
@@ -221,7 +74,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = _auth.currentUser;
     final userStream = user == null
         ? Stream<DocumentSnapshot<Map<String, dynamic>>?>.value(null)
-        : _firestore.collection('users').doc(user.uid).snapshots().map((doc) => doc);
+        : _firestore
+            .collection('users')
+            .doc(user.uid)
+            .snapshots()
+            .map((doc) => doc);
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
       stream: userStream,
@@ -275,13 +132,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final streakDays = (data['streakDays'] as num?)?.toInt() ?? 0;
         final levelMeta = XpService.levelMetaFromTotalXp(currentXp);
         final currentLevel = levelMeta.level;
-        final lastCelebratedLevel = (data['lastCelebratedLevel'] as num?)?.toInt() ?? 0;
-
-        _maybeCelebrateLevelUp(
-          user: user,
-          currentLevel: currentLevel,
-          lastCelebratedLevel: lastCelebratedLevel,
-        );
 
         final createdAtRaw = data['createdAt'];
         final createdAt = createdAtRaw is Timestamp ? createdAtRaw : null;
@@ -357,9 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
     final userData = userDoc.data() ?? <String, dynamic>{};
-    final dobRaw = userData['dateOfBirth'];
-    DateTime? dateOfBirth = dobRaw is Timestamp ? dobRaw.toDate() : null;
-    String gender = (userData['gender'] as String?) ?? 'Female';
+    String gender = (userData['gender'] as String?) ?? 'Prefer not to say';
 
     final shouldSave = await showModalBottomSheet<bool>(
       context: context,
@@ -370,15 +218,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           builder: (context, setSheetState) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
             final primaryText = isDark ? Colors.white : const Color(0xFF0F172A);
-            final secondaryText =
-                isDark ? Colors.white.withValues(alpha: 0.82) : Colors.black.withValues(alpha: 0.62);
+            final secondaryText = isDark
+                ? Colors.white.withValues(alpha: 0.82)
+                : Colors.black.withValues(alpha: 0.62);
             final iconColor =
                 isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.55);
-            final hintText = isDark ? Colors.white54 : Colors.black.withValues(alpha: 0.38);
+            final hintText =
+                isDark ? Colors.white54 : Colors.black.withValues(alpha: 0.38);
             final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-            final dobText = dateOfBirth == null
-                ? 'Select date'
-                : '${dateOfBirth!.day}/${dateOfBirth!.month}/${dateOfBirth!.year}';
 
             return Padding(
               padding: EdgeInsets.only(bottom: bottomInset),
@@ -386,7 +233,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(18, 12, 18, 20),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF0F1020) : Colors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(26)),
                 ),
                 child: SafeArea(
                   top: false,
@@ -422,7 +270,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => Navigator.pop(sheetContext, false),
+                              onPressed: () =>
+                                  Navigator.pop(sheetContext, false),
                               icon: Icon(Icons.close, color: iconColor),
                             ),
                           ],
@@ -444,41 +293,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               border: InputBorder.none,
                               hintText: 'Enter username',
                               hintStyle: TextStyle(color: hintText),
-                              prefixIcon: Icon(Icons.person_outline, color: iconColor),
+                              prefixIcon:
+                                  Icon(Icons.person_outline, color: iconColor),
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          'Date of Birth',
-                          style: TextStyle(
-                            color: secondaryText,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildBottomSheetField(
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: dateOfBirth ?? DateTime(2000, 1, 1),
-                              firstDate: DateTime(1950),
-                              lastDate: DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setSheetState(() => dateOfBirth = picked);
-                            }
-                          },
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  dobText,
-                                  style: TextStyle(color: primaryText),
-                                ),
-                              ),
-                              Icon(Icons.calendar_today_outlined, color: iconColor, size: 20),
-                            ],
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -490,21 +307,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Row(
+                        Column(
                           children: [
-                            Expanded(
-                              child: _buildGenderChip(
-                                label: 'Male',
-                                selected: gender == 'Male',
-                                onTap: () => setSheetState(() => gender = 'Male'),
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildGenderChip(
+                                    label: 'Male',
+                                    selected: gender == 'Male',
+                                    onTap: () =>
+                                        setSheetState(() => gender = 'Male'),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _buildGenderChip(
+                                    label: 'Female',
+                                    selected: gender == 'Female',
+                                    onTap: () =>
+                                        setSheetState(() => gender = 'Female'),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
                               child: _buildGenderChip(
-                                label: 'Female',
-                                selected: gender == 'Female',
-                                onTap: () => setSheetState(() => gender = 'Female'),
+                                label: 'Prefer not to say',
+                                selected: gender == 'Prefer not to say',
+                                onTap: () => setSheetState(
+                                  () => gender = 'Prefer not to say',
+                                ),
                               ),
                             ),
                           ],
@@ -523,7 +357,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               minimumSize: const Size.fromHeight(54),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30)),
                             ),
                             onPressed: () => Navigator.pop(sheetContext, true),
                             child: const Text(
@@ -558,7 +393,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _firestore.collection('users').doc(user.uid).set({
         'firstName': firstName,
         'lastName': lastName,
-        'dateOfBirth': dateOfBirth == null ? null : Timestamp.fromDate(dateOfBirth!),
         'gender': gender,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -598,7 +432,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF0F1020)
                     : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(26)),
               ),
               child: SafeArea(
                 top: false,
@@ -629,15 +464,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('Push notifications', style: TextStyle(color: primaryText)),
+                      title: Text('Push notifications',
+                          style: TextStyle(color: primaryText)),
                       value: pushValue,
-                      onChanged: (value) => setDialogState(() => pushValue = value),
+                      onChanged: (value) =>
+                          setDialogState(() => pushValue = value),
                     ),
                     SwitchListTile.adaptive(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('Email updates', style: TextStyle(color: primaryText)),
+                      title: Text('Email updates',
+                          style: TextStyle(color: primaryText)),
                       value: emailValue,
-                      onChanged: (value) => setDialogState(() => emailValue = value),
+                      onChanged: (value) =>
+                          setDialogState(() => emailValue = value),
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -655,7 +494,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           minimumSize: const Size.fromHeight(50),
                         ),
                         onPressed: () => Navigator.pop(dialogContext, true),
-                        child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                        child: const Text('Save',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ],
@@ -689,10 +531,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _openAccountSecurity({required bool biometricEnabled}) async {
+  Future<void> _openAccountSecurity() async {
     final user = _auth.currentUser;
     if (user == null) return;
-    bool biometrics = biometricEnabled;
+    await user.reload();
+    final refreshedUser = _auth.currentUser ?? user;
+    final providerIds =
+        refreshedUser.providerData.map((info) => info.providerId).toSet();
+    final hasPasswordProvider = providerIds.contains('password');
+    final providerLabel = providerIds.contains('google.com')
+        ? 'Google'
+        : hasPasswordProvider
+            ? 'Email and password'
+            : 'External provider';
 
     final result = await showModalBottomSheet<String>(
       context: context,
@@ -702,11 +553,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           builder: (context, setSheetState) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
             final primaryText = isDark ? Colors.white : const Color(0xFF0F172A);
+            final secondaryText =
+                isDark ? const Color(0xFFAAB0C6) : const Color(0xFF64748B);
+
             return Container(
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF0F1020) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(26)),
               ),
               child: SafeArea(
                 top: false,
@@ -715,44 +570,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Text(
                       'Account Security',
-                      style: TextStyle(color: primaryText, fontSize: 24, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text('Enable biometrics', style: TextStyle(color: primaryText)),
-                      value: biometrics,
-                      onChanged: (value) => setSheetState(() => biometrics = value),
+                      style: TextStyle(
+                          color: primaryText,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 6),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(sheetContext, 'resetPassword'),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF007AFF)),
-                          foregroundColor: primaryText,
-                        ),
-                        child: const Text('Send password reset email'),
-                      ),
+                    Text(
+                      'Signed in with $providerLabel',
+                      style: TextStyle(color: secondaryText, fontSize: 13),
                     ),
+                    const SizedBox(height: 16),
+                    if (hasPasswordProvider)
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              Navigator.pop(sheetContext, 'resetPassword'),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF007AFF)),
+                            foregroundColor: primaryText,
+                            minimumSize: const Size.fromHeight(48),
+                          ),
+                          child: const Text('Send password reset email'),
+                        ),
+                      ),
+                    if (!hasPasswordProvider)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF17192B)
+                              : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color:
+                                const Color(0xFF007AFF).withValues(alpha: 0.22),
+                          ),
+                        ),
+                        child: Text(
+                          'Password reset emails are only available for email/password accounts. Manage your password through $providerLabel.',
+                          style: TextStyle(
+                            color: secondaryText,
+                            fontSize: 13,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [Color(0xFF1F8CFF), Color(0xFF0067DD)]),
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          minimumSize: const Size.fromHeight(50),
+                    if (!hasPasswordProvider)
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                              colors: [Color(0xFF1F8CFF), Color(0xFF0067DD)]),
+                          borderRadius: BorderRadius.circular(28),
                         ),
-                        onPressed: () => Navigator.pop(sheetContext, 'save'),
-                        child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            minimumSize: const Size.fromHeight(50),
+                          ),
+                          onPressed: () => Navigator.pop(sheetContext),
+                          child: const Text('Close',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700)),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -765,7 +652,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (result == null) return;
 
     if (result == 'resetPassword') {
-      final email = user.email;
+      final email = refreshedUser.email;
       if (email == null || email.trim().isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -777,7 +664,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await _auth.sendPasswordResetEmail(email: email);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset email sent')),
+          SnackBar(content: Text('Password reset email sent to $email')),
+        );
+      } on FirebaseAuthException catch (e) {
+        if (!mounted) return;
+        final message = switch (e.code) {
+          'user-not-found' => 'No email/password account exists for $email',
+          'invalid-email' => 'This account email is invalid.',
+          'too-many-requests' => 'Too many attempts. Try again later.',
+          _ => e.message ?? 'Unable to send password reset email',
+        };
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
         );
       } catch (_) {
         if (!mounted) return;
@@ -786,22 +684,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
       return;
-    }
-
-    try {
-      await _firestore.collection('users').doc(user.uid).set({
-        'security': {'biometricEnabled': biometrics},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Security settings saved')),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to save security settings')),
-      );
     }
   }
 
@@ -812,10 +694,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) return;
 
     String languageValue = currentLanguage;
-    String themeLabel =
-        AppThemeController.labelForThemeMode(AppThemeController.modeNotifier.value);
-    String fontLabel =
-        AppThemeController.labelForTextScale(AppThemeController.linearTextScale);
+    String themeLabel = AppThemeController.labelForThemeMode(
+        AppThemeController.modeNotifier.value);
+    String fontLabel = AppThemeController.labelForTextScale(
+        AppThemeController.linearTextScale);
 
     final shouldSave = await showDialog<bool>(
       context: context,
@@ -831,7 +713,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     value: languageValue,
                     decoration: const InputDecoration(labelText: 'Language'),
                     items: const [
-                      DropdownMenuItem(value: 'English', child: Text('English')),
+                      DropdownMenuItem(
+                          value: 'English', child: Text('English')),
                       DropdownMenuItem(value: 'Urdu', child: Text('Urdu')),
                     ],
                     onChanged: (value) {
@@ -846,7 +729,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     items: const [
                       DropdownMenuItem(value: 'light', child: Text('Light')),
                       DropdownMenuItem(value: 'dark', child: Text('Dark')),
-                      DropdownMenuItem(value: 'system', child: Text('Use system setting')),
+                      DropdownMenuItem(
+                          value: 'system', child: Text('Use system setting')),
                     ],
                     onChanged: (value) {
                       if (value == null) return;
@@ -859,7 +743,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: const InputDecoration(labelText: 'Font size'),
                     items: const [
                       DropdownMenuItem(value: 'small', child: Text('Small')),
-                      DropdownMenuItem(value: 'default', child: Text('Default')),
+                      DropdownMenuItem(
+                          value: 'default', child: Text('Default')),
                       DropdownMenuItem(value: 'large', child: Text('Large')),
                     ],
                     onChanged: (value) {
@@ -917,7 +802,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final questions = <Map<String, String>>[
       {
         'q': 'Who is Monéo for?',
-        'a': 'Monéo is for young adults who want to build better financial habits.',
+        'a':
+            'Monéo is for young adults who want to build better financial habits.',
       },
       {
         'q': 'How does earning XP work?',
@@ -926,6 +812,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
       {
         'q': 'What are streaks?',
         'a': 'Streaks track how many days in a row you stay active in the app.',
+      },
+      {
+        'q': 'How do lessons and quizzes work?',
+        'a':
+            'Lessons teach one financial topic at a time. Some topics include a quick pre-quiz, then learning content, then a final quiz. Completing lessons and quizzes can earn XP.',
+      },
+      {
+        'q': 'Do I earn XP if I repeat a lesson?',
+        'a':
+            'No. XP is awarded only the first time you complete a lesson, quiz, or reward action. You can repeat content to review it, but duplicate completions do not give extra XP.',
+      },
+      {
+        'q': 'What are Deals and rewards?',
+        'a':
+            'Deals include coupons, rewards, and mini-games like Spin & Win, Guess & Win, and Shake & Win. Some rewards can give XP or unlock deal-related benefits.',
+      },
+      {
+        'q': 'What is Ask Miro?',
+        'a':
+            'Ask Miro is your in-app learning assistant. You can use it to ask simple money questions, understand lessons, and get guidance while using Monéo. It is for education only and does not replace professional financial advice.',
+      },
+      {
+        'q': 'How do I reset my password?',
+        'a':
+            'Go to Profile > Account Security and tap Send password reset email. This works for email/password accounts. If you signed in with Google, manage your password through Google.',
+      },
+      {
+        'q': 'Is my financial data real banking data?',
+        'a':
+            'No. Monéo is a financial literacy app. Wallets, cards, bill payments, QR scans, and finance tools are for learning and simulation unless clearly connected to a real provider.',
       },
     ];
 
@@ -936,12 +852,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (sheetContext) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         final primaryText = isDark ? Colors.white : const Color(0xFF0F172A);
-        final secondaryText =
-            isDark ? Colors.white.withValues(alpha: 0.82) : Colors.black.withValues(alpha: 0.62);
+        final secondaryText = isDark
+            ? Colors.white.withValues(alpha: 0.82)
+            : Colors.black.withValues(alpha: 0.62);
         final iconColor =
             isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.55);
         return Container(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.78),
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.78),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF0F1020) : Colors.white,
@@ -968,7 +886,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Text(
                         'FAQ',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: primaryText, fontSize: 24, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                            color: primaryText,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700),
                       ),
                     ),
                     IconButton(
@@ -991,17 +912,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1B1D33) : const Color(0xFFF3F6FB),
+                            color: isDark
+                                ? const Color(0xFF1B1D33)
+                                : const Color(0xFFF3F6FB),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: ExpansionTile(
                             title: Text(
                               '${index + 1}. ${item['q']!}',
-                              style: TextStyle(color: primaryText, fontSize: 18),
+                              style:
+                                  TextStyle(color: primaryText, fontSize: 18),
                             ),
                             iconColor: iconColor,
                             collapsedIconColor: iconColor,
-                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            childrenPadding:
+                                const EdgeInsets.fromLTRB(16, 0, 16, 12),
                             children: [
                               Align(
                                 alignment: Alignment.centerLeft,
@@ -1036,12 +961,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (sheetContext) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         final primaryText = isDark ? Colors.white : const Color(0xFF0F172A);
-        final secondaryText =
-            isDark ? Colors.white.withValues(alpha: 0.88) : Colors.black.withValues(alpha: 0.62);
+        final secondaryText = isDark
+            ? Colors.white.withValues(alpha: 0.88)
+            : Colors.black.withValues(alpha: 0.62);
         final iconColor =
             isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.55);
         return Container(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.72),
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.72),
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 22),
           decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark
@@ -1074,7 +1001,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Text(
                           'About App',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: primaryText, fontSize: 24, fontWeight: FontWeight.w700),
+                          style: TextStyle(
+                              color: primaryText,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700),
                         ),
                       ),
                       IconButton(
@@ -1084,34 +1014,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(colors: [Color(0xFF1F8CFF), Color(0xFF0067DD)]),
-                    ),
-                    child: const Icon(Icons.pets_rounded, color: Colors.white, size: 36),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'About App',
-                    style: TextStyle(color: primaryText, fontSize: 30, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 10),
                   Text(
                     'Monéo is a gamified financial literacy app that helps young adults learn money skills through interactive lessons, quizzes, and real-world tools.',
-                    style: TextStyle(color: secondaryText, fontSize: 16, height: 1.45),
+                    style: TextStyle(
+                        color: secondaryText, fontSize: 16, height: 1.45),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'From budgeting and saving to banking and investing basics, Monéo makes financial education practical and engaging.',
-                    style: TextStyle(color: secondaryText, fontSize: 16, height: 1.45),
+                    style: TextStyle(
+                        color: secondaryText, fontSize: 16, height: 1.45),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'Stay motivated with XP, streaks, and progress tracking while building habits that support your financial goals.',
-                    style: TextStyle(color: secondaryText, fontSize: 16, height: 1.45),
+                    style: TextStyle(
+                        color: secondaryText, fontSize: 16, height: 1.45),
                   ),
                 ],
               ),
@@ -1170,7 +1088,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(
               color: isDark
                   ? (selected ? Colors.white : Colors.white70)
-                  : (selected ? const Color(0xFF0F172A) : Colors.black.withValues(alpha: 0.62)),
+                  : (selected
+                      ? const Color(0xFF0F172A)
+                      : Colors.black.withValues(alpha: 0.62)),
               fontWeight: FontWeight.w500,
               fontSize: 16,
             ),
@@ -1198,7 +1118,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFFDFE6F1),
+                    color: isDark
+                        ? const Color(0xFF2A2D4A)
+                        : const Color(0xFFDFE6F1),
                     width: 2,
                   ),
                   boxShadow: const [
@@ -1215,8 +1137,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: isDark ? const Color(0xFF242742) : const Color(0xFFF3F6FB),
-                        child: const Icon(Icons.person, color: Color(0xFF6E7EA7), size: 52),
+                        color: isDark
+                            ? const Color(0xFF242742)
+                            : const Color(0xFFF3F6FB),
+                        child: const Icon(Icons.person,
+                            color: Color(0xFF6E7EA7), size: 52),
                       );
                     },
                   ),
@@ -1262,7 +1187,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.55),
+              color: isDark
+                  ? Colors.white70
+                  : Colors.black.withValues(alpha: 0.55),
             ),
           ),
         ],
@@ -1285,21 +1212,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.local_fire_department,
             label: 'Streak',
             value: '$streakDays day${streakDays == 1 ? '' : 's'}',
-            backgroundColor: isDark ? const Color(0xFF1B1D33) : const Color(0xFFFFF1E8),
+            backgroundColor:
+                isDark ? const Color(0xFF1B1D33) : const Color(0xFFFFF1E8),
             iconColor: const Color(0xFFF97316),
           ),
           _buildStatCard(
             icon: Icons.star_rounded,
             label: 'Level',
             value: '$level',
-            backgroundColor: isDark ? const Color(0xFF1B1D33) : const Color(0xFFF2E8FF),
+            backgroundColor:
+                isDark ? const Color(0xFF1B1D33) : const Color(0xFFF2E8FF),
             iconColor: const Color(0xFF007AFF),
           ),
           _buildStatCard(
             icon: Icons.bolt_rounded,
             label: 'XP',
             value: _formatNumber(totalXp),
-            backgroundColor: isDark ? const Color(0xFF1B1D33) : const Color(0xFFE8F3FF),
+            backgroundColor:
+                isDark ? const Color(0xFF1B1D33) : const Color(0xFFE8F3FF),
             iconColor: const Color(0xFF2563EB),
           ),
         ],
@@ -1309,9 +1239,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _formatNumber(int value) {
     return value.toString().replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (match) => ',',
-    );
+          RegExp(r'\B(?=(\d{3})+(?!\d))'),
+          (match) => ',',
+        );
   }
 
   String _formatCurrency(double amount) {
@@ -1357,7 +1287,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : Colors.white),
+          border: Border.all(
+              color: isDark ? const Color(0xFF2A2D4A) : Colors.white),
           boxShadow: const [
             BoxShadow(
               color: Color(0x0F000000),
@@ -1393,7 +1324,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark ? const Color(0xFFAAB0C6) : Colors.black.withValues(alpha: 0.58),
+                color: isDark
+                    ? const Color(0xFFAAB0C6)
+                    : Colors.black.withValues(alpha: 0.58),
               ),
               textAlign: TextAlign.center,
             ),
@@ -1450,7 +1383,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFFAAB0C6) : Colors.black.withValues(alpha: 0.55),
+                  color: isDark
+                      ? const Color(0xFFAAB0C6)
+                      : Colors.black.withValues(alpha: 0.55),
                 ),
               ),
             ],
@@ -1464,7 +1399,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               backgroundColor: isDark
                   ? Colors.white.withValues(alpha: 0.12)
                   : const Color(0xFF007AFF).withValues(alpha: 0.12),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
             ),
           ),
         ],
@@ -1524,7 +1460,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.white.withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.savings_outlined, color: Colors.white, size: 20),
+                child: const Icon(Icons.savings_outlined,
+                    color: Colors.white, size: 20),
               ),
             ],
           ),
@@ -1596,7 +1533,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: const Color(0xFF007AFF).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.trending_up, size: 16, color: Color(0xFF007AFF)),
+            child: const Icon(Icons.trending_up,
+                size: 16, color: Color(0xFF007AFF)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1619,7 +1557,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.black.withValues(alpha: 0.58),
                     ),
                     children: [
-                      const TextSpan(text: 'Your savings consistency improved by '),
+                      const TextSpan(
+                          text: 'Your savings consistency improved by '),
                       const TextSpan(
                         text: '14%',
                         style: TextStyle(
@@ -1646,7 +1585,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final lastName = (data['lastName'] as String?)?.trim() ?? '';
     final notifications = data['notifications'] as Map<String, dynamic>?;
     final preferences = data['preferences'] as Map<String, dynamic>?;
-    final security = data['security'] as Map<String, dynamic>?;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -1684,9 +1622,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSettingItem(
             icon: Icons.shield_outlined,
             label: 'Account Security',
-            onTap: () => _openAccountSecurity(
-              biometricEnabled: security?['biometricEnabled'] as bool? ?? false,
-            ),
+            onTap: _openAccountSecurity,
           ),
           const SizedBox(height: 8),
           _buildSettingItem(
@@ -1737,7 +1673,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE7EAF2)),
+            border: Border.all(
+                color:
+                    isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE7EAF2)),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0D000000),
@@ -1753,7 +1691,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 size: 22,
                 color: isRed
                     ? const Color(0xFFE64980)
-                    : (isDark ? const Color(0xFFAAB0C6) : const Color(0xFF4A5873)),
+                    : (isDark
+                        ? const Color(0xFFAAB0C6)
+                        : const Color(0xFF4A5873)),
               ),
               const SizedBox(width: 14),
               Text(
@@ -1770,7 +1710,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 12,
-                color: isDark ? const Color(0xFF939BB6) : const Color(0xFF7C879A),
+                color:
+                    isDark ? const Color(0xFF939BB6) : const Color(0xFF7C879A),
               ),
             ],
           ),
@@ -1778,5 +1719,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
 }

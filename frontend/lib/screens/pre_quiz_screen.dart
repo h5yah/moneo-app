@@ -3,13 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fintech/screens/home/home_screen/home_screen.dart';
  
-// ─── Data ────────────────────────────────────────────────────────────────────
  
 class _Question {
   const _Question({
     required this.question,
     required this.options,
-    required this.scores, // index → {planner, achiever, explorer}
+    required this.scores, 
   });
   final String question;
   final List<String> options;
@@ -107,8 +106,8 @@ const _archetypes = {
     description:
         'You are motivated by visible progress. Hitting milestones and levelling up keeps you going.',
     tags: ['Goal-driven', 'Competitive', 'Focused'],
-    color: Color(0xFF9333EA),
-    lightColor: Color(0xFFF5F0FF),
+    color: Color(0xFF2563EB),
+    lightColor: Color(0xFFEEF6FF),
   ),
   'explorer': _Archetype(
     id: 'explorer',
@@ -274,70 +273,255 @@ class _PreQuizScreenState extends State<PreQuizScreen>
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen({required this.onStart});
   final VoidCallback onStart;
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF007AFF),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 20, 28, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Spacer(),
-              const Text(
-                'Monéo',
-                style: TextStyle(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -1,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Money habits\nthat actually stick.',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Answer 5 quick questions and we\'ll\nbuild your personal money profile.',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.white70,
-                  height: 1.5,
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onStart,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF007AFF),
-                    minimumSize: const Size.fromHeight(56),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Let\'s Start',
-                    style:
-                        TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ),
-            ],
+      backgroundColor: const Color(0xFFF0F5FF),
+      body: Stack(
+        children: [
+          // ── background circles ──
+          Positioned(
+            top: -70, right: -70,
+            child: _Circle(size: 260, color: const Color(0xFFBFDBFE)),
           ),
-        ),
+          Positioned(
+            top: 110, right: -20,
+            child: _Circle(size: 110, color: const Color(0xFF93C5FD)),
+          ),
+          Positioned(
+            bottom: 80, left: -60,
+            child: _Circle(size: 220, color: const Color(0xFFC7D9FF)),
+          ),
+          Positioned(
+            bottom: 180, right: 30,
+            child: _Circle(size: 40, color: const Color(0xFFA5C8FE)),
+          ),
+
+          // ── content ──
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 20, 28, 44),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  
+
+                  const Spacer(),
+
+                  // ── badge ──
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDBEAFE),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF93C5FD)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 5, height: 5,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF3B82F6),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        const Text(
+                          'Personalized for you',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF1D4ED8),
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+
+                  // ── headline ──
+                  RichText(
+                    text: const TextSpan(
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF0F172A),
+                        height: 1.12,
+                        letterSpacing: -1,
+                      ),
+                      children: [
+                        TextSpan(text: 'Money habits\nthat actually\n'),
+                        TextSpan(
+                          text: 'stick.',
+                          style: TextStyle(color: Color(0xFF2563EB)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── subtitle ──
+                  const Text(
+                    'Answer 5 quick questions. We\'ll build a money profile that actually fits your life.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF475569),
+                      height: 1.65,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  // ── CTA ──
+                  _SwipeToContinue(onComplete: onStart),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _Circle extends StatelessWidget {
+  const _Circle({required this.size, required this.color});
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+}
+
+class _SwipeToContinue extends StatefulWidget {
+  const _SwipeToContinue({required this.onComplete});
+
+  final VoidCallback onComplete;
+
+  @override
+  State<_SwipeToContinue> createState() => _SwipeToContinueState();
+}
+
+class _SwipeToContinueState extends State<_SwipeToContinue>
+    with SingleTickerProviderStateMixin {
+  static const double _height = 56;
+
+  late final AnimationController _chevronCtrl;
+  double _dragDistance = 0;
+  bool _completed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _chevronCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _chevronCtrl.dispose();
+    super.dispose();
+  }
+
+  void _complete() {
+    if (_completed) return;
+    setState(() {
+      _completed = true;
+      _dragDistance = 0;
+    });
+    widget.onComplete();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final threshold = constraints.maxWidth * 0.35;
+        final progress = threshold <= 0
+            ? 0.0
+            : (_dragDistance / threshold).clamp(0.0, 1.0);
+
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onHorizontalDragUpdate: (details) {
+            if (_completed) return;
+            setState(() {
+              _dragDistance =
+                  (_dragDistance + (details.primaryDelta ?? 0)).clamp(
+                0.0,
+                threshold,
+              );
+            });
+          },
+          onHorizontalDragEnd: (_) {
+            if (_completed) return;
+            if (progress > 0.9) {
+              _complete();
+            } else {
+              setState(() => _dragDistance = 0);
+            }
+          },
+          child: SizedBox(
+            height: _height,
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _chevronCtrl,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(progress * 18, 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Swipe right to start',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2563EB),
+                            letterSpacing: -0.1,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ...List.generate(3, (index) {
+                          final shifted =
+                              (_chevronCtrl.value + (index * 0.16)) % 1.0;
+                          final pulse = shifted < 0.5
+                              ? shifted * 2
+                              : (1 - shifted) * 2;
+                          final opacity = 0.25 + (pulse * 0.75);
+
+                          return Opacity(
+                            opacity: opacity,
+                            child: Transform.translate(
+                              offset: Offset(pulse * 4, 0),
+                              child: const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Color(0xFF2563EB),
+                                size: 27,
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

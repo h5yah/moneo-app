@@ -10,6 +10,7 @@ import 'package:fintech/services/topic_progress_service.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'survive_the_month.dart';
 import 'emergency_fund_builder.dart';
+import 'quick_scenario_screen.dart';
 import 'package:fintech/services/topic_meta_service.dart';
 import 'package:fintech/services/learn_content_service.dart';
 
@@ -31,16 +32,38 @@ class LessonItem {
   });
 }
 
+class _InteractiveScenario {
+  final String title;
+  final String description;
+  final int progress;
+  final int totalLevels;
+  final String duration;
+  final int? xp;
+  final VoidCallback onTap;
+
+  const _InteractiveScenario({
+    required this.title,
+    required this.description,
+    required this.progress,
+    required this.totalLevels,
+    required this.duration,
+    required this.onTap,
+    this.xp,
+  });
+}
+
 class LearnScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
   final String? resumeTopicId;
   final bool autoOpenResumeTopic;
+  final int? progressReplaySeed;
 
   const LearnScreen({
     super.key,
     this.onIndexChanged,
     this.resumeTopicId,
     this.autoOpenResumeTopic = false,
+    this.progressReplaySeed,
   });
 
   @override
@@ -48,11 +71,11 @@ class LearnScreen extends StatefulWidget {
 }
 
 class LearnScreenState extends State<LearnScreen> {
-  int _selectedIndex = 1;
   int _budgetSimulatorProgress = 0;
   bool _didAutoResume = false;
   bool _topicMetaReady = false;
   bool _openingTopic = false;
+  int _topicBarsReplay = 0;
   Map<String, Map<String, dynamic>> _progressByTopic = {};
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _progressSub;
   StreamSubscription<Map<String, Map<String, dynamic>>>? _localProgressSub;
@@ -67,8 +90,8 @@ class LearnScreenState extends State<LearnScreen> {
   @override
   void initState() {
     super.initState();
-    _topicMetaReady =
-        TopicMetaService.instance.isLoaded && LearnContentService.instance.isLoaded;
+    _topicMetaReady = TopicMetaService.instance.isLoaded &&
+        LearnContentService.instance.isLoaded;
     _initLearnScreen();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -95,6 +118,10 @@ class LearnScreenState extends State<LearnScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _maybeAutoResumeTopic();
       });
+    }
+
+    if (oldWidget.progressReplaySeed != widget.progressReplaySeed) {
+      _replayTopicBars();
     }
   }
 
@@ -123,8 +150,8 @@ class LearnScreenState extends State<LearnScreen> {
     _progressSub?.cancel();
     _progressSub =
         TopicProgressService.instance.watchAllTopicProgressSnapshots().listen(
-      (_) => _scheduleProgressReload(),
-    );
+              (_) => _scheduleProgressReload(),
+            );
 
     _localProgressSub?.cancel();
     _localProgressSub =
@@ -136,7 +163,8 @@ class LearnScreenState extends State<LearnScreen> {
 
   void _scheduleProgressReload() {
     _progressReloadDebounce?.cancel();
-    _progressReloadDebounce = Timer(const Duration(milliseconds: 250), () async {
+    _progressReloadDebounce =
+        Timer(const Duration(milliseconds: 250), () async {
       if (!mounted) return;
       final next = await TopicProgressService.instance.loadAllProgress();
       if (!mounted) return;
@@ -147,6 +175,14 @@ class LearnScreenState extends State<LearnScreen> {
   /// Reload progress from Firestore (e.g. when returning to the Learn tab).
   Future<void> refreshTopicProgress() async {
     await _reloadTopicProgressFromServer();
+    _replayTopicBars();
+  }
+
+  void replayTopicBars() => _replayTopicBars();
+
+  void _replayTopicBars() {
+    if (!mounted) return;
+    setState(() => _topicBarsReplay++);
   }
 
   void _applyProgressMap(Map<String, Map<String, dynamic>> next) {
@@ -165,7 +201,9 @@ class LearnScreenState extends State<LearnScreen> {
       final lessonsA = (entry.value['lessonsCompleted'] as num?)?.toInt() ?? 0;
       final lessonsB = (other['lessonsCompleted'] as num?)?.toInt() ?? 0;
       if (lessonsA != lessonsB) return false;
-      if (entry.value['topicCompleted'] != other['topicCompleted']) return false;
+      if (entry.value['topicCompleted'] != other['topicCompleted']) {
+        return false;
+      }
       if (entry.value['allLessonsCompleted'] != other['allLessonsCompleted']) {
         return false;
       }
@@ -186,14 +224,23 @@ class LearnScreenState extends State<LearnScreen> {
     required double value,
     required Color color,
     Color backgroundColor = const Color(0xFFEBEBEB),
+    String? replayKey,
   }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      child: LinearProgressIndicator(
-        value: value.clamp(0.0, 1.0),
-        minHeight: 7,
-        backgroundColor: backgroundColor,
-        valueColor: AlwaysStoppedAnimation<Color>(color),
+      child: TweenAnimationBuilder<double>(
+        key: replayKey == null ? null : ValueKey(replayKey),
+        tween: Tween(begin: 0, end: value.clamp(0.0, 1.0)),
+        duration: const Duration(milliseconds: 850),
+        curve: Curves.easeOutCubic,
+        builder: (context, animatedValue, _) {
+          return LinearProgressIndicator(
+            value: animatedValue,
+            minHeight: 7,
+            backgroundColor: backgroundColor,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          );
+        },
       ),
     );
   }
@@ -292,13 +339,14 @@ class LearnScreenState extends State<LearnScreen> {
     await LearnContentService.instance.ensureLoaded();
 
     var progressData = _progressByTopic[topicId];
-    progressData ??= await TopicProgressService.instance.getTopicProgress(topicId);
+    progressData ??=
+        await TopicProgressService.instance.getTopicProgress(topicId);
     progressData ??= <String, dynamic>{};
 
     var preQuizDone = progressData['preQuizCompleted'] == true;
     var shouldAutoStartFlow = false;
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     final preQuizQuestions = _getPreQuizQuestionsForTopic(topicId);
     final preQuizTotal = (progressData['preQuizTotal'] as num?)?.toInt() ?? -1;
@@ -344,10 +392,10 @@ class LearnScreenState extends State<LearnScreen> {
       unawaited(
         XpService.instance
             .earnXpOnce(
-              amount: 25,
-              source: 'pre_quiz_completion',
-              awardKey: 'pre_quiz:$topicId',
-            )
+          amount: 25,
+          source: 'pre_quiz_completion',
+          awardKey: 'pre_quiz:$topicId',
+        )
             .catchError((Object error) {
           debugPrint('Pre-quiz XP award failed: $error');
           return const XpEarnResult(xp: 0, awarded: false);
@@ -363,7 +411,7 @@ class LearnScreenState extends State<LearnScreen> {
       shouldAutoStartFlow = true;
     }
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     final persistedLessonsCompleted = TopicProgressService.lessonsCompletedFrom(
       progressData,
@@ -395,7 +443,8 @@ class LearnScreenState extends State<LearnScreen> {
   Future<void> _loadBudgetSimulatorProgress() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _budgetSimulatorProgress = prefs.getInt('budget_simulator_completed_level') ?? 0;
+      _budgetSimulatorProgress =
+          prefs.getInt('budget_simulator_completed_level') ?? 0;
     });
   }
 
@@ -441,7 +490,9 @@ class LearnScreenState extends State<LearnScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w400,
-              color: isDark ? const Color(0xFFAAB0C6) : const Color.fromRGBO(0, 0, 0, 0.6),
+              color: isDark
+                  ? const Color(0xFFAAB0C6)
+                  : const Color.fromRGBO(0, 0, 0, 0.6),
               letterSpacing: -0.408,
             ),
           ),
@@ -450,8 +501,324 @@ class LearnScreenState extends State<LearnScreen> {
     );
   }
 
+  List<_InteractiveScenario> _interactiveScenarios() {
+    return [
+      _InteractiveScenario(
+        title: 'Budget Simulator',
+        description:
+            'Practice managing a monthly budget and track expenses in a realistic scenario.',
+        progress: _budgetSimulatorProgress,
+        totalLevels: 3,
+        duration: '5 min',
+        xp: 100,
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const SurviveTheMonthScreen(),
+            ),
+          );
+          _loadBudgetSimulatorProgress();
+        },
+      ),
+      _InteractiveScenario(
+        title: 'Emergency Fund',
+        description:
+            'Handle unexpected expenses and build a starter emergency fund.',
+        progress: 2,
+        totalLevels: 4,
+        duration: '7 min',
+        xp: 100,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const EmergencyFundBuilderScreen(),
+            ),
+          );
+        },
+      ),
+      _InteractiveScenario(
+        title: 'Needs vs Wants',
+        description:
+            'Make quick spending choices and learn what should come first.',
+        progress: 0,
+        totalLevels: 3,
+        duration: '4 min',
+        xp: 75,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const QuickScenarioScreen(
+                title: 'Needs vs Wants',
+                subtitle: 'Choose what to prioritize when money is limited.',
+                completionMessage:
+                    'Nice work. You practiced separating important spending from nice-to-have purchases.',
+                xpAward: 75,
+                xpAwardKey: 'scenario:needs_vs_wants',
+                steps: [
+                  QuickScenarioStep(
+                    prompt:
+                        'Your bus pass for the week costs Rs 200, but you also want new earbuds. What comes first?',
+                    options: [
+                      'Top up the bus pass because you need transport',
+                      'Buy the earbuds and figure out transport later',
+                      'Use all your savings for both',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'Transport is a need when it gets you to school, work, or errands. Earbuds can wait.',
+                  ),
+                  QuickScenarioStep(
+                    prompt:
+                        'You have Rs 500 left for the week in Mauritius. Which plan is strongest?',
+                    options: [
+                      'Food and mobile data first, then decide on snacks',
+                      'Buy cafe drinks now and worry later',
+                      'Spend half on games and hope the rest is enough',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'Cover essentials first. Wants are easier to enjoy when your basics are already protected.',
+                  ),
+                  QuickScenarioStep(
+                    prompt:
+                        'A Port Louis sale makes you feel rushed. What should you do?',
+                    options: [
+                      'Pause and check if it matches your budget',
+                      'Buy now because the discount might disappear',
+                      'Use credit so it does not affect today',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'A quick pause helps you avoid impulse spending, even when a sale looks exciting.',
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      _InteractiveScenario(
+        title: 'Debt Decision',
+        description:
+            'Compare loan, BNPL, and cash options before making a purchase.',
+        progress: 0,
+        totalLevels: 3,
+        duration: '6 min',
+        xp: 100,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const QuickScenarioScreen(
+                title: 'Debt Decision',
+                subtitle:
+                    'Think through repayment before choosing borrowed money.',
+                completionMessage:
+                    'You reviewed how debt choices affect your future budget.',
+                xpAward: 100,
+                xpAwardKey: 'scenario:debt_decision',
+                steps: [
+                  QuickScenarioStep(
+                    prompt:
+                        'A Rs 8,000 phone can be paid now or split into monthly payments. What should you check first?',
+                    options: [
+                      'Total cost, fees, and whether repayments fit your budget',
+                      'Only the monthly payment amount',
+                      'Whether your friends think it is worth it',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'Small payments can hide fees. The total cost and repayment fit matter most.',
+                  ),
+                  QuickScenarioStep(
+                    prompt:
+                        'Your budget is already tight after transport and groceries. What is the safest choice?',
+                    options: [
+                      'Delay the purchase until you can afford it',
+                      'Borrow and hope next month is easier',
+                      'Take a second payment plan to cover it',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'Delaying protects you from stacking payments when your budget is already stretched.',
+                  ),
+                  QuickScenarioStep(
+                    prompt: 'Which sign means a debt option may be risky?',
+                    options: [
+                      'You do not understand the late fees',
+                      'The repayment date matches payday',
+                      'The seller explains the total cost clearly',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'If fees or penalties are unclear, pause before agreeing to the debt.',
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      _InteractiveScenario(
+        title: 'Savings Goal Sprint',
+        description:
+            'Choose a goal, adjust monthly savings, and beat the deadline.',
+        progress: 0,
+        totalLevels: 3,
+        duration: '5 min',
+        xp: 100,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const QuickScenarioScreen(
+                title: 'Savings Goal Sprint',
+                subtitle: 'Build a simple plan for reaching a savings target.',
+                completionMessage:
+                    'Great job. You practiced turning a goal into a realistic monthly plan.',
+                xpAward: 100,
+                xpAwardKey: 'scenario:savings_goal_sprint',
+                steps: [
+                  QuickScenarioStep(
+                    prompt:
+                        'You want to save Rs 6,000 in 3 months for a laptop repair. What is the clearest target?',
+                    options: [
+                      'Save Rs 2,000 each month',
+                      'Save whatever is left over',
+                      'Wait until the final month and try harder',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'A monthly target makes the goal easier to track and less stressful.',
+                  ),
+                  QuickScenarioStep(
+                    prompt:
+                        'You missed one week of saving. What should you do next?',
+                    options: [
+                      'Adjust the next few weeks slightly and keep going',
+                      'Give up because the plan is ruined',
+                      'Spend the savings since the goal is delayed',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'A good plan can flex. Small adjustments help you recover without quitting.',
+                  ),
+                  QuickScenarioStep(
+                    prompt: 'What makes a savings goal stronger?',
+                    options: [
+                      'A clear amount, deadline, and reason',
+                      'A vague wish to save more',
+                      'A target based only on social media trends',
+                    ],
+                    bestOptionIndex: 0,
+                    feedback:
+                        'Specific goals are easier to measure, motivate, and complete.',
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ];
+  }
+
+  Future<void> _openAllScenarios() async {
+    final scenarios = _interactiveScenarios();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final primaryText = isDark ? Colors.white : Colors.black;
+        final iconColor =
+            isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.55);
+
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.82,
+          ),
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F1020) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.25)
+                        : Colors.black.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Interactive Scenarios',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: primaryText,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      icon: Icon(Icons.close, color: iconColor),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: scenarios.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final scenario = scenarios[index];
+                      return SizedBox(
+                        height: 144,
+                        child: _buildScenarioCard(
+                          title: scenario.title,
+                          description: scenario.description,
+                          progress: scenario.progress,
+                          totalLevels: scenario.totalLevels,
+                          duration: scenario.duration,
+                          xp: scenario.xp,
+                          onTap: () {
+                            Navigator.pop(sheetContext);
+                            scenario.onTap();
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildInteractiveScenariosSection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scenarios = _interactiveScenarios();
+    final featuredScenarios = scenarios.take(2).toList(growable: false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -470,7 +837,7 @@ class LearnScreenState extends State<LearnScreen> {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: _openAllScenarios,
                 child: const Text(
                   'Browse All',
                   style: TextStyle(
@@ -490,52 +857,22 @@ class LearnScreenState extends State<LearnScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 38),
           child: Row(
             children: [
-              SizedBox(
-                width: 240,
-                height: 140,
-                child: _buildScenarioCard(
-                  title: 'Budget Simulator',
-                  description:
-                      'Practice managing a monthly budget and track expenses in a realistic scenario.',
-                  progress: _budgetSimulatorProgress,
-                  totalLevels: 3,
-                  duration: '5 min',
-                  xp: 100,
-                  imageAsset: null,
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SurviveTheMonthScreen(),
-                      ),
-                    );
-                    _loadBudgetSimulatorProgress();
-                  },
+              for (int i = 0; i < featuredScenarios.length; i++) ...[
+                SizedBox(
+                  width: 240,
+                  height: 140,
+                  child: _buildScenarioCard(
+                    title: featuredScenarios[i].title,
+                    description: featuredScenarios[i].description,
+                    progress: featuredScenarios[i].progress,
+                    totalLevels: featuredScenarios[i].totalLevels,
+                    duration: featuredScenarios[i].duration,
+                    xp: featuredScenarios[i].xp,
+                    onTap: featuredScenarios[i].onTap,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              SizedBox(
-                width: 240,
-                height: 140,
-                child: _buildScenarioCard(
-                  title: 'Emergency Fund',
-                  description:
-                      'Learn how to prepare for unexpected expenses and build better saving habits.',
-                  progress: 2,
-                  totalLevels: 4,
-                  duration: '7 min',
-                  xp: 100,
-                  imageAsset: null,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const EmergencyFundBuilderScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
+                if (i < featuredScenarios.length - 1) const SizedBox(width: 16),
+              ],
             ],
           ),
         ),
@@ -563,7 +900,8 @@ class LearnScreenState extends State<LearnScreen> {
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1B1D33) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
+            border: Border.all(
+                color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -585,7 +923,8 @@ class LearnScreenState extends State<LearnScreen> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(5),
@@ -603,14 +942,16 @@ class LearnScreenState extends State<LearnScreen> {
                     if (xp != null) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.12),
+                          color: Colors.blue.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.star, size: 13, color: Colors.blue),
+                            const Icon(Icons.star,
+                                size: 13, color: Colors.blue),
                             const SizedBox(width: 3),
                             Text(
                               '$xp XP',
@@ -645,7 +986,9 @@ class LearnScreenState extends State<LearnScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: isDark ? const Color(0xFFAAB0C6) : const Color.fromRGBO(0, 0, 0, 0.6),
+                    color: isDark
+                        ? const Color(0xFFAAB0C6)
+                        : const Color.fromRGBO(0, 0, 0, 0.6),
                     letterSpacing: -0.408,
                     height: 1.27,
                   ),
@@ -793,6 +1136,7 @@ class LearnScreenState extends State<LearnScreen> {
                     _buildLessonProgressBar(
                       value: 0,
                       color: Colors.grey,
+                      replayKey: 'locked-${meta.id}-$_topicBarsReplay',
                     ),
                   ],
                 ),
@@ -815,7 +1159,8 @@ class LearnScreenState extends State<LearnScreen> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1B1D33) : Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
+        border: Border.all(
+            color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
       ),
       child: Row(
         children: [
@@ -867,6 +1212,7 @@ class LearnScreenState extends State<LearnScreen> {
                       ? displayProgressValue / meta.totalLessons
                       : 0,
                   color: meta.progressColor,
+                  replayKey: '${meta.id}-$_topicBarsReplay',
                 ),
               ],
             ),

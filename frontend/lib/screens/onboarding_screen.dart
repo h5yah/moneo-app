@@ -64,7 +64,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       backgroundColor: isDark ? const Color(0xFF0F1020) : Colors.white,
       body: Column(
         children: [
-          // PageView - Takes up available space
           Expanded(
             child: Stack(
               children: [
@@ -80,7 +79,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     return OnboardingContent(page: pages[index]);
                   },
                 ),
-                // Page Indicators
                 Positioned(
                   bottom: 20,
                   left: 0,
@@ -116,7 +114,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ],
             ),
           ),
-          // Buttons at bottom
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 50),
             child: Row(
@@ -212,7 +209,6 @@ class OnboardingContent extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
-        // Background Image - Full height with proper container
         ClipPath(
           clipper: DiagonalClipper(),
           child: Container(
@@ -224,7 +220,6 @@ class OnboardingContent extends StatelessWidget {
             child: _buildImage(page.imagePath, page.isAsset),
           ),
         ),
-        // Text Content positioned at 633px from top
         Positioned(
           top: 600,
           left: 40,
@@ -327,19 +322,17 @@ class DiagonalClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     Path path = Path();
-    // Start with curve at top left corner (0.125 of height)
-    path.lineTo(0, size.height * 0.875); // Go down to 87.5% of height
+    path.lineTo(0, size.height * 0.875); 
     path.quadraticBezierTo(
-      -20, size.height * 0.9375, // Control point curves outward left
-      0, size.height, // End at bottom left corner
+      -20, size.height * 0.9375, 
+      0, size.height, 
     );
-    // Bottom curve (facing bottom/outward) - half oval
     path.quadraticBezierTo(
-      size.width * 0.0625, size.height + 200, // Control point far out for oval curve
-      size.width * 0.10, size.height -0, // End of curve
+      size.width * 0.0625, size.height + 200, 
+      size.width * 0.10, size.height -0, 
     );
-    path.lineTo(size.width, size.height - 100); // Right side, higher up
-    path.lineTo(size.width, 0); // Top right
+    path.lineTo(size.width, size.height - 100); 
+    path.lineTo(size.width, 0); 
     path.close();
     return path;
   }

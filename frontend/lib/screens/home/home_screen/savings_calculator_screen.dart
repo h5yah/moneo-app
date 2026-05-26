@@ -18,7 +18,6 @@ class _SavingsCalculatorScreenState extends State<SavingsCalculatorScreen> {
   double _monthlySaving = 0.0;
   bool   _hasCalculated = false;
 
-  // ── Palette ────────────────────────────────────────────────────────────────
   static const Color _bg       = Color(0xFFF7F8FC);
   static const Color _purple   = Color(0xFF5B3FE8);
   static const Color _textDark = Color(0xFF111827);
@@ -34,7 +33,6 @@ class _SavingsCalculatorScreenState extends State<SavingsCalculatorScreen> {
     super.dispose();
   }
 
-  // ── Calculations ───────────────────────────────────────────────────────────
   int get _months {
     if (_monthlySaving <= 0 || _goalAmount <= 0) return 0;
     return (_goalAmount / _monthlySaving).ceil();
@@ -86,7 +84,6 @@ class _SavingsCalculatorScreenState extends State<SavingsCalculatorScreen> {
     }
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -115,24 +112,20 @@ class _SavingsCalculatorScreenState extends State<SavingsCalculatorScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              // ── Savings Goal ─────────────────────────────────────────────
+              // Savings Goal
               const _SectionLabel('Savings Goal'),
               const _SectionHint('How much do you want to save up?'),
               const SizedBox(height: 8),
               _AmountInputField(controller: _goalController),
               const SizedBox(height: 28),
 
-              // ── Monthly Savings ──────────────────────────────────────────
+              // Monthly Savings
               const _SectionLabel('Monthly Savings'),
               const _SectionHint('How much can you set aside each month?'),
               const SizedBox(height: 8),
               _AmountInputField(controller: _monthlyController),
               const SizedBox(height: 36),
-
-              // ── Calculate Button ─────────────────────────────────────────
               _CalcButton(onPressed: _onCalculate),
-
-              // ── Breakdown ────────────────────────────────────────────────
               if (_hasCalculated) ...[
                 const SizedBox(height: 44),
                 _BreakdownSection(
@@ -154,7 +147,6 @@ class _SavingsCalculatorScreenState extends State<SavingsCalculatorScreen> {
   }
 }
 
-// ── Section Label / Hint ──────────────────────────────────────────────────────
 class _SectionLabel extends StatelessWidget {
   final String text;
   const _SectionLabel(this.text);
@@ -186,7 +178,6 @@ class _SectionHint extends StatelessWidget {
   }
 }
 
-// ── Back Button ───────────────────────────────────────────────────────────────
 class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
@@ -216,7 +207,6 @@ class _BackButton extends StatelessWidget {
   );
 }
 
-// ── Amount Input Field ────────────────────────────────────────────────────────
 class _AmountInputField extends StatefulWidget {
   final TextEditingController controller;
   const _AmountInputField({required this.controller});
@@ -298,7 +288,6 @@ class _AmountInputFieldState extends State<_AmountInputField> {
   }
 }
 
-// ── Calculate Button ──────────────────────────────────────────────────────────
 class _CalcButton extends StatelessWidget {
   final VoidCallback onPressed;
   const _CalcButton({required this.onPressed});
@@ -324,7 +313,6 @@ class _CalcButton extends StatelessWidget {
   }
 }
 
-// ── Breakdown Section ─────────────────────────────────────────────────────────
 class _BreakdownSection extends StatelessWidget {
   final double goalAmount;
   final double monthlySaving;
@@ -355,7 +343,6 @@ class _BreakdownSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // ── Summary grid ───────────────────────────────────────────────────
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -387,8 +374,6 @@ class _BreakdownSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // ── Note ───────────────────────────────────────────────────────────
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -417,7 +402,6 @@ class _BreakdownSection extends StatelessWidget {
   }
 }
 
-// ── Summary Row / Item ────────────────────────────────────────────────────────
 class _SummaryRow extends StatelessWidget {
   final List<_SummaryItem> items;
   const _SummaryRow({required this.items});

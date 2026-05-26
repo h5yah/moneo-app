@@ -66,11 +66,8 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             Column(
               children: [
-                // Header Section
                 _buildHeader(),
-                // Progress Section
                 _buildProgressSection(),
-                // Question and Answers Section
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -490,7 +487,6 @@ class _QuizScreenState extends State<QuizScreen> {
       return;
     }
 
-    // Pre-quiz: brief highlight, then advance (no blocking save on last question).
     _submitAnswer(markAnswered: true);
     Future.delayed(const Duration(milliseconds: 350), () {
       if (!mounted || !_answered) return;
@@ -569,7 +565,6 @@ class _QuizScreenState extends State<QuizScreen> {
         'totalQuestions': widget.questions.length,
       };
 
-      // Close immediately; save progress in the background (Firestore/XP are slow).
       if (widget.onQuizFinished != null) {
         widget
             .onQuizFinished!(_score, widget.questions.length)
@@ -639,7 +634,6 @@ class _QuizScreenState extends State<QuizScreen> {
       return;
     }
 
-    // Navigate to completion screen
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => QuizCompletionScreen(
@@ -674,8 +668,8 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Close quiz screen
+              Navigator.of(context).pop(); 
+              Navigator.of(context).pop(); 
             },
             child: const Text(
               'Exit',

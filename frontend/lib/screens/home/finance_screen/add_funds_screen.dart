@@ -23,7 +23,7 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchSavedCard();
+    _fetchSavedCard();      
   }
 
   @override
@@ -399,7 +399,6 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
               ),
             ],
           ),
-          // Quick amount buttons removed
         ],
       ),
     );

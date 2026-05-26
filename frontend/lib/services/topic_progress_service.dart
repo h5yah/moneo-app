@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Saves lesson / quiz progress locally and syncs to Firestore when allowed.
 class TopicProgressService {
   TopicProgressService._();
 
@@ -101,14 +100,13 @@ class TopicProgressService {
     return all[topicId];
   }
 
-  /// Cached progress on device (instant, no network).
+
   Future<Map<String, Map<String, dynamic>>> loadLocalProgress() async {
     final uid = _uid;
     if (uid == null) return {};
     return _loadLocalAll(uid);
   }
 
-  /// Merged local + remote progress (local wins when ahead).
   Future<Map<String, Map<String, dynamic>>> loadAllProgress() async {
     final uid = _uid;
     if (uid == null) return {};

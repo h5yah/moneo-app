@@ -113,7 +113,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
       ),
       body: Column(
         children: [
-          // Course Progress Section
           _buildCourseProgressSection(progressPercentage),
           const SizedBox(height: 16),
           // Lessons List
@@ -216,7 +215,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
   LessonStatus _statusForLesson(LessonItem lesson) {
     final step = lesson.step ?? '';
 
-    // Pre-quiz gate (if this topic uses it)
     if (step == 'PRE-QUIZ') {
       return _preQuizCompleted ? LessonStatus.completed : LessonStatus.quiz;
     }
@@ -252,7 +250,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
     final isFinalQuiz = lesson.step == 'FINAL QUIZ';
     final card = Stack(
       children: [
-        // Vertical connecting line
         if (index < widget.lessons.length - 1)
           Positioned(
             left: 17.5,
@@ -263,11 +260,9 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
               color: const Color(0xFFCBD5E1),
             ),
           ),
-        // Lesson Card
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status Icon
             _buildStatusIcon(lessonStatus),
             const SizedBox(width: 16),
             // Lesson Content Card
@@ -328,7 +323,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                             }
                           });
                         } else {
-                          // Navigate to lesson content screen
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -414,7 +408,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Step and Status Badge
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -457,7 +450,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      // Lesson Title
                       Text(
                         lesson.title,
                         style: TextStyle(
@@ -470,7 +462,6 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Duration and Status Info
                       Row(
                         children: [
                           Icon(

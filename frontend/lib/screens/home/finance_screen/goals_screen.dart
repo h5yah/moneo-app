@@ -1,32 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+  import 'package:cloud_firestore/cloud_firestore.dart';
+  import 'package:firebase_auth/firebase_auth.dart';
 
-IconData _iconFromString(String iconName) {
-  switch (iconName) {
-    case 'account_balance':
-      return Icons.account_balance;
-    case 'school_outlined':
-      return Icons.school_outlined;
-    case 'flight_takeoff':
-      return Icons.flight_takeoff;
-    case 'laptop_mac':
-      return Icons.laptop_mac;
-    case 'directions_car_outlined':
-      return Icons.directions_car_outlined;
-    case 'edit_note_rounded':
-      return Icons.edit_note_rounded;
-    default:
-      return Icons.account_balance;
+  IconData _iconFromString(String iconName) {
+    switch (iconName) {
+      case 'account_balance':
+        return Icons.account_balance;
+      case 'school_outlined':
+        return Icons.school_outlined;
+      case 'flight_takeoff':
+        return Icons.flight_takeoff;
+      case 'laptop_mac':
+        return Icons.laptop_mac;
+      case 'directions_car_outlined':
+        return Icons.directions_car_outlined;
+      case 'edit_note_rounded':
+        return Icons.edit_note_rounded;
+      default:
+        return Icons.account_balance;
+    }
   }
-}
-
-// ...existing code...
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key, this.openCreateOnLaunch = false});
 
-  /// When true, opens the add-goal flow (category picker) as soon as the screen is shown.
   final bool openCreateOnLaunch;
 
   @override
@@ -38,43 +35,37 @@ class _GoalsScreenState extends State<GoalsScreen> {
     _GoalCategoryOption(
       label: 'Emergency Fund',
       subtitle: 'Financial safety',
-      description:
-          'Money set aside for unexpected events like medical bills, repairs, or urgent needs.',
+      description: 'Money set aside for unexpected events like medical bills, repairs, or urgent needs.',
       icon: Icons.account_balance,
     ),
     _GoalCategoryOption(
       label: 'Education',
       subtitle: 'Courses & tuition',
-      description:
-          'Save for school fees, certifications, books, and learning expenses.',
+      description: 'Save for school fees, certifications, books, and learning expenses.',
       icon: Icons.school_outlined,
     ),
     _GoalCategoryOption(
       label: 'Travel',
       subtitle: 'Trips & vacations',
-      description:
-          'Set a target for transport, accommodation, and other trip costs.',
+      description: 'Set a target for transport, accommodation, and other trip costs.',
       icon: Icons.flight_takeoff,
     ),
     _GoalCategoryOption(
       label: 'Gadgets',
       subtitle: 'Laptop, phone, accessories',
-      description:
-          'Build savings for tech upgrades like laptops, phones, or accessories.',
+      description: 'Build savings for tech upgrades like laptops, phones, or accessories.',
       icon: Icons.laptop_mac,
     ),
     _GoalCategoryOption(
       label: 'Vehicle',
       subtitle: 'Car or bike savings',
-      description:
-          'Plan for a vehicle deposit, purchase, or related ownership costs.',
+      description: 'Plan for a vehicle deposit, purchase, or related ownership costs.',
       icon: Icons.directions_car_outlined,
     ),
     _GoalCategoryOption(
       label: 'Other',
       subtitle: 'Create your own goal',
-      description:
-          'Choose this if your goal does not fit the listed categories.',
+      description: 'Choose this if your goal does not fit the listed categories.',
       icon: Icons.edit_note_rounded,
       isOther: true,
     ),
@@ -112,6 +103,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
       color: const Color(0xFF2D4EFF),
     ),
   ];
+
 
   String _formatRs(double value) {
     final number = value.round();
@@ -291,24 +283,18 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   ),
                   onPressed: () {
                     final title = titleController.text.trim();
-                    final target =
-                        double.tryParse(targetController.text.trim()) ?? 0;
+                    final target = double.tryParse(targetController.text.trim()) ?? 0;
                     if (title.isEmpty || target <= 0) {
                       ScaffoldMessenger.of(this.context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Please enter a valid title and target amount')),
+                        const SnackBar(content: Text('Please enter a valid title and target amount')),
                       );
                       return;
                     }
 
-                    // Save to Firestore
-                    final userId =
-                        FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
+                    final userId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
                     final iconName = _iconNameFromIcon(selectedCategory.icon);
                     final category = selectedCategory.label;
-                    final timeRemaining =
-                        _remainingTimeLabel(dateController.text.trim());
+                    final timeRemaining = _remainingTimeLabel(dateController.text.trim());
                     FirebaseFirestore.instance.collection('goals').add({
                       'userId': userId,
                       'icon': iconName,
@@ -318,9 +304,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       'target': target,
                       'timeRemaining': timeRemaining,
                       'remaining': timeRemaining,
-                      'date': dateController.text.trim().isEmpty
-                          ? 'No date'
-                          : dateController.text.trim(),
+                      'date': dateController.text.trim().isEmpty ? 'No date' : dateController.text.trim(),
                       'createdAt': DateTime.now().toIso8601String(),
                     });
                     Navigator.pop(context);
@@ -335,8 +319,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel',
-                      style: TextStyle(color: Color(0xFF8E8E93))),
+                  child: const Text('Cancel', style: TextStyle(color: Color(0xFF8E8E93))),
                 ),
               ),
             ],
@@ -345,6 +328,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
       },
     );
   }
+
 
   Widget _styledGoalInput({
     required TextEditingController controller,
@@ -368,8 +352,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           labelText: label,
           labelStyle: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
           prefixIcon: Icon(icon, color: const Color(0xFF2D4EFF), size: 20),
@@ -377,7 +360,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
       ),
     );
   }
-
   void _showGoalDetails(_GoalItem goal) {
     showModalBottomSheet(
       context: context,
@@ -393,12 +375,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
             children: [
               Text(
                 goal.title,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 6),
-              Text(goal.subtitle,
-                  style: const TextStyle(color: Color(0xFF8E8E93))),
+              Text(goal.subtitle, style: const TextStyle(color: Color(0xFF8E8E93))),
               const SizedBox(height: 16),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -425,17 +405,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       builder: (dialogContext) {
                         return AlertDialog(
                           title: const Text('Delete Goal'),
-                          content: Text(
-                              'Are you sure you want to delete "${goal.title}"?'),
+                          content: Text('Are you sure you want to delete "${goal.title}"?'),
                           actions: [
                             TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(dialogContext, false),
+                              onPressed: () => Navigator.pop(dialogContext, false),
                               child: const Text('Cancel'),
                             ),
                             TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(dialogContext, true),
+                              onPressed: () => Navigator.pop(dialogContext, true),
                               child: const Text(
                                 'Delete',
                                 style: TextStyle(color: Colors.red),
@@ -450,12 +427,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       setState(() {
                         _activeGoals.remove(goal);
                       });
-                      // Delete from Firestore
                       try {
-                        await FirebaseFirestore.instance
-                            .collection('goals')
-                            .doc(goal.id)
-                            .delete();
+                        await FirebaseFirestore.instance.collection('goals').doc(goal.id).delete();
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -465,8 +438,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text('Failed to delete goal: $e')),
+                            SnackBar(content: Text('Failed to delete goal: $e')),
                           );
                         }
                       }
@@ -496,8 +468,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         backgroundColor: isDark ? const Color(0xFF17192B) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black),
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -521,8 +492,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
           ),
         ],
       ),
-      backgroundColor:
-          isDark ? const Color(0xFF0F1020) : const Color(0xFFF7F8FA),
+      backgroundColor: isDark ? const Color(0xFF0F1020) : const Color(0xFFF7F8FA),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -533,17 +503,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('goals')
-                    .where('userId',
-                        isEqualTo: FirebaseAuth.instance.currentUser?.uid ??
-                            'demo_user')
+                    .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? 'demo_user')
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                        child: Text('No goals yet. Create one!'));
+                    return const Center(child: Text('No goals yet. Create one!'));
                   }
                   final goals = snapshot.data!.docs;
                   final totalSaved = goals.fold<double>(0, (sum, doc) {
@@ -554,8 +521,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 18, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
@@ -566,46 +532,28 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('TOTAL GOALS',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF8E8E93))),
+                                const Text('TOTAL GOALS', style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93))),
                                 const SizedBox(height: 6),
-                                Text('${goals.length} Active',
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700)),
+                                Text('${goals.length} Active', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text('TOTAL SAVED',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF34C759))),
+                                const Text('TOTAL SAVED', style: TextStyle(fontSize: 13, color: Color(0xFF34C759))),
                                 const SizedBox(height: 6),
-                                Text(_formatRs(totalSaved),
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF34C759))),
+                                Text(_formatRs(totalSaved), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF34C759))),
                               ],
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text('ACTIVE GOALS',
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF8E8E93),
-                              fontWeight: FontWeight.w600)),
+                      const Text('ACTIVE GOALS', style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93), fontWeight: FontWeight.w600)),
                       const SizedBox(height: 12),
                       ...goals.map((doc) {
                         final data = doc.data() as Map<String, dynamic>;
-                        final icon =
-                            _iconFromString(data['icon'] ?? 'account_balance');
+                        final icon = _iconFromString(data['icon'] ?? 'account_balance');
                         final goal = _GoalItem(
                           id: doc.id,
                           icon: icon,
@@ -622,20 +570,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             goal: goal,
                             onTap: () => _showGoalDetails(goal),
                             onAdjust: () async {
-                              final currentController = TextEditingController(
-                                  text: goal.current.toStringAsFixed(0));
-                              final targetController = TextEditingController(
-                                  text: goal.target.toStringAsFixed(0));
-                              final dateController =
-                                  TextEditingController(text: goal.date);
+                              final currentController = TextEditingController(text: goal.current.toStringAsFixed(0));
+                              final targetController = TextEditingController(text: goal.target.toStringAsFixed(0));
+                              final dateController = TextEditingController(text: goal.date);
                               bool isLoading = false;
                               await showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
                                 backgroundColor: Colors.white,
                                 shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(24)),
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                                 ),
                                 builder: (context) {
                                   return StatefulBuilder(
@@ -645,178 +589,108 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                           20,
                                           12,
                                           20,
-                                          20 +
-                                              MediaQuery.of(context)
-                                                  .viewInsets
-                                                  .bottom,
+                                          20 + MediaQuery.of(context).viewInsets.bottom,
                                         ),
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Center(
                                               child: Container(
                                                 width: 44,
                                                 height: 4,
                                                 decoration: BoxDecoration(
-                                                  color:
-                                                      const Color(0xFFD1D1D6),
-                                                  borderRadius:
-                                                      BorderRadius.circular(99),
+                                                  color: const Color(0xFFD1D1D6),
+                                                  borderRadius: BorderRadius.circular(99),
                                                 ),
                                               ),
                                             ),
                                             const SizedBox(height: 18),
-                                            Text('Adjust ${goal.title}',
-                                                style: const TextStyle(
-                                                    fontSize: 22,
-                                                    fontWeight:
-                                                        FontWeight.w700)),
+                                            Text('Adjust ${goal.title}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
                                             const SizedBox(height: 6),
-                                            const Text(
-                                                'Update current savings and target amount.',
-                                                style: TextStyle(
-                                                    color: Color(0xFF8E8E93),
-                                                    fontSize: 13)),
+                                            const Text('Update current savings and target amount.', style: TextStyle(color: Color(0xFF8E8E93), fontSize: 13)),
                                             const SizedBox(height: 18),
                                             _styledGoalInput(
                                               controller: currentController,
                                               label: 'Current amount',
                                               icon: Icons.savings,
-                                              keyboardType:
-                                                  TextInputType.number,
+                                              keyboardType: TextInputType.number,
                                             ),
                                             const SizedBox(height: 12),
                                             _styledGoalInput(
                                               controller: targetController,
                                               label: 'Target amount',
                                               icon: Icons.track_changes,
-                                              keyboardType:
-                                                  TextInputType.number,
+                                              keyboardType: TextInputType.number,
                                             ),
                                             const SizedBox(height: 12),
                                             _styledGoalInput(
                                               controller: dateController,
                                               label: 'Date',
-                                              icon:
-                                                  Icons.calendar_today_outlined,
-                                              keyboardType:
-                                                  TextInputType.datetime,
+                                              icon: Icons.calendar_today_outlined,
+                                              keyboardType: TextInputType.datetime,
                                               readOnly: true,
                                               onTap: () async {
-                                                final picked =
-                                                    await showDatePicker(
+                                                final picked = await showDatePicker(
                                                   context: context,
                                                   initialDate: DateTime.now(),
                                                   firstDate: DateTime(2020),
                                                   lastDate: DateTime(2100),
                                                 );
                                                 if (picked != null) {
-                                                  dateController.text =
-                                                      '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+                                                  dateController.text = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
                                                 }
                                               },
                                             ),
                                             const SizedBox(height: 18),
                                             if (isLoading)
-                                              const Center(
-                                                  child:
-                                                      CircularProgressIndicator()),
+                                              const Center(child: CircularProgressIndicator()),
                                             SizedBox(
                                               width: double.infinity,
                                               height: 50,
                                               child: ElevatedButton(
                                                 style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      const Color(0xFF2D4EFF),
+                                                  backgroundColor: const Color(0xFF2D4EFF),
                                                   foregroundColor: Colors.white,
                                                   elevation: 0,
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            14),
+                                                    borderRadius: BorderRadius.circular(14),
                                                   ),
                                                 ),
                                                 onPressed: isLoading
                                                     ? null
                                                     : () async {
-                                                        final newCurrent =
-                                                            double.tryParse(
-                                                                    currentController
-                                                                        .text
-                                                                        .trim()) ??
-                                                                0;
-                                                        final newTarget =
-                                                            double.tryParse(
-                                                                    targetController
-                                                                        .text
-                                                                        .trim()) ??
-                                                                0;
-                                                        final newDate =
-                                                            dateController.text
-                                                                    .trim()
-                                                                    .isEmpty
-                                                                ? 'No date'
-                                                                : dateController
-                                                                    .text
-                                                                    .trim();
-                                                        if (newCurrent < 0 ||
-                                                            newTarget <= 0) {
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                            const SnackBar(
-                                                                content: Text(
-                                                                    'Please enter valid positive amounts')),
+                                                        final newCurrent = double.tryParse(currentController.text.trim()) ?? 0;
+                                                        final newTarget = double.tryParse(targetController.text.trim()) ?? 0;
+                                                        final newDate = dateController.text.trim().isEmpty ? 'No date' : dateController.text.trim();
+                                                        if (newCurrent < 0 || newTarget <= 0) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            const SnackBar(content: Text('Please enter valid positive amounts')),
                                                           );
                                                           return;
                                                         }
-                                                        setState(() =>
-                                                            isLoading = true);
-                                                        await FirebaseFirestore
-                                                            .instance
-                                                            .collection('goals')
-                                                            .doc(doc.id)
-                                                            .update({
+                                                        setState(() => isLoading = true);
+                                                        await FirebaseFirestore.instance.collection('goals').doc(doc.id).update({
                                                           'current': newCurrent,
                                                           'target': newTarget,
                                                           'date': newDate,
-                                                          'timeRemaining':
-                                                              _remainingTimeLabel(
-                                                                  newDate),
-                                                          'remaining':
-                                                              _remainingTimeLabel(
-                                                                  newDate),
+                                                          'timeRemaining': _remainingTimeLabel(newDate),
+                                                          'remaining': _remainingTimeLabel(newDate),
                                                         });
-                                                        setState(() =>
-                                                            isLoading = false);
+                                                        setState(() => isLoading = false);
                                                         Navigator.pop(context);
-                                                        ScaffoldMessenger.of(
-                                                                this.context)
-                                                            .showSnackBar(
-                                                          const SnackBar(
-                                                              content: Text(
-                                                                  'Goal updated successfully!')),
+                                                        ScaffoldMessenger.of(this.context).showSnackBar(
+                                                          const SnackBar(content: Text('Goal updated successfully!')),
                                                         );
                                                       },
-                                                child: const Text(
-                                                    'Save Changes',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        fontSize: 16)),
+                                                child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                                               ),
                                             ),
                                             const SizedBox(height: 8),
                                             Center(
                                               child: TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                                child: const Text('Cancel',
-                                                    style: TextStyle(
-                                                        color:
-                                                            Color(0xFF8E8E93))),
+                                                onPressed: () => Navigator.pop(context),
+                                                child: const Text('Cancel', style: TextStyle(color: Color(0xFF8E8E93))),
                                               ),
                                             ),
                                             const SizedBox(height: 8),
@@ -825,27 +699,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                                 onPressed: isLoading
                                                     ? null
                                                     : () async {
-                                                        setState(() =>
-                                                            isLoading = true);
-                                                        await FirebaseFirestore
-                                                            .instance
-                                                            .collection('goals')
-                                                            .doc(doc.id)
-                                                            .delete();
-                                                        setState(() =>
-                                                            isLoading = false);
+                                                        setState(() => isLoading = true);
+                                                        await FirebaseFirestore.instance.collection('goals').doc(doc.id).delete();
+                                                        setState(() => isLoading = false);
                                                         Navigator.pop(context);
-                                                        ScaffoldMessenger.of(
-                                                                this.context)
-                                                            .showSnackBar(
-                                                          const SnackBar(
-                                                              content: Text(
-                                                                  'Goal deleted.')),
+                                                        ScaffoldMessenger.of(this.context).showSnackBar(
+                                                          const SnackBar(content: Text('Goal deleted.')),
                                                         );
                                                       },
-                                                child: const Text('Delete Goal',
-                                                    style: TextStyle(
-                                                        color: Colors.red)),
+                                                child: const Text('Delete Goal', style: TextStyle(color: Colors.red)),
                                               ),
                                             ),
                                           ],
@@ -867,25 +729,18 @@ class _GoalsScreenState extends State<GoalsScreen> {
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('goals')
-                    .where('userId',
-                        isEqualTo: FirebaseAuth.instance.currentUser?.uid ??
-                            'demo_user')
+                    .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? 'demo_user')
                     .snapshots(),
                 builder: (context, completedSnapshot) {
-                  if (completedSnapshot.connectionState ==
-                      ConnectionState.waiting) {
+                  if (completedSnapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (!completedSnapshot.hasData ||
-                      completedSnapshot.data!.docs.isEmpty) {
+                  if (!completedSnapshot.hasData || completedSnapshot.data!.docs.isEmpty) {
                     return const SizedBox.shrink();
                   }
-                  final completedGoals =
-                      completedSnapshot.data!.docs.where((doc) {
+                  final completedGoals = completedSnapshot.data!.docs.where((doc) {
                     final data = doc.data() as Map<String, dynamic>;
-                    return (data['current'] as num? ?? 0) >=
-                            (data['target'] as num? ?? 0) &&
-                        (data['target'] as num? ?? 0) > 0;
+                    return (data['current'] as num? ?? 0) >= (data['target'] as num? ?? 0) && (data['target'] as num? ?? 0) > 0;
                   }).toList();
                   if (completedGoals.isEmpty) {
                     return const SizedBox.shrink();
@@ -893,23 +748,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('COMPLETED',
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF8E8E93),
-                              fontWeight: FontWeight.w600)),
+                      const Text('COMPLETED', style: TextStyle(fontSize: 13, color: Color(0xFF8E8E93), fontWeight: FontWeight.w600)),
                       const SizedBox(height: 12),
                       ...completedGoals.map((doc) {
                         final data = doc.data() as Map<String, dynamic>;
-                        final icon =
-                            _iconFromString(data['icon'] ?? 'account_balance');
+                        final icon = _iconFromString(data['icon'] ?? 'account_balance');
                         final title = data['title'] ?? '';
                         final achievedDate = data['date'] ?? '';
-                        final current =
-                            (data['current'] as num?)?.toDouble() ?? 0;
+                        final current = (data['current'] as num?)?.toDouble() ?? 0;
                         return Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 18, horizontal: 20),
+                          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF2F2F5),
@@ -925,8 +773,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                   color: const Color(0xFFE8E8ED),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: Icon(icon,
-                                    color: const Color(0xFFB5B5BC), size: 28),
+                                child: Icon(icon, color: const Color(0xFFB5B5BC), size: 28),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -1084,8 +931,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEAF3FF),
                     borderRadius: BorderRadius.circular(10),
@@ -1120,8 +966,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 value: goal.progress,
                 minHeight: 9,
                 backgroundColor: const Color(0xFFEBEBEB),
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
               ),
             ),
             const SizedBox(height: 12),
@@ -1211,8 +1056,7 @@ class _GoalCategoryPickerScreen extends StatefulWidget {
   final List<_GoalCategoryOption> options;
 
   @override
-  State<_GoalCategoryPickerScreen> createState() =>
-      _GoalCategoryPickerScreenState();
+  State<_GoalCategoryPickerScreen> createState() => _GoalCategoryPickerScreenState();
 }
 
 class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
@@ -1251,8 +1095,7 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
                         color: const Color(0xFFEAF3FF),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(option.icon,
-                          color: const Color(0xFF007AFF), size: 20),
+                      child: Icon(option.icon, color: const Color(0xFF007AFF), size: 20),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -1296,8 +1139,7 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
                     ),
                     child: const Text(
                       'Use this category',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
@@ -1355,8 +1197,7 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
                       borderRadius: BorderRadius.circular(14),
                       onTap: () => _showCategoryInfo(option),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
@@ -1371,8 +1212,7 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
                                 color: const Color(0xFFEAF3FF),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(option.icon,
-                                  color: const Color(0xFF007AFF), size: 22),
+                              child: Icon(option.icon, color: const Color(0xFF007AFF), size: 22),
                             ),
                             const SizedBox(width: 12),
                             Expanded(

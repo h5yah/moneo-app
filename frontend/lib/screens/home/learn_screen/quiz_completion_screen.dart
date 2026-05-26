@@ -57,10 +57,8 @@ class QuizCompletionScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // XP Badge with animation effect
                 _buildXPBadge(),
                 const SizedBox(height: 32),
-                // Great job title
                 const Text(
                   'Great job!',
                   style: TextStyle(
@@ -70,7 +68,6 @@ class QuizCompletionScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // XP message
                 StreamBuilder<int>(
                   stream: XpService.instance.xpStream(),
                   builder: (context, snapshot) {
@@ -103,7 +100,6 @@ class QuizCompletionScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 32),
-                // Level progress section
                 StreamBuilder<int>(
                   stream: XpService.instance.xpStream(),
                   builder: (context, snapshot) {
@@ -120,7 +116,6 @@ class QuizCompletionScreen extends StatelessWidget {
                   _buildImprovementSection(),
                 ],
                 const SizedBox(height: 16),
-                // Encouragement message
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -134,7 +129,6 @@ class QuizCompletionScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 32),
-                // Continue button
                 _buildContinueButton(context),
               ],
             ),
@@ -149,9 +143,8 @@ class QuizCompletionScreen extends StatelessWidget {
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
-        // Main XP card (rotated)
         Transform.rotate(
-          angle: -0.1, // Slight rotation
+          angle: -0.1, 
           child: Container(
             width: 140,
             height: 140,
@@ -171,7 +164,6 @@ class QuizCompletionScreen extends StatelessWidget {
             ),
           ),
         ),
-        // Earned XP badge
         Positioned(
           top: -10,
           right: -10,
@@ -257,7 +249,6 @@ class QuizCompletionScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        // Progress bar
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(

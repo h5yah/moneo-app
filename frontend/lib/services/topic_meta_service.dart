@@ -74,8 +74,6 @@ class TopicMetaService {
     _loaded = true;
   }
 
-  // NOTE: Icons are a Flutter runtime type. We keep the mapping minimal and
-  // driven by JSON values so the app can change icon choices without editing UI code.
   String? _optionalString(dynamic value) {
     if (value == null) return null;
     final trimmed = value.toString().trim();

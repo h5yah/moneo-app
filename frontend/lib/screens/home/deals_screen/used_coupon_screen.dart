@@ -36,8 +36,7 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Header with close button
+              children: [ 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 20),
                   child: Row(
@@ -65,7 +64,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                // Main coupon card
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 34),
                   padding: const EdgeInsets.all(25),
@@ -76,7 +74,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Store logo
                       Container(
                         width: 106,
                         height: 106,
@@ -103,7 +100,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Store name
                       Text(
                         widget.storeName,
                         style: const TextStyle(
@@ -114,7 +110,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Deal title
                       RichText(
                         text: TextSpan(
                           children: [
@@ -147,7 +142,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      // Description
                       Text(
                         widget.dealDescription,
                         textAlign: TextAlign.center,
@@ -159,7 +153,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Location
                       Text(
                         widget.location,
                         textAlign: TextAlign.center,
@@ -171,7 +164,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      // Decorative dividers
                       Row(
                         children: [
                           Expanded(
@@ -200,7 +192,6 @@ class _UsedCouponScreenState extends State<UsedCouponScreen> {
                         ],
                       ),
                       const SizedBox(height: 32),
-                      // Redemption Details
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
@@ -289,8 +280,7 @@ class StarBadgePainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-
-    // Draw a star-shaped badge
+      
     _drawStar(canvas, center, radius, 12, paint);
   }
 

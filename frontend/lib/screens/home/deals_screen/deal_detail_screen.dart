@@ -47,20 +47,15 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image header with back button
             _buildImageHeader(),
-            // Deal info container with overlap effect
             Transform.translate(
               offset: const Offset(0, -20),
               child: _buildDealInfoContainer(),
             ),
             const SizedBox(height: 16),
-            // About this deal
             _buildAboutSection(),
-            // How to redeem
             _buildRedeemSection(),
             const SizedBox(height: 32),
-            // Claim button
             _buildClaimButton(),
             const SizedBox(height: 24),
           ],
@@ -73,7 +68,6 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
-        // Image
         Container(
           width: double.infinity,
           height: 300,
@@ -102,7 +96,6 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                   },
                 ),
         ),
-        // Back button
         Positioned(
           top: 16,
           left: 16,
@@ -157,7 +150,6 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
@@ -177,7 +169,6 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Deal title
                     Text(
                       widget.dealTitle,
                       style: TextStyle(
@@ -187,7 +178,6 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Store name
                     Text(
                       widget.dealStore,
                       style: TextStyle(
@@ -201,7 +191,6 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              // XP cost badge
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 8),
@@ -235,7 +224,6 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          // Location and validity chips
           Row(
             children: [
               Container(
@@ -321,8 +309,7 @@ class _DealDetailScreenState extends State<DealDetailScreen> {
                   : Colors.black.withValues(alpha: 0.8),
             ),
           ),
-          const SizedBox(height: 16),
-          // Validation points
+          const SizedBox(height: 16),     
           for (int i = 0; i < widget.validationPoints.length; i++) ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -31,16 +31,14 @@ class _SplitExpensesScreenState extends State<SplitExpensesScreen> {
   int peopleCount = 3;
   int minPeople = 2;
   int maxPeople = 20;
-  int selectedMethod = 0; // 0: Split Equally, 1: Custom Equally
+  int selectedMethod = 0; 
 
-  // Controllers for custom split amounts
   List<TextEditingController> customControllers = [];
 
   @override
   void initState() {
     super.initState();
     _initCustomControllers();
-      // Start with empty fields
       expenseNameController.text = '';
       totalAmountController.text = '';
   }
@@ -51,10 +49,8 @@ class _SplitExpensesScreenState extends State<SplitExpensesScreen> {
 
   void _updateCustomControllers() {
     if (customControllers.length < peopleCount) {
-      // Add controllers if peopleCount increased
       customControllers.addAll(List.generate(peopleCount - customControllers.length, (index) => TextEditingController()));
     } else if (customControllers.length > peopleCount) {
-      // Remove controllers if peopleCount decreased
       customControllers = customControllers.sublist(0, peopleCount);
     }
   }
@@ -90,7 +86,6 @@ class _SplitExpensesScreenState extends State<SplitExpensesScreen> {
             errorText = 'Custom amounts must sum to total.';
           }
         }
-    // Keep controllers in sync with peopleCount
     _updateCustomControllers();
     return Scaffold(
       appBar: AppBar(
@@ -400,7 +395,7 @@ class _SplitExpensesScreenState extends State<SplitExpensesScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Your share has been logged!')),
                             );
-                            Navigator.of(context).pop(); // Go back after logging
+                            Navigator.of(context).pop(); 
                           }
                         }
                       : null,

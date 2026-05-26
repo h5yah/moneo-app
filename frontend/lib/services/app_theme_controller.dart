@@ -11,7 +11,6 @@ class AppThemeController {
   static final ValueNotifier<TextScaler> textScalerNotifier =
       ValueNotifier(const TextScaler.linear(1.0));
 
-  /// Current linear text scale factor (after clamping).
   static double linearTextScale = 1.0;
 
   static String _themeToStorage(ThemeMode mode) => switch (mode) {
@@ -70,7 +69,7 @@ class AppThemeController {
     setThemeMode(next);
   }
 
-  /// Apply theme + font from Firestore `preferences` map (optional sync on login).
+  /// Apply theme + font 
   static Future<void> applyFromFirestorePrefs(Map<String, dynamic>? preferences) async {
     if (preferences == null) return;
     final themeLabel = preferences['themeMode'] as String?;

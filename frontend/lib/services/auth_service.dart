@@ -7,8 +7,7 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Google sign-in: returns [UserCredential] on success, `null` if the user
-  /// cancelled. Rethrows [GoogleSignInException] (non-cancel) and [FirebaseAuthException].
+  
   Future<UserCredential?> signInWithGoogle() async {
     if (!GoogleSignIn.instance.supportsAuthenticate()) {
       throw UnsupportedError('Google Sign-In is not available on this platform.');
@@ -75,7 +74,6 @@ class AuthService {
       String phone,
       String password) async {
     try {
-      // Create Firebase Auth user
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -84,13 +82,12 @@ class AuthService {
       User? user = result.user;
 
       if (user != null) {
-        // Save extra data in Firestore
         await _firestore.collection('users').doc(user.uid).set({
           'firstName': firstName,
           'lastName': lastName,
           'email': email,
           'phone': phone,
-          'xp': 0, // Start XP at 0
+          'xp': 0, 
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
@@ -132,7 +129,6 @@ class AuthService {
     await _auth.signOut();
   }
 
-  // GET CURRENT USER
   User? get currentUser => _auth.currentUser;
 }
 

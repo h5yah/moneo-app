@@ -49,7 +49,7 @@ class _CreateGoalScreenState extends State<CreateGoalScreen> {
         'icon': Icons.lightbulb,
         'title': 'Other',
         'subtitle': 'Custom Goal',
-        'color': Color(0xFF7C4DFF), // Deep purple accent
+        'color': Color(0xFF7C4DFF), 
         'iconColor': Colors.white,
       },
     ];
@@ -168,7 +168,6 @@ class _CreateGoalScreenState extends State<CreateGoalScreen> {
               );
             }),
             Spacer(),
-            // Removed "I'll do this later" button as setting a goal is compulsory
             SizedBox(height: 24),
           ],
         ),

@@ -4,7 +4,7 @@ class CouponTicketCard extends StatelessWidget {
   final String storeName;
   final String dealTitle;
   final String validity;
-  final String status; // 'active', 'used', 'expired'
+  final String status; 
   final Color storeColor;
   final String storeInitials;
   final VoidCallback onTap;
@@ -44,7 +44,6 @@ class CouponTicketCard extends StatelessWidget {
             color: isActive ? Colors.white : const Color(0xFFF2F2F7),
             child: Row(
               children: [
-                // Stub Section (Left)
                 Container(
                   width: 100,
                   decoration: BoxDecoration(
@@ -53,7 +52,7 @@ class CouponTicketCard extends StatelessWidget {
                       right: BorderSide(
                         color: Colors.grey[300]!,
                         width: 1,
-                        style: BorderStyle.none, // Handled by CustomPaint if needed, or simple container
+                        style: BorderStyle.none, 
                       ),
                     ),
                   ),
@@ -82,7 +81,6 @@ class CouponTicketCard extends StatelessWidget {
                   ),
                 ),
 
-                // Dashed Line
                 CustomPaint(
                   size: const Size(1, double.infinity),
                   painter: DashedLinePainter(
@@ -90,7 +88,6 @@ class CouponTicketCard extends StatelessWidget {
                   ),
                 ),
 
-                // Body Section (Right)
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -146,7 +143,6 @@ class CouponTicketCard extends StatelessWidget {
                   ),
                 ),
                 
-                // Active Indicator Strip
                 if (isActive)
                   Container(
                     width: 6,
@@ -169,17 +165,14 @@ class TicketClipper extends CustomClipper<Path> {
     path.moveTo(0, 0);
     path.lineTo(size.width, 0);
     
-    // Top Right Corner
     path.lineTo(size.width, size.height);
     
-    // Bottom Left Corner
     path.lineTo(0, size.height);
     
     path.close();
 
-    // Cutouts
     double holeRadius = 10;
-    double holePosition = 100; // Match the stub width
+    double holePosition = 100; 
 
     Path holePath = Path();
     holePath.addOval(Rect.fromCircle(center: Offset(holePosition, 0), radius: holeRadius));

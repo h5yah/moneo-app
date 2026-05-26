@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-/// Text-to-speech for lesson slides (topic intro steps).
+/// Text-to-speech for lesson slides 
 class LessonTtsService {
   LessonTtsService._();
 

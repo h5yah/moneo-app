@@ -513,7 +513,6 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back button at the top
           Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
@@ -1222,7 +1221,6 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
   }
 
   Widget _buildResult() {
-    // Award XP only once per completion
     Future.microtask(() async {
       if (!_xpAwarded && _emergencyFund >= 1500) {
         _xpAwarded = true;

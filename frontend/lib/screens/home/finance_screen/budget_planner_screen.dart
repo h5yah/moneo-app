@@ -61,7 +61,6 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
     final dayString =
         '${selectedDay.year}-${selectedDay.month.toString().padLeft(2, '0')}-${selectedDay.day.toString().padLeft(2, '0')}';
 
-    /// Load budget
     final budgetDoc = await FirebaseFirestore.instance
         .collection('budgets')
         .doc(userId)
@@ -73,8 +72,7 @@ class _BudgetPlannerScreenState extends State<BudgetPlannerScreen> {
       final data = budgetDoc.data() as Map<String, dynamic>;
       dailyBudget = (data['dailyBudget'] as num?)?.toDouble() ?? 0;
     }
-
-    /// Load expenses
+    
     final expenseQuery = await FirebaseFirestore.instance
         .collection('expenses')
         .where('userId', isEqualTo: userId)

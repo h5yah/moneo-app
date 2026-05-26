@@ -12,7 +12,7 @@ import 'goal_icon_style.dart';
 
 class FinanceScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
-  final int? progressReplaySeed;
+  final int? progressReplaySeed;  
 
   const FinanceScreen({
     super.key,
@@ -880,7 +880,6 @@ class _FinanceScreenState extends State<FinanceScreen> {
     dateController.dispose();
   }
 
-  /// Single goal card for My Goals carousel on Finance.
   Widget _financeMyGoalCard(DocumentSnapshot doc, bool isDark) {
     final data = doc.data()! as Map<String, dynamic>;
     final title = data['title'] ?? '';
@@ -1277,8 +1276,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                   color: isDark ? Colors.white : const Color(0xC2000000),
                   letterSpacing: -0.408,
                 ),
-              ),
-              // Removed 'Go to Planner' button
+              ),    
             ],
           ),
           const SizedBox(height: 18),
@@ -1764,6 +1762,4 @@ class _FinanceScreenState extends State<FinanceScreen> {
       ),
     );
   }
-
-  // Bottom navigation is provided by HomeScreen; this screen only renders body content.
 }

@@ -198,7 +198,6 @@ class LearnContentService {
       }
     }
 
-    // Require a clear signal; avoids attaching curriculum to "hello" or vague chit-chat.
     final minOverlap = qTokens.length == 1
         ? 1
         : (qTokens.length <= 4 ? 2 : 3);

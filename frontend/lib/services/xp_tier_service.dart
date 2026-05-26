@@ -1,4 +1,3 @@
-/// Lifetime XP loyalty tiers: Bronze → Silver → Gold.
 class LoyaltyTier {
   const LoyaltyTier({
     required this.id,
@@ -11,8 +10,6 @@ class LoyaltyTier {
   final String id;
   final String label;
   final int minXp;
-
-  /// Inclusive upper bound; `null` means top tier (no cap).
   final int? maxXp;
   final int accentColor;
 

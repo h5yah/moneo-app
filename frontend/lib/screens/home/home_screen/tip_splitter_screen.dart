@@ -9,7 +9,6 @@ class TipSplitterScreen extends StatefulWidget {
 }
 
 class _TipSplitterScreenState extends State<TipSplitterScreen> {
-  /// App currency label (always shown; not tied to device locale).
   static const String _currencyPrefix = 'Rs ';
 
   final TextEditingController _billController = TextEditingController();
@@ -67,8 +66,6 @@ class _TipSplitterScreenState extends State<TipSplitterScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-
-            /// RESULT CARD
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(26),
@@ -142,8 +139,6 @@ class _TipSplitterScreenState extends State<TipSplitterScreen> {
             ),
 
             const SizedBox(height: 20),
-
-            /// INPUT CARD
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
@@ -218,8 +213,6 @@ class _TipSplitterScreenState extends State<TipSplitterScreen> {
                   ),
 
                   const Divider(height: 28),
-
-                  /// TIP SELECTOR
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -275,8 +268,6 @@ class _TipSplitterScreenState extends State<TipSplitterScreen> {
                   ),
 
                   const SizedBox(height: 24),
-
-                  /// PEOPLE
                   Text(
                     "Split Between",
                     style: TextStyle(
@@ -326,7 +317,6 @@ class _TipSplitterScreenState extends State<TipSplitterScreen> {
 
             const SizedBox(height: 20),
 
-            /// BREAKDOWN
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(

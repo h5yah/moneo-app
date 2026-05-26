@@ -172,7 +172,6 @@ class LearnScreenState extends State<LearnScreen> {
     });
   }
 
-  /// Reload progress from Firestore (e.g. when returning to the Learn tab).
   Future<void> refreshTopicProgress() async {
     await _reloadTopicProgressFromServer();
     _replayTopicBars();
@@ -351,8 +350,6 @@ class LearnScreenState extends State<LearnScreen> {
     final preQuizQuestions = _getPreQuizQuestionsForTopic(topicId);
     final preQuizTotal = (progressData['preQuizTotal'] as num?)?.toInt() ?? -1;
 
-    // If this topic previously had no pre-quiz, we auto-marked it as completed
-    // with a 0/0 result. Now that questions exist, show the pre-quiz again.
     if (preQuizDone && preQuizTotal == 0 && preQuizQuestions.isNotEmpty) {
       preQuizDone = false;
     }
@@ -436,7 +433,6 @@ class LearnScreenState extends State<LearnScreen> {
     try {
       await _reloadTopicProgressFromServer();
     } catch (_) {
-      // Ignore refresh errors after returning from a topic.
     }
   }
 
@@ -1235,7 +1231,6 @@ class LearnScreenState extends State<LearnScreen> {
         )
         .toList(growable: false);
 
-    // These are structural nodes in the learning flow, not content.
     return [
       LessonItem(
         step: 'PRE-QUIZ',
@@ -1256,6 +1251,4 @@ class LearnScreenState extends State<LearnScreen> {
   List<QuizQuestion> _getPreQuizQuestionsForTopic(String topicId) {
     return LearnContentService.instance.preQuizQuestionsForTopic(topicId);
   }
-
-  // Bottom navigation is provided by HomeScreen; this screen only renders body content.
 }

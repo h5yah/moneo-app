@@ -18,7 +18,6 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   String? _error;
   String _rateDate = '';
 
-  // Currencies to show in the dropdown
   final List<String> _currencies = [
     'USD', 'MUR', 'EUR', 'GBP', 'INR', 'ZAR', 'AUD', 'JPY', 'CAD', 'CHF',
   ];
@@ -53,9 +52,6 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     }
   }
 
-  /// Fetches the exchange rate from [from] to [to].
-  /// Primary: fawazahmed0 CDN API (no key, 200+ currencies incl. MUR)
-  /// Fallback: currency-api.pages.dev mirror
   Future<double> _fetchRate(String from, String to) async {
     final fromLower = from.toLowerCase();
     final toLower = to.toLowerCase();
@@ -79,7 +75,6 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
           }
         }
       } catch (_) {
-        // try next URL
       }
     }
     throw Exception('Could not fetch rate');

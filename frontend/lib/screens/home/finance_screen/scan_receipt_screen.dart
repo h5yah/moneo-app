@@ -22,7 +22,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
   bool _flashOn = false;
   bool _isProcessing = false;
 
-  String _paidWith = 'wallet'; // wallet or cash
+  String _paidWith = 'wallet'; 
   String _category = 'Food & Dining';
   IconData _categoryIcon = Icons.restaurant;
   double _amount = 0.0;

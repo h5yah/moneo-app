@@ -15,7 +15,7 @@ class DeviceContactsService {
 
   static final FlutterNativeContactPicker _picker = FlutterNativeContactPicker();
 
-  /// Opens the device contact picker (no full address-book permission needed).
+  /// Opens the device contact picker 
   static Future<DeviceContactPick?> pickFromPhone() async {
     final contact = await _picker.selectPhoneNumber();
     if (contact == null) {
@@ -43,7 +43,7 @@ class DeviceContactsService {
     );
   }
 
-  /// Extracts 8-digit Mauritius mobile (5xxxxxxx) from any phone string.
+  /// Extracts 8-digit Mauritius mobile 
   static String? normalizeMauritiusMobile(String raw) {
     var digits = raw.replaceAll(RegExp(r'\D'), '');
     if (digits.startsWith('230') && digits.length >= 11) {

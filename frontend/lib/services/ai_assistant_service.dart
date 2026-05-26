@@ -2,7 +2,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fintech/services/miro_knowledge_service.dart';
 
-/// Calls the `miroChat` HTTPS callable (see `backend/functions/index.js`).
 class AiAssistantService {
   AiAssistantService._();
 
@@ -12,7 +11,6 @@ class AiAssistantService {
     region: 'us-central1',
   );
 
-  /// Returns assistant reply text. Throws [FirebaseFunctionsException] on failure.
   Future<String> sendMessage(String message) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {

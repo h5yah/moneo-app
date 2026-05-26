@@ -142,7 +142,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           body: SingleChildScrollView(
             child: Column(
               children: [
-                // Header Section with Blue Background
                 _buildProfileHeader(
                   displayName: displayName.isEmpty
                       ? (emailFallback.isEmpty ? 'User' : emailFallback)
@@ -1430,7 +1429,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Goal Label
           Text(
             'TOP GOAL',
             style: TextStyle(
@@ -1441,7 +1439,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          // Goal Title
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1466,7 +1463,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Amount
           RichText(
             text: TextSpan(
               children: [

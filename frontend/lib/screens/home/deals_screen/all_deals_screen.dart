@@ -79,7 +79,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 20),
                 child: Row(
@@ -107,7 +106,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Search bar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 38),
                 child: TextField(
@@ -139,7 +137,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              // Category filter
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -152,7 +149,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              // Deals grid
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 38),
                 child: Column(
@@ -172,7 +168,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            // Show sort options
                           },
                           child: Text(
                             'Sort by: Recent',
@@ -342,7 +337,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
             Container(
               height: 118,
               decoration: BoxDecoration(
@@ -365,7 +359,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                 ),
               ),
             ),
-            // Content
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -403,7 +396,6 @@ class _AllDealsScreenState extends State<AllDealsScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Title
                   Text(
                     deal.title,
                     maxLines: 2,

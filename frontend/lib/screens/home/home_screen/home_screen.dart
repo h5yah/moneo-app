@@ -49,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Active topic progress state
   String _activeTopicId = 'budgeting_and_expense_tracking';
   Map<String, dynamic>? _activeTopicData;
   String? _pendingResumeTopicId;
@@ -138,7 +137,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (_) {
-      // This field only prevents duplicate UI celebrations.
     }
   }
 
@@ -214,7 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadActiveTopicProgress() async {
-    // Pick the first incomplete topic (Topic 1 → 4). If all complete, keep Topic 4.
     await TopicMetaService.instance.ensureLoaded();
     final metas = TopicMetaService.instance.byId;
     final order = TopicMetaService.instance.order;
@@ -359,7 +356,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// True when the user has begun this topic (pre-quiz, a lesson, or mid-lesson progress).
   bool _hasStartedTopicProgress(Map<String, dynamic>? topicData) {
     if (topicData == null || topicData.isEmpty) return false;
     if (topicData['preQuizCompleted'] == true) return true;
@@ -405,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : _selectedIndex == 4
                     ? const Color(0xFFF0F0F0)
                     : const Color(0xFFF5F7FB);
-    // Keep tabs mounted so Learn does not reload (spinner / progress flicker).
+    
     final Widget body = IndexedStack(
       index: _tabStackIndex(_selectedIndex),
       sizing: StackFit.expand,
@@ -888,7 +884,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           _pendingAutoOpenResumeTopic = true;
                           _selectedIndex = 1;
                         });
-                        // One-shot: after LearnScreen consumes it, disable auto-open.
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (!mounted) return;
                           setState(() => _pendingAutoOpenResumeTopic = false);
@@ -1393,7 +1388,6 @@ class _HomeScreenState extends State<HomeScreen> {
           if (i == 0) {
             _loadActiveTopicProgress();
           } else if (i == 1) {
-            // Light sync when re-selecting Learn (tab state is preserved).
             _learnTabKey.currentState?.refreshTopicProgress();
             _learnTabKey.currentState?.replayTopicBars();
           }
@@ -1401,7 +1395,6 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         backgroundColor: isDark ? const Color(0xFF17192B) : Colors.white,
         elevation: 0,
-        // Let us control icon sizes via custom widgets.
         iconSize: 0,
         selectedItemColor: const Color(0xFF007AFF),
         unselectedItemColor: isDark
@@ -1454,7 +1447,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// AI assistant screen lives in `ai_assistant/ai_assistant.dart`.
 
 class _LevelUpCelebrationOverlay extends StatelessWidget {
   const _LevelUpCelebrationOverlay({required this.level});

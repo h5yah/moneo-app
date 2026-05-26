@@ -23,7 +23,6 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
   late AnimationController _animController;
   late Animation<double> _donutAnimation;
 
-  // ── Palette ──────────────────────────────────────────────────────────────
   static const Color _bg = Color(0xFFF7F8FC);
   static const Color _white = Colors.white;
   static const Color _indigo = Color(0xFFFF6B35);
@@ -57,7 +56,6 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
     super.dispose();
   }
 
-  // ── Calculations ─────────────────────────────────────────────────────────
   double get _monthlyPayment {
     final r = _annualRate / 100 / 12;
     final n = _termMonths;
@@ -98,7 +96,6 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
     });
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -128,13 +125,10 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Loan Amount Input ─────────────────────────────────────────
             _SectionLabel('Loan Amount'),
             const SizedBox(height: 8),
             _AmountInputField(controller: _loanController),
             const SizedBox(height: 28),
-
-            // ── Loan Term Slider ──────────────────────────────────────────
             _SectionLabel('Loan Term'),
             const SizedBox(height: 4),
             _SliderField(
@@ -148,8 +142,6 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
               onChanged: (v) => setState(() => _termMonths = v.round()),
             ),
             const SizedBox(height: 28),
-
-            // ── Interest Rate Slider ──────────────────────────────────────
             _SectionLabel('Interest Rate'),
             const SizedBox(height: 4),
             _SliderField(
@@ -165,11 +157,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
               },
             ),
             const SizedBox(height: 36),
-
-            // ── Calculate Button ──────────────────────────────────────────
             _CalcButton(onPressed: _onCalculate),
-
-            // ── Breakdown ─────────────────────────────────────────────────
             if (_hasCalculated) ...[
               const SizedBox(height: 44),
               _BreakdownSection(
@@ -192,7 +180,6 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen>
   }
 }
 
-// ── Section Label ────────────────────────────────────────────────────────────
 class _SectionLabel extends StatelessWidget {
   final String text;
   const _SectionLabel(this.text);
@@ -212,7 +199,6 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-// ── Back Button ──────────────────────────────────────────────────────────────
 class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -247,7 +233,6 @@ class _BackButton extends StatelessWidget {
   }
 }
 
-// ── Amount Input Field ────────────────────────────────────────────────────────
 class _AmountInputField extends StatefulWidget {
   final TextEditingController controller;
   const _AmountInputField({required this.controller});
@@ -343,7 +328,6 @@ class _AmountInputFieldState extends State<_AmountInputField> {
   }
 }
 
-// ── Slider Field ──────────────────────────────────────────────────────────────
 class _SliderField extends StatelessWidget {
   final double value;
   final double min;
@@ -467,7 +451,6 @@ class _CustomThumb extends SliderComponentShape {
   }
 }
 
-// ── Calculate Button ──────────────────────────────────────────────────────────
 class _CalcButton extends StatelessWidget {
   final VoidCallback onPressed;
   const _CalcButton({required this.onPressed});
@@ -497,7 +480,6 @@ class _CalcButton extends StatelessWidget {
   }
 }
 
-// ── Breakdown Section ─────────────────────────────────────────────────────────
 class _BreakdownSection extends StatelessWidget {
   final double loanAmount;
   final double totalInterest;
@@ -543,7 +525,6 @@ class _BreakdownSection extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // Donut
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 28),
@@ -612,8 +593,6 @@ class _BreakdownSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Summary grid
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -667,8 +646,6 @@ class _BreakdownSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Disclaimer
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -699,7 +676,6 @@ class _BreakdownSection extends StatelessWidget {
   }
 }
 
-// ── Donut Painter ─────────────────────────────────────────────────────────────
 class _DonutPainter extends CustomPainter {
   final double principal;
   final double interest;
@@ -726,7 +702,6 @@ class _DonutPainter extends CustomPainter {
     final principalSweep = (principal / total) * fullCircle * progress;
     final interestSweep = (interest / total) * fullCircle * progress;
 
-    // Track
     canvas.drawArc(
       rect,
       0,
@@ -739,7 +714,6 @@ class _DonutPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
 
-    // Principal arc
     canvas.drawArc(
       rect,
       startAngle,
@@ -752,7 +726,6 @@ class _DonutPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
 
-    // Interest arc
     canvas.drawArc(
       rect,
       startAngle + principalSweep,
@@ -773,7 +746,6 @@ class _DonutPainter extends CustomPainter {
       old.interest != interest;
 }
 
-// ── Legend Item ───────────────────────────────────────────────────────────────
 class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
@@ -814,7 +786,6 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-// ── Summary Row ───────────────────────────────────────────────────────────────
 class _SummaryRow extends StatelessWidget {
   final List<_SummaryItem> items;
   const _SummaryRow({required this.items});

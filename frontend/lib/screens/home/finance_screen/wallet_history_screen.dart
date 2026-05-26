@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class WalletHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final senderId = 'demo_user'; // Replace with FirebaseAuth.instance.currentUser?.uid if needed
+    final senderId = 'demo_user'; 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wallet History'),

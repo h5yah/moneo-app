@@ -490,7 +490,6 @@ class _MyCouponsScreenState extends State<MyCouponsScreen> {
   }
 }
 
-/// Ticket-style dashed divider between image and offer details.
 class _CouponPerforation extends StatelessWidget {
   const _CouponPerforation({required this.isDark});
 

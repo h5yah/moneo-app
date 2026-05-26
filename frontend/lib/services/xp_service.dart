@@ -3,7 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
-/// Progressive level curve: L1→2 = 500 XP, L2→3 = 700 XP, L3→4 = 900 XP, …
+/// Progressive level curve
 class XpLevelMeta {
   const XpLevelMeta({
     required this.level,
@@ -42,16 +42,12 @@ class XpService {
   static const int baseXpPerLevel = 500;
   static const int xpIncreasePerLevel = 200;
 
-  /// XP for finishing a core lesson (Home learn card, lesson completion modal).
   static const int lessonCompletionXp = 100;
 
-  /// XP each time an interactive scenario is completed successfully.
   static const int scenarioCompletionXp = 100;
 
-  /// One-time bonus when completing a topic (final quiz / "Great job!" screen).
   static const int topicCompletionBonusXp = 500;
 
-  /// @deprecated Use [topicCompletionBonusXp].
   static const int postQuizCompletionXp = topicCompletionBonusXp;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -126,7 +122,6 @@ class XpService {
     return result.xp;
   }
 
-  /// `gameId` e.g. [spinWinGame]; resets each local calendar day.
   static String dailyAwardKey(String gameId, [DateTime? when]) {
     final d = when ?? DateTime.now();
     final month = d.month.toString().padLeft(2, '0');
@@ -148,7 +143,6 @@ class XpService {
     return snap.exists;
   }
 
-  /// Ensures `users/{uid}` exists so Cloud Functions can award XP.
   Future<void> ensureUserProfile() async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -169,7 +163,6 @@ class XpService {
     });
   }
 
-  /// Awards XP only the first time [awardKey] is used for this user.
   Future<XpEarnResult> earnXpOnce({
     required int amount,
     required String source,
@@ -192,7 +185,6 @@ class XpService {
       if (viaCallable.awarded) {
         return viaCallable;
       }
-      // Award key already used on server — not an error.
       return viaCallable;
     } on FirebaseFunctionsException catch (e) {
       debugPrint(
@@ -247,7 +239,6 @@ class XpService {
     }
   }
 
-  /// Client-side earn when Cloud Functions are unavailable (see firestore.rules).
   Future<XpEarnResult> _earnXpOnceViaFirestore({
     required String uid,
     required int amount,

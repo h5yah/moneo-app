@@ -67,7 +67,7 @@ const _kQuestions = [
   ),
 ];
  
-// ─── Archetype model ─────────────────────────────────────────────────────────
+//  Archetype model 
  
 class _Archetype {
   const _Archetype({
@@ -121,7 +121,7 @@ const _archetypes = {
   ),
 };
  
-// ─── Main widget ─────────────────────────────────────────────────────────────
+//  Main widget 
  
 class PreQuizScreen extends StatefulWidget {
   const PreQuizScreen({super.key});
@@ -132,7 +132,6 @@ class PreQuizScreen extends StatefulWidget {
  
 class _PreQuizScreenState extends State<PreQuizScreen>
     with TickerProviderStateMixin {
-  // 0 = splash, 1 = quiz, 2 = archetype reveal
   int _phase = 0;
   int _qIndex = 0;
   int _selected = -1;
@@ -242,7 +241,6 @@ class _PreQuizScreenState extends State<PreQuizScreen>
     );
   }
  
-  // ─── Build ──────────────────────────────────────────────────────────────
  
   @override
   Widget build(BuildContext context) {
@@ -268,7 +266,7 @@ class _PreQuizScreenState extends State<PreQuizScreen>
   }
 }
  
-// ─── Splash screen ───────────────────────────────────────────────────────────
+//  Splash screen 
  
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen({required this.onStart});
@@ -280,7 +278,7 @@ class _SplashScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF0F5FF),
       body: Stack(
         children: [
-          // ── background circles ──
+          //  background circles 
           Positioned(
             top: -70, right: -70,
             child: _Circle(size: 260, color: const Color(0xFFBFDBFE)),
@@ -298,7 +296,7 @@ class _SplashScreen extends StatelessWidget {
             child: _Circle(size: 40, color: const Color(0xFFA5C8FE)),
           ),
 
-          // ── content ──
+          //  content 
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(28, 20, 28, 44),
@@ -309,7 +307,7 @@ class _SplashScreen extends StatelessWidget {
 
                   const Spacer(),
 
-                  // ── badge ──
+                  //  badge 
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 5),
@@ -342,7 +340,6 @@ class _SplashScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 22),
 
-                  // ── headline ──
                   RichText(
                     text: const TextSpan(
                       style: TextStyle(
@@ -363,7 +360,7 @@ class _SplashScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── subtitle ──
+                  //  subtitle 
                   const Text(
                     'Answer 5 quick questions. We\'ll build a money profile that actually fits your life.',
                     style: TextStyle(
@@ -374,8 +371,6 @@ class _SplashScreen extends StatelessWidget {
                   ),
 
                   const Spacer(),
-
-                  // ── CTA ──
                   _SwipeToContinue(onComplete: onStart),
                 ],
               ),
@@ -526,7 +521,7 @@ class _SwipeToContinueState extends State<_SwipeToContinue>
   }
 }
  
-// ─── Quiz screen ─────────────────────────────────────────────────────────────
+//  Quiz screen 
  
 class _QuizScreen extends StatelessWidget {
   const _QuizScreen({
@@ -555,7 +550,6 @@ class _QuizScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── progress dots ──
               Row(
                 children: List.generate(total, (i) {
                   final active = i <= currentIndex;
@@ -575,7 +569,7 @@ class _QuizScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
  
-              // ── question ──
+              //  question
               Text(
                 'Question ${currentIndex + 1} of $total',
                 style: const TextStyle(
@@ -597,7 +591,7 @@ class _QuizScreen extends StatelessWidget {
               ),
               const SizedBox(height: 28),
  
-              // ── options ──
+              //  options 
               ...List.generate(q.options.length, (i) {
                 final isSelected = selected == i;
                 return Padding(
@@ -666,8 +660,6 @@ class _QuizScreen extends StatelessWidget {
               }),
  
               const Spacer(),
- 
-              // ── next button ──
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -702,7 +694,7 @@ class _QuizScreen extends StatelessWidget {
   }
 }
  
-// ─── Archetype reveal screen ─────────────────────────────────────────────────
+//  Archetype reveal screen 
  
 class _ArchetypeScreen extends StatelessWidget {
   const _ArchetypeScreen({
@@ -736,7 +728,7 @@ class _ArchetypeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
  
-              // ── animated badge ──
+              //  animated badge 
               ScaleTransition(
                 scale: scaleAnim,
                 child: Container(
@@ -758,7 +750,7 @@ class _ArchetypeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
  
-              // ── title ──
+              //  title 
               Text(
                 archetype.title,
                 style: TextStyle(
@@ -770,7 +762,7 @@ class _ArchetypeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
  
-              // ── description ──
+              //  description 
               Text(
                 archetype.description,
                 textAlign: TextAlign.center,
@@ -782,7 +774,7 @@ class _ArchetypeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
  
-              // ── trait pills ──
+              //  trait pills 
               Wrap(
                 spacing: 8,
                 children: archetype.tags.map((tag) {
@@ -809,7 +801,7 @@ class _ArchetypeScreen extends StatelessWidget {
  
               const Spacer(),
  
-              // ── cta ──
+              //  cta 
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

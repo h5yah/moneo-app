@@ -15,7 +15,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
   final _cardHolderController = TextEditingController();
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
-  String _selectedCardType = 'debit'; // 'debit' or 'credit'
+  String _selectedCardType = 'debit'; 
   bool _saveForFuture = true;
   bool _isSaving = false;
 
@@ -42,8 +42,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
       backgroundColor: const Color(0xF0FFFFFF),
       body: SafeArea(
         child: Column(
-          children: [
-            // Custom header
+          children: [           
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 10, 8, 0),
               child: Stack(
@@ -84,10 +83,8 @@ class _AddCardScreenState extends State<AddCardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 28),
-                      // Card preview
                       _buildCardPreview(),
                       const SizedBox(height: 32),
-                      // Card type selector
                       const Text(
                         'CARD TYPE',
                         style: TextStyle(
@@ -106,7 +103,6 @@ class _AddCardScreenState extends State<AddCardScreen> {
                         ],
                       ),
                       const SizedBox(height: 28),
-                      // Card Number
                       const Text(
                         'CARD NUMBER',
                         style: TextStyle(
@@ -129,7 +125,6 @@ class _AddCardScreenState extends State<AddCardScreen> {
                         prefixIcon: Icons.credit_card,
                       ),
                       const SizedBox(height: 24),
-                      // Cardholder Name
                       const Text(
                         'CARDHOLDER NAME',
                         style: TextStyle(
@@ -147,7 +142,6 @@ class _AddCardScreenState extends State<AddCardScreen> {
                         prefixIcon: Icons.person_outline,
                       ),
                       const SizedBox(height: 24),
-                      // Expiry & CVV
                       Row(
                         children: [
                           Expanded(
@@ -210,7 +204,6 @@ class _AddCardScreenState extends State<AddCardScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      // Save for future toggle
                       GestureDetector(
                         onTap: () {
                           setState(() {
@@ -275,7 +268,6 @@ class _AddCardScreenState extends State<AddCardScreen> {
                 ),
               ),
             ),
-            // Bottom button
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
               child: Column(
@@ -442,7 +434,6 @@ class _AddCardScreenState extends State<AddCardScreen> {
             ],
           ),
           const SizedBox(height: 28),
-          // Chip icon
           Container(
             width: 45,
             height: 32,
@@ -655,8 +646,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
     for (int i = 0; i < digits.length; i++) {
       if (i > 0 && i % 4 == 0) buffer.write('  ');
       buffer.write(digits[i]);
-    }
-    // Pad remaining with dots
+    }           
     final remaining = 16 - digits.length;
     if (remaining > 0) {
       for (int i = 0; i < remaining; i++) {

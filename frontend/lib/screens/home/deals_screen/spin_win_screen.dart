@@ -226,8 +226,7 @@ class _SpinWinScreenState extends State<SpinWinScreen>
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            children: [
-              // Info Card
+            children: [ 
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -271,11 +270,9 @@ class _SpinWinScreenState extends State<SpinWinScreen>
                 ),
               ),
               const SizedBox(height: 40),
-              // Wheel
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Wheel container
                   AnimatedBuilder(
                     animation: _controller,
                     builder: (context, child) {
@@ -307,7 +304,6 @@ class _SpinWinScreenState extends State<SpinWinScreen>
                       ),
                     ),
                   ),
-                  // Center button
                   Container(
                     width: 80,
                     height: 80,
@@ -327,7 +323,6 @@ class _SpinWinScreenState extends State<SpinWinScreen>
                       color: Color(0xFFF39237),
                     ),
                   ),
-                  // Pointer at top
                   Positioned(
                     top: -10,
                     child: Container(
@@ -348,7 +343,6 @@ class _SpinWinScreenState extends State<SpinWinScreen>
                 ],
               ),
               const SizedBox(height: 60),
-              // Spin Button
               ElevatedButton(
                 onPressed: _isSpinning || _hasSpunToday ? null : _spin,
                 style: ElevatedButton.styleFrom(
@@ -417,7 +411,6 @@ class WheelPainter extends CustomPainter {
         paint,
       );
 
-      // Draw border
       final borderPaint = Paint()
         ..color = Colors.white
         ..style = PaintingStyle.stroke
@@ -430,8 +423,7 @@ class WheelPainter extends CustomPainter {
         true,
         borderPaint,
       );
-
-      // Draw text
+  
       final textAngle = i * sweepAngle + sweepAngle / 2 - math.pi / 2;
       final textRadius = radius * 0.7;
       final textX = center.dx + textRadius * math.cos(textAngle);

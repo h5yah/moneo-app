@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Persists linked payment card metadata on the user's balance document.
 class WalletCardService {
   WalletCardService._();
 
@@ -29,7 +28,6 @@ class WalletCardService {
       SetOptions(merge: true),
     );
 
-    // Legacy path — keep in sync when rules allow.
     try {
       await _firestore.collection('cards').doc(uid).set(
         {
@@ -41,7 +39,6 @@ class WalletCardService {
         SetOptions(merge: true),
       );
     } catch (_) {
-      // balances write is the source of truth
     }
   }
 

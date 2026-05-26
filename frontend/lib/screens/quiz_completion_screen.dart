@@ -46,7 +46,6 @@ class QuizCompletionScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 18),
                 ),
                 onPressed: () {
-                  // Navigate to Create Financial Goal screen
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (context) => CreateGoalScreen()),
                   );

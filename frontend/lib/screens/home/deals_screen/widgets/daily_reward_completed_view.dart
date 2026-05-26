@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Shown when the user has already claimed today's reward for a mini-game.
 class DailyRewardCompletedView extends StatelessWidget {
   const DailyRewardCompletedView({
     super.key,

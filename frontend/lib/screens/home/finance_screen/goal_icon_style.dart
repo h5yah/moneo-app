@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Maps Firestore `icon` string (or add-funds keys like `target`) to [IconData].
 IconData goalIconFromKey(String? iconKey) {
   switch (iconKey ?? '') {
     case 'account_balance':
@@ -22,7 +21,6 @@ IconData goalIconFromKey(String? iconKey) {
   }
 }
 
-/// Inverse of [goalIconFromKey] for category tiles that only have [IconData].
 String goalIconKeyFromIcon(IconData icon) {
   if (icon == Icons.account_balance) return 'account_balance';
   if (icon == Icons.school_outlined) return 'school_outlined';
@@ -33,7 +31,6 @@ String goalIconKeyFromIcon(IconData icon) {
   return 'account_balance';
 }
 
-/// Background + icon colors for a goal type (aligned across Finance + Goals).
 class GoalIconAccent {
   const GoalIconAccent(this.background, this.foreground);
   final Color background;

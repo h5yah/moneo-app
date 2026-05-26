@@ -95,16 +95,13 @@ class _DealsScreenState extends State<DealsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Gradient Header with XP Circle
                 _buildGradientHeader(currentXp),
                 _buildStatusCard(currentXp),
-                // Rewards Section
                 Transform.translate(
                   offset: const Offset(0, 0),
                   child: _buildRewardsSection(),
                 ),
                 const SizedBox(height: 32),
-                // Exclusive Deals Section
                 _buildExclusiveDealsSection(),
                 const SizedBox(height: 24),
               ],
@@ -132,7 +129,6 @@ class _DealsScreenState extends State<DealsScreen> {
       ),
       child: Stack(
         children: [
-          // Header Title
           Positioned(
             left: 35,
             top: 18 + topInset,
@@ -146,7 +142,6 @@ class _DealsScreenState extends State<DealsScreen> {
               ),
             ),
           ),
-          // My Coupons icon
           Positioned(
             right: 35,
             top: 18 + topInset,
@@ -203,7 +198,6 @@ class _DealsScreenState extends State<DealsScreen> {
               },
             ),
           ),
-          // XP Circle Progress
           Positioned(
             left: 0,
             right: 0,
@@ -228,7 +222,6 @@ class _DealsScreenState extends State<DealsScreen> {
       height: 180,
       child: Stack(
         children: [
-          // Progress Circle (animated 0 → current)
           Positioned(
             left: 14,
             top: 10,
@@ -237,7 +230,6 @@ class _DealsScreenState extends State<DealsScreen> {
               replaySeed: widget.arcReplaySeed + _visibleReplaySeed,
             ),
           ),
-          // Star Icon
           Positioned(
             left: 158,
             top: 44,
@@ -262,7 +254,6 @@ class _DealsScreenState extends State<DealsScreen> {
               ),
             ),
           ),
-          // XP Amount
           Positioned(
             left: 14,
             right: 14,
@@ -448,7 +439,6 @@ class _DealsScreenState extends State<DealsScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          // Spin & Win Card
           _buildSpinWinCard(playedToday: _spinPlayedToday),
           const SizedBox(height: 12),
           Row(
@@ -893,8 +883,7 @@ class _DealsScreenState extends State<DealsScreen> {
                       letterSpacing: -0.408,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Claim Deal Button
+                  const SizedBox(height: 12), 
                   Container(
                     width: double.infinity,
                     height: 35,
@@ -924,7 +913,6 @@ class _DealsScreenState extends State<DealsScreen> {
   }
 
   String _extractStore(String title) {
-    // Extract store name from title like "15% Off at Ocean Basket"
     if (title.contains('at ')) {
       return title.split('at ')[1];
     }
@@ -932,7 +920,6 @@ class _DealsScreenState extends State<DealsScreen> {
   }
 
   String _getDiscountFromTitle(String title) {
-    // Extract discount percentage from title
     if (title.contains('%')) {
       final parts = title.split('%');
       return '${parts[0]}%';
@@ -1067,7 +1054,6 @@ class _AnimatedArcProgressState extends State<_AnimatedArcProgress>
   }
 }
 
-// Custom painter for the circular progress indicator
 class _CircleProgressPainter extends CustomPainter {
   final double progress;
 
@@ -1080,7 +1066,6 @@ class _CircleProgressPainter extends CustomPainter {
     const startAngle = math.pi;
     final sweepAngle = math.pi * progress;
 
-    // Background arc
     final backgroundPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
@@ -1095,7 +1080,6 @@ class _CircleProgressPainter extends CustomPainter {
       backgroundPaint,
     );
 
-    // Progress arc
     final progressPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke

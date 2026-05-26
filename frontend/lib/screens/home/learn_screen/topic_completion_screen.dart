@@ -50,12 +50,9 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
       body: SafeArea(
         child: Stack(
           children: [
-            // Confetti animation
             _buildConfetti(),
-            // Main content
             Column(
               children: [
-                // Close button
                 Align(
                   alignment: Alignment.topLeft,
                   child: IconButton(
@@ -146,7 +143,6 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
         ),
         child: Column(
           children: [
-          // Image section
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
@@ -168,7 +164,6 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Placeholder for coins/calculator image
                   Icon(
                     Icons.account_balance_wallet,
                     size: 64,
@@ -255,7 +250,6 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
   Widget _buildStatsCards() {
     return Row(
       children: [
-        // XP Earned Card
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(20),
@@ -388,7 +382,6 @@ class _TopicCompletionScreenState extends State<TopicCompletionScreen>
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // Navigate back to learn home
               Navigator.of(context).popUntil((route) => 
                 route.isFirst || route.settings.name == '/learn');
             },
@@ -429,7 +422,7 @@ class ConfettiPainter extends CustomPainter {
   ConfettiPainter(this.animationValue) : confettiPieces = _generateConfetti();
 
   static List<ConfettiPiece> _generateConfetti() {
-    final random = math.Random(42); // Fixed seed for consistent animation
+    final random = math.Random(42); 
     return List.generate(30, (index) {
       return ConfettiPiece(
         x: random.nextDouble(),
@@ -456,7 +449,7 @@ class ConfettiPainter extends CustomPainter {
       final paint = Paint()..color = piece.color;
 
       final y = (piece.y + animationValue * piece.speed) % 1.2;
-      if (y > 1.0) continue; // Don't draw pieces that are off screen
+      if (y > 1.0) continue; 
 
       final x = piece.x * size.width;
       final yPos = y * size.height;

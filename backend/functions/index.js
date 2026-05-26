@@ -18,8 +18,6 @@ setGlobalOptions({
   maxInstances: 10,
 });
 
-// ================= HELPERS =================
-
 function requireAuth(request) {
   const uid = request.auth?.uid;
   if (!uid) {
@@ -50,7 +48,6 @@ function resolveOpenAiKey() {
     const secret = openAiApiKey.value();
     if (secret) return secret;
   } catch (_) {
-    // Secret not bound (e.g. local emulator without secrets).
   }
   if (process.env.FUNCTIONS_EMULATOR === "true") {
     return process.env.OPENAI_API_KEY || "";
@@ -58,7 +55,7 @@ function resolveOpenAiKey() {
   return "";
 }
 
-// ================= XP =================
+//XP 
 
 exports.getXp = onCall(async (request) => {
   const uid = requireAuth(request);
@@ -208,7 +205,7 @@ exports.spendXp = onCall(async (request) => {
   return { xp: updatedXp };
 });
 
-// ================= FINANCE =================
+//  FINANCE 
 
 exports.getFinanceSummary = onCall(async (request) => {
   const uid = requireAuth(request);
@@ -223,7 +220,7 @@ exports.getFinanceSummary = onCall(async (request) => {
   };
 });
 
-// ================= AI =================
+//  AI 
 
 exports.miroChat = onCall(
   {

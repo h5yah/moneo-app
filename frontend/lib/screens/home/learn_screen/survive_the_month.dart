@@ -452,7 +452,6 @@ class _SurviveTheMonthScreenState extends State<SurviveTheMonthScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
-          // Icon removed as requested
           SizedBox(height: 16),
           Text(
             'Survive the Month',

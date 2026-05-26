@@ -653,12 +653,9 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
     return RichText(text: TextSpan(children: spans));
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ALL TOPIC INTRO STEPS
-  // ─────────────────────────────────────────────────────────────────────────
   List<_TopicIntroStep> _topicIntroStepsForTitle(String lessonTitle) {
 
-    // ── BUDGETING & EXPENSE TRACKING ──────────────────────────────────────
+    //BUDGETING & EXPENSE TRACKING 
 
     if (lessonTitle == 'Introduction to Budgeting') {
       return const [
@@ -852,7 +849,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
       ];
     }
 
-    // ── SAVING & EMERGENCY FUNDS ──────────────────────────────────────────
+    //  SAVING & EMERGENCY FUNDS 
 
     if (lessonTitle == 'The Habit: Paying Yourself First') {
       return const [
@@ -1006,7 +1003,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
       ];
     }
 
-    // ── DEBT MANAGEMENT ───────────────────────────────────────────────────
+    //  DEBT MANAGEMENT 
 
     if (lessonTitle == 'Understanding Debt: The Mechanics of Borrowing') {
       return const [
@@ -1164,7 +1161,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
       ];
     }
 
-    // ── FINANCIAL PLANNING FOR BIG GOALS ─────────────────────────────────
+    //  FINANCIAL PLANNING FOR BIG GOALS 
 
     if (lessonTitle == 'Short-Term vs. Long-Term Goals') {
       return const [
@@ -1221,7 +1218,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
           body: 'The gap between what something appears to cost and what it actually costs is where most goal failures happen. Not from lack of effort — from incomplete research.',
           reflectionTitle: 'The habit',
           reflectionBullets: [
-            'Research all costs — not just the headline price',
+            'Research all costs - not just the headline price',
             'Add 10% buffer on top of the real total',
             'For goals over 12 months, also add an inflation adjustment',
           ],
@@ -1294,7 +1291,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
       ];
     }
 
-    // ── INVESTING BASICS ──────────────────────────────────────────────────
+    //  INVESTING BASICS 
 
     if (lessonTitle == 'Introduction to Investing') {
       return const [
@@ -1464,7 +1461,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
       ];
     }
 
-    // ── FRAUD & SCAMS ─────────────────────────────────────────────────────
+    //  FRAUD & SCAMS 
 
     if (lessonTitle == 'Protecting from Fraud & Scams') {
       return const [
@@ -1634,7 +1631,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
       ];
     }
 
-    // ── TAXES & TAX PLANNING ──────────────────────────────────────────────
+    //  TAXES & TAX PLANNING 
 
     if (lessonTitle == 'Introduction to Taxes') {
       return const [
@@ -1804,7 +1801,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
       ];
     }
 
-    // ── RETIREMENT PLANNING ───────────────────────────────────────────────
+    //  RETIREMENT PLANNING 
 
     if (lessonTitle == 'Introduction to Retirement Planning') {
       return const [
@@ -2307,9 +2304,6 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DATA MODELS
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _LessonContent {
   final String sectionLabel;
@@ -2446,13 +2440,11 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LESSON CONTENT MAP — all 8 topics
-// ─────────────────────────────────────────────────────────────────────────────
+// LESSON CONTENT MAP 
 
 final Map<String, _LessonContent> _lessonContentByTitle = {
 
-  // ── BUDGETING ────────────────────────────────────────────────────────────
+  //  BUDGETING 
   'Introduction to Budgeting': _LessonContent(
     sectionLabel: 'INTRODUCTION TO BUDGETING',
     heading: 'Introduction to Budgeting',
@@ -2461,7 +2453,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
       _ConceptCardContent(icon: Icons.account_balance_wallet_outlined, title: 'Plan', subtitle: 'Before spending', note: 'Give every amount a purpose'),
       _ConceptCardContent(icon: Icons.insights_outlined, title: 'Track', subtitle: 'Review regularly', note: 'Adjust and stay on course'),
     ],
-    takeaway: 'Budgeting is not about saying no to everything. It is about deciding what matters — and making your money reflect that.',
+    takeaway: 'Budgeting is not about saying no to everything. It is about deciding what matters and making your money reflect that.',
     ctaLabel: 'Why this matters',
     layout: _LessonLayout.topicIntroPremium,
     showDeepDive: false,
@@ -2532,7 +2524,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── SAVING ───────────────────────────────────────────────────────────────
+  //  SAVING 
   'The Habit: Paying Yourself First': _LessonContent(
     sectionLabel: 'THE HABIT',
     heading: 'The Habit: Paying Yourself First',
@@ -2599,7 +2591,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── DEBT ─────────────────────────────────────────────────────────────────
+  //  DEBT 
   'Understanding Debt: The Mechanics of Borrowing': _LessonContent(
     sectionLabel: 'DEBT BASICS',
     heading: 'Understanding Debt: The Mechanics of Borrowing',
@@ -2666,7 +2658,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── FINANCIAL GOALS ───────────────────────────────────────────────────────
+  //  FINANCIAL GOALS 
   'Short-Term vs. Long-Term Goals': _LessonContent(
     sectionLabel: 'GOAL HORIZONS',
     heading: 'Short-Term vs. Long-Term Goals',
@@ -2720,7 +2712,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── INVESTING ─────────────────────────────────────────────────────────────
+  //  INVESTING 
   'Introduction to Investing': _LessonContent(
     sectionLabel: 'INVESTING BASICS',
     heading: 'Introduction to Investing',
@@ -2729,7 +2721,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
       _ConceptCardContent(icon: Icons.trending_up_outlined, title: 'Growth', subtitle: 'Beat inflation', note: 'Money works for you'),
       _ConceptCardContent(icon: Icons.foundation_outlined, title: 'Foundation first', subtitle: 'Emergency fund first', note: 'Invest safely'),
     ],
-    takeaway: 'Investing is how ordinary people build extraordinary wealth — but only when the financial foundation is solid first.',
+    takeaway: 'Investing is how ordinary people build extraordinary wealth, but only when the financial foundation is solid first.',
     ctaLabel: 'Start here',
     layout: _LessonLayout.topicIntroPremium,
     showDeepDive: false,
@@ -2742,7 +2734,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
       _ConceptCardContent(icon: Icons.balance_outlined, title: 'Trade-off', subtitle: 'Higher return = higher risk', note: 'No free lunch'),
       _ConceptCardContent(icon: Icons.person_outline, title: 'Tolerance', subtitle: 'Know your limits', note: 'Match your timeline'),
     ],
-    takeaway: 'Risk is not something to avoid — it is something to understand, measure, and manage.',
+    takeaway: 'Risk is not something to avoid, it is something to understand, measure, and manage.',
     ctaLabel: 'Assess your risk',
     layout: _LessonLayout.topicIntroPremium,
     showDeepDive: false,
@@ -2800,7 +2792,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── FRAUD & SCAMS ─────────────────────────────────────────────────────────
+  //  FRAUD & SCAMS 
   'Protecting from Fraud & Scams': _LessonContent(
     sectionLabel: 'FRAUD AWARENESS',
     heading: 'Protecting from Fraud & Scams',
@@ -2822,7 +2814,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
       _ConceptCardContent(icon: Icons.phishing_outlined, title: 'Phishing', subtitle: 'Fake identity', note: 'Steals your credentials'),
       _ConceptCardContent(icon: Icons.trending_up_outlined, title: 'Investment fraud', subtitle: 'Too-good returns', note: 'No risk = scam flag'),
     ],
-    takeaway: 'Every scam uses greed, fear, or urgency. Recognize the trigger — and walk away.',
+    takeaway: 'Every scam uses greed, fear, or urgency. Recognize the trigger and walk away.',
     ctaLabel: 'Spot the pattern',
     layout: _LessonLayout.topicIntroPremium,
     showDeepDive: false,
@@ -2835,7 +2827,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
       _ConceptCardContent(icon: Icons.lock_outlined, title: 'Strong habits', subtitle: 'Passwords + 2FA', note: 'First line of defense'),
       _ConceptCardContent(icon: Icons.verified_outlined, title: 'Verify', subtitle: 'Before paying', note: 'Check every detail'),
     ],
-    takeaway: 'Online security is not about technology — it\'s about habits.',
+    takeaway: 'Online security is not about technology - it\'s about habits.',
     ctaLabel: 'Secure your accounts',
     layout: _LessonLayout.topicIntroPremium,
     showDeepDive: false,
@@ -2880,7 +2872,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── TAXES ─────────────────────────────────────────────────────────────────
+  //  TAXES 
   'Introduction to Taxes': _LessonContent(
     sectionLabel: 'TAX BASICS',
     heading: 'Introduction to Taxes',
@@ -2928,7 +2920,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
       _ConceptCardContent(icon: Icons.calculate_outlined, title: 'Calculation', subtitle: 'Gross minus allowances', note: 'Chargeable income'),
       _ConceptCardContent(icon: Icons.percent_outlined, title: 'Flat rate', subtitle: '15% in Mauritius', note: 'After exemption threshold'),
     ],
-    takeaway: 'Your employer deducts income tax via PAYE — but understanding the calculation helps you plan and verify.',
+    takeaway: 'Your employer deducts income tax via PAYE, but understanding the calculation helps you plan and verify.',
     ctaLabel: 'Check your payslip',
     layout: _LessonLayout.topicIntroPremium,
     showDeepDive: false,
@@ -2960,7 +2952,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── RETIREMENT ────────────────────────────────────────────────────────────
+  //  RETIREMENT 
   'Introduction to Retirement Planning': _LessonContent(
     sectionLabel: 'RETIREMENT BASICS',
     heading: 'Introduction to Retirement Planning',
@@ -2982,7 +2974,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
       _ConceptCardContent(icon: Icons.hourglass_empty_outlined, title: 'Living longer', subtitle: '20–30 year retirement', note: 'Savings must last'),
       _ConceptCardContent(icon: Icons.trending_down_outlined, title: 'Cost of delay', subtitle: 'Doubles monthly saving', note: 'Every year counts'),
     ],
-    takeaway: 'Retirement poverty is real — and entirely preventable with early, consistent action.',
+    takeaway: 'Retirement poverty is real and entirely preventable with early, consistent action.',
     ctaLabel: 'Calculate the gap',
     layout: _LessonLayout.topicIntroPremium,
     showDeepDive: false,
@@ -3040,7 +3032,7 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
     showDeepDive: false,
   ),
 
-  // ── LEGACY ENTRIES ────────────────────────────────────────────────────────
+  //  LEGACY ENTRIES 
   'Core Concepts': _LessonContent(
     sectionLabel: 'CORE CONCEPTS',
     heading: 'Use practical rules before advanced strategies',
@@ -3091,9 +3083,8 @@ final Map<String, _LessonContent> _lessonContentByTitle = {
   ),
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 // DEEP DIVE DETAILS
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 const Map<String, String> _defaultDetails = {
   'example': 'If your monthly income is MUR 30,000, assign specific amounts to essentials, savings, and flexible spending before the month starts.',
@@ -3158,7 +3149,7 @@ final Map<String, Map<String, String>> _detailByTitle = {
     'action': 'Set your investments to auto-invest monthly and do not check the price more than once a month.',
   },
   'Common Investment Mistakes': const {
-    'example': 'A fund with 2% annual fees vs 0.1% — over 30 years the difference can equal 40% of your total wealth.',
+    'example': 'A fund with 2% annual fees vs 0.1% - over 30 years the difference can equal 40% of your total wealth.',
     'mistake': 'Chasing this year\'s best-performing fund — it almost always underperforms next year.',
     'action': 'Check the expense ratio of any fund you currently hold or are considering.',
   },

@@ -29,12 +29,12 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   bool _sending = false;
 
   static const _suggestions = [
-    'How do I claim a coupon?',
-    'Where is the loan calculator?',
-    'What is an emergency fund?',
-    'How do savings goals work in Finance?',
     'How do I earn XP?',
+    'What is an emergency fund?',
+    'What is the difference between needs and wants?',
+    'How do I replay the app tour?',
     'What is compound interest?',
+    'How can I protect myself from scams?',
   ];
 
   @override

@@ -1,47 +1,143 @@
 {
-  "overview": "Monéo is a financial literacy and demo fintech app for users in Mauritius. Currency is Mauritian Rupees (Rs or MUR). Bottom navigation has five areas: Home, Learn, Finance, Deals, and Profile. Ask Miro (AI coach) opens from the floating button on Home. Users earn XP from lessons, quizzes, and daily deal mini-games; XP increases level on Profile and Deals. Topics in Learn unlock in order (each may require completing the previous topic).",
+  "overview": "Monéo is a financial literacy and demo fintech app for users in Mauritius. Currency is Mauritian Rupees (Rs or MUR). Bottom navigation has five items: Home, Learn, Ask Miro (owl centre button), Finance, and Deals. Profile opens from the profile avatar on the Home header. Users earn XP from lessons, quizzes, interactive scenarios, and daily Deals mini-games; XP increases level on Profile and Deals. Topics in Learn unlock in order (each may require completing the previous topic). A first-time app tour highlights key areas; users can replay it from Profile. Finance wallet, cards, and payments are simulated for learning — not real banking.",
   "sections": [
+    {
+      "id": "navigation",
+      "title": "App navigation",
+      "keywords": ["navigation", "nav", "tabs", "bottom bar", "menu", "where", "find", "go to", "profile"],
+      "content": "Bottom bar: Home (dashboard), Learn (lessons and scenarios), centre owl button (Ask Miro AI), Finance (demo wallet and planning), Deals (rewards and coupons). Profile is not a bottom tab — tap your avatar on the Home header to open Profile (settings, progress, logout). Home header also has a theme toggle (light/dark) and a notification bell."
+    },
+    {
+      "id": "app_tour",
+      "title": "App tour and Replay tour",
+      "keywords": ["tour", "walkthrough", "replay tour", "replay", "guide", "onboarding tour", "tutorial", "spotlight", "first time", "show me around"],
+      "content": "On first use, Monéo shows a guided app tour with spotlight tooltips across Home, Learn, Finance, and Deals: Continue learning card, daily streak, interactive scenarios, topics list, Ask Miro owl, practice wallet, finance tools, rewards & deals, and profile avatar. Tap Next to advance or Skip to dismiss. To see the tour again: Profile → Replay tour. This resets the tour flag and returns you to Home, where the walkthrough starts automatically. The tour does not reset your lessons, XP, or wallet data."
+    },
     {
       "id": "home",
       "title": "Home tab",
-      "keywords": ["home", "streak", "notification", "greeting", "dashboard", "continue learning", "resume"],
-      "content": "Home shows a personalised greeting, today's date, streak days, and a notification bell (Notifications screen lists in-app alerts such as streak reminders and lesson nudges). The 'Continue learning' card opens the active Learn topic. Tools section has four calculators: Currency (convert between MUR and other currencies using live-style rates), Savings (goal timeline: how long to reach a target), Loan (monthly payment estimate), Bill splitter (split a bill including tip among people). A floating 'Ask Miro' button opens the AI assistant. Home also shows a financial tip card and quick access to Rewards & deals."
+      "keywords": ["home", "streak", "notification", "greeting", "dashboard", "continue learning", "resume", "insight", "smart insight", "rewards card"],
+      "content": "Home shows a personalised greeting, today's date, streak days, and a notification bell with unread badge (opens Notifications screen). Tap the profile avatar to open Profile. Theme toggle switches light/dark mode. The 'Current learning module' card shows your active Learn topic, lesson progress, and a Resume button that jumps to Learn. Tools section has four calculators: Currency, Savings, Loan, and Bill splitter. 'Smart insight' shows a rotating money tip. 'Rewards & motivation' shows streak and rewards summary cards with quick links to Deals. A Rewards & deals promo card opens the Deals tab."
+    },
+    {
+      "id": "streaks",
+      "title": "Daily streaks",
+      "keywords": ["streak", "streaks", "daily", "come back", "active days", "consecutive"],
+      "content": "Your streak counts consecutive days you open and use Monéo. Shown on Home header and Profile stats. Opening the app on a new day extends the streak; missing a day resets it. Streak milestones can trigger a brief celebration overlay. Streak reminders may appear as in-app notifications."
+    },
+    {
+      "id": "notifications",
+      "title": "Notifications",
+      "keywords": ["notification", "notifications", "alert", "bell", "inbox", "mark read", "reminder", "nudge"],
+      "content": "Home → notification bell opens your Notifications inbox (requires sign-in). Lists in-app alerts such as streak reminders, lesson nudges, and level-up messages. Unread items show a badge on the bell. Tap an item to mark it read; use 'Mark all read' in the top bar. Profile → Notifications lets you toggle Push notifications and Email updates (saved to your account)."
     },
     {
       "id": "learn",
       "title": "Learn tab",
-      "keywords": ["learn", "lesson", "topic", "unit", "curriculum", "course", "study", "quiz", "pre-quiz", "post-quiz", "final quiz"],
-      "content": "Learn lists financial topics (Budgeting, Saving & Emergency Funds, Debt Management, Financial Planning for Big Goals, Investing Basics, Fraud & Scams, Taxes, Retirement Planning). Each topic has a pre-quiz, numbered lesson steps with swipeable content and optional text-to-speech, then a post/final quiz. Completing lessons and quizzes awards XP. Topics may be locked until the previous topic is completed. Tapping a topic opens its detail screen with lesson list and progress. Lesson content teaches concepts using Mauritius examples (MUR amounts, NPF/NSF, MCIB credit bureau, etc.)."
+      "keywords": ["learn", "lesson", "topic", "unit", "curriculum", "course", "study", "quiz", "pre-quiz", "post-quiz", "final quiz", "text to speech", "listen", "resume topic"],
+      "content": "Learn lists financial topics (Budgeting, Saving & Emergency Funds, Debt Management, Financial Planning for Big Goals, Investing Basics, Fraud & Scams, Taxes, Retirement Planning). Each topic has a pre-quiz, numbered lesson steps with swipeable content, optional text-to-speech (listen button on lesson slides), then a post/final quiz. Completing a lesson awards ~100 XP (first time only). Completing a full topic awards a 500 XP bonus. Topics may be locked until the previous topic is completed. Tapping a topic opens its detail screen with lesson list and progress. Lesson content uses Mauritius examples (MUR amounts, NPF/NSF, MCIB credit bureau, etc.). Repeating lessons or quizzes does not give duplicate XP — you can review anytime."
     },
     {
-      "id": "learn_games",
-      "title": "Learn mini-games",
-      "keywords": ["game", "simulator", "emergency fund builder", "survive the month", "practice", "interactive"],
-      "content": "On the Learn screen, two interactive games: (1) Emergency Fund Builder — build and stress-test an emergency fund scenario. (2) Survive the Month — budget simulation game where choices affect whether you finish the month. These supplement lessons; they do not replace quizzes."
+      "id": "learn_scenarios",
+      "title": "Interactive scenarios (Learn)",
+      "keywords": ["scenario", "scenarios", "interactive", "simulator", "practice", "game", "emergency fund builder", "survive the month", "budget simulator", "needs vs wants", "debt decision", "savings goal sprint"],
+      "content": "Learn → Interactive Scenarios (tap 'See all' for the full list). Five practice activities: (1) Budget Simulator (Survive the Month) — monthly budget choices, ~100 XP. (2) Emergency Fund Builder — handle unexpected expenses across scenarios, ~100 XP. (3) Needs vs Wants — quick spending priority choices, ~75 XP. (4) Debt Decision — compare loan/BNPL/cash before borrowing, ~100 XP. (5) Savings Goal Sprint — plan monthly savings toward a target, ~100 XP. Scenarios supplement lessons; XP is awarded once per scenario. They do not replace topic quizzes."
     },
     {
       "id": "finance",
       "title": "Finance tab",
-      "keywords": ["finance", "wallet", "balance", "money", "transaction", "income", "spent", "available"],
-      "content": "Finance is a demo wallet area (balances stored per user in Firebase). Shows available balance, income, and spent totals. Quick actions: Add Funds (top up available balance), Send Money (transfer to another user/demo flow), Scan to Pay (QR scan to pay a merchant), Pay Bills (pay utility-style bills from balance). Sections include My Wallet (transaction history), Budget Planner (plan categories and limits), and Savings Goals (create goals with title, target Rs amount, and target date; track progress). Scan receipt (camera/OCR) can log expenses from a receipt photo where available."
+      "keywords": ["finance", "wallet", "balance", "money", "transaction", "income", "spent", "available", "demo", "simulated"],
+      "content": "Finance is a demo wallet (balances stored per user in Firebase). Shows wallet balance, cash in (income), and spending totals. This is simulated money for learning — not a real bank account. Quick actions: Add Funds (top up from a linked demo card), Send Money (transfer to another user in the demo flow), Scan to Pay (scan a merchant QR code to pay), Pay Bills (pay utility-style bills from balance). My Wallet opens transaction history (top-ups, sends, scan-to-pay, bill payments). Budget Planner sets a daily budget and tracks today's spending with over-budget warnings. Savings Goals (My Goals) let you create goals with title, target Rs amount, and target date; add funds toward goals, adjust, or delete. Add Funds requires linking a demo card first (Add Card screen)."
+    },
+    {
+      "id": "finance_add_funds",
+      "title": "Add Funds and demo card",
+      "keywords": ["add funds", "top up", "cash in", "deposit", "add card", "link card", "card"],
+      "content": "Finance → Add Funds. Enter an amount (quick picks: Rs 500, 1000, 5000) and top up your demo wallet or a specific savings goal. You must link a demo card first via Add Card (card number, expiry, CVV — stored locally for the simulation). Successful top-ups increase available balance and appear in My Wallet history."
+    },
+    {
+      "id": "finance_send_money",
+      "title": "Send Money",
+      "keywords": ["send money", "transfer", "pay friend", "send", "recipient"],
+      "content": "Finance → Send Money. Transfer Rs from your demo wallet to another Monéo user by email or username. Confirm the amount and recipient before sending. Transfers reduce your available balance and appear in My Wallet."
+    },
+    {
+      "id": "finance_scan_to_pay",
+      "title": "Scan to Pay",
+      "keywords": ["scan to pay", "qr", "qr code", "scan", "merchant", "pay merchant"],
+      "content": "Finance → Scan to Pay. Use the camera to scan a merchant QR code, enter the payment amount, and pay from your demo wallet balance. Payment is recorded in My Wallet as a scan_to_pay transaction."
+    },
+    {
+      "id": "finance_pay_bills",
+      "title": "Pay Bills",
+      "keywords": ["pay bills", "bill", "utility", "bills", "receipt"],
+      "content": "Finance → Pay Bills. Select a bill category/provider, enter amount and reference details, and pay from your demo wallet. Successful payments update spent totals and appear in My Wallet."
+    },
+    {
+      "id": "finance_budget_planner",
+      "title": "Budget Planner",
+      "keywords": ["budget", "budget planner", "daily budget", "spending limit", "over budget", "track spending"],
+      "content": "Finance → Budget Planner (or 'Open Planner' on the budget card). Set a daily spending budget in Rs. Track spending per day on a 30-day calendar. Finance home shows today's budget status (in budget / over budget) and amount left. Over-budget days show how much you exceeded the limit."
+    },
+    {
+      "id": "finance_savings_goals",
+      "title": "Savings Goals",
+      "keywords": ["savings goal", "goals", "my goals", "target", "save toward", "create goal"],
+      "content": "Finance → My Goals. Create savings goals with a title, target Rs amount, and target date. Track progress with a progress bar; add funds from Add Funds (general or goal-specific). Adjust renames or updates target/date; delete removes the goal. Empty state prompts 'Create Goal'."
     },
     {
       "id": "deals",
       "title": "Deals & Rewards tab",
       "keywords": ["deals", "rewards", "coupon", "discount", "offer", "merchant", "claim", "xp", "loyalty", "tier"],
-      "content": "Deals (labelled Rewards in the header) shows your XP level ring, loyalty tier (open Loyalty Tier screen for tier benefits), and daily mini-games: Spin & Win, Guess & Win, Shake & Win (each once per day; awards XP/coupons). Exclusive Deals lists merchant offers; tap for Deal Detail then claim to get a coupon code. My Coupons holds active and expired coupons. All Deals browses the full catalogue. Claimed coupons can be shared; show code and validity at checkout."
+      "content": "Deals (header says Rewards) shows your XP level ring, loyalty tier badge, and daily mini-games: Spin & Win, Guess & Win, Shake & Win (each playable once per day; awards XP and sometimes coupons). Exclusive Deals lists merchant offers; tap for Deal Detail then claim with XP to get a coupon code. My Coupons holds active, used, and expired coupons. All Deals browses the full catalogue. Claimed coupons show code and validity; share is planned but not yet available."
+    },
+    {
+      "id": "loyalty_tiers",
+      "title": "Loyalty tiers",
+      "keywords": ["loyalty", "tier", "bronze", "silver", "gold", "tier benefits", "loyalty tier"],
+      "content": "Deals → tap your loyalty tier to open Loyalty Tier screen. Three tiers based on total XP: Bronze (0–2,499 XP), Silver (2,500–4,999 XP), Gold (5,000+ XP). Each tier shows benefits and progress toward the next tier. Earn XP from lessons, quizzes, scenarios, and daily reward games to advance."
     },
     {
       "id": "profile",
       "title": "Profile tab",
-      "keywords": ["profile", "account", "settings", "theme", "dark mode", "sign out", "logout", "level", "name", "email"],
-      "content": "Profile shows user name, email, total XP, level progress bar, and level-up celebrations. Settings include app theme (light/dark/system). Sign out returns to login. Progress reflects learning and app engagement."
+      "keywords": ["profile", "account", "settings", "level", "name", "email", "xp", "stats"],
+      "content": "Open Profile from the Home header avatar. Shows user name, email, profile stats (Streak, Level, XP), total XP, and level progress bar. Level-up triggers a celebration overlay when you cross a level threshold. Settings menu items: Edit Personal Details (username and gender), Notifications (push and email toggles), Account Security (password reset for email accounts), Preferences (language, appearance, font size), Replay tour, FAQ, About App, and Logout."
+    },
+    {
+      "id": "profile_personal_details",
+      "title": "Edit Personal Details",
+      "keywords": ["personal details", "username", "name", "gender", "edit profile", "update profile"],
+      "content": "Profile → Edit Personal Details. Update your display username and gender (Male, Female, or Prefer not to say). Changes save to your Firebase user profile."
+    },
+    {
+      "id": "profile_account_security",
+      "title": "Account Security",
+      "keywords": ["security", "password", "reset password", "account security", "google sign in", "email password"],
+      "content": "Profile → Account Security. Shows how you signed in (Google or email/password). Email/password users can tap 'Send password reset email'. Google users manage passwords through Google — reset email is not available for Google-only accounts."
+    },
+    {
+      "id": "profile_preferences",
+      "title": "Preferences",
+      "keywords": ["preferences", "language", "appearance", "theme", "dark mode", "light mode", "font size", "accessibility"],
+      "content": "Profile → Preferences. Set Language (English), Appearance (light, dark, or use system setting), and Font size (small, default, large). Saves to your account. You can also toggle light/dark quickly from the sun/moon icon on the Home header."
+    },
+    {
+      "id": "profile_faq",
+      "title": "FAQ",
+      "keywords": ["faq", "frequently asked", "questions", "help", "who is moneo", "real banking", "repeat lesson"],
+      "content": "Profile → FAQ. Common answers: Monéo is for young adults building financial habits. XP comes from lessons, quizzes, and daily actions. Streaks track consecutive active days. Lessons include pre-quiz, content, and final quiz; repeating does not earn duplicate XP. Deals include coupons and daily mini-games. Ask Miro is an educational assistant, not professional advice. Password reset: Profile → Account Security (email accounts) or Google for Google sign-in. Wallet, cards, bills, and QR payments are simulated for learning unless connected to a real provider."
+    },
+    {
+      "id": "profile_about",
+      "title": "About App",
+      "keywords": ["about", "about app", "what is moneo", "purpose", "gamified"],
+      "content": "Profile → About App. Monéo is a gamified financial literacy app helping young adults learn money skills through interactive lessons, quizzes, and real-world tools — from budgeting and saving to banking and investing basics. Stay motivated with XP, streaks, and progress tracking."
     },
     {
       "id": "miro",
       "title": "Ask Miro AI",
-      "keywords": ["miro", "assistant", "ai", "chat", "ask", "help", "coach"],
-      "content": "Ask Miro is the in-app AI financial coach on Home. Ask about money concepts, Monéo features, lessons, or which tool to use. You must be signed in. Miro uses app curriculum and feature documentation when relevant, and general financial literacy otherwise. Answers use Rs/MUR for money."
+      "keywords": ["miro", "assistant", "ai", "chat", "ask", "help", "coach", "owl"],
+      "content": "Ask Miro is the in-app AI financial coach. Open it from the centre owl button in the bottom navigation bar (available from any main tab). Ask about money concepts, Monéo features, lessons, or which tool to use. You must be signed in. Miro uses app curriculum and feature documentation when relevant, and general financial literacy otherwise. Answers use Rs/MUR for money. Miro is for education only — not professional financial advice."
     },
     {
       "id": "tools_currency",
@@ -64,20 +160,20 @@
     {
       "id": "tools_splitter",
       "title": "Bill splitter / tip splitter",
-      "keywords": ["split", "bill", "tip", "restaurant", "friends", "share cost"],
+      "keywords": ["split", "bill", "tip", "restaurant", "friends", "share cost", "bill splitter"],
       "content": "Home → Tools → Bill splitter. Enter total bill, tip, and number of people (or custom shares) to see each person's share in Rs."
     },
     {
       "id": "auth",
       "title": "Sign in and onboarding",
-      "keywords": ["login", "sign up", "register", "onboarding", "google", "password", "account create"],
-      "content": "New users see onboarding slides then can sign up or log in (email/password or Google sign-in). Pre-quiz on first launch may assess baseline knowledge. Splash screen loads Firebase auth state."
+      "keywords": ["login", "sign up", "register", "onboarding", "google", "password", "account create", "splash"],
+      "content": "New users see onboarding slides (Learn by Doing, Practice for Free, Track your Goals, Earn Rewards) then can sign up or log in with email/password or Google sign-in. After sign-up, a short personality pre-quiz may assign a learning style (Planner, Achiever, or Explorer). Splash screen loads Firebase auth state and routes to Home or login."
     },
     {
       "id": "xp",
       "title": "XP and levels",
-      "keywords": ["xp", "experience", "level", "points", "reward", "earn"],
-      "content": "XP is earned from completing lessons (~100 XP), quizzes, correct quiz answers, and daily Deals mini-games. Level increases as total XP crosses thresholds (higher levels need more XP per level). XP appears on Learn completion screens, Deals header, and Profile."
+      "keywords": ["xp", "experience", "level", "points", "reward", "earn", "level up", "duplicate"],
+      "content": "XP is earned from completing lessons (~100 XP each, first time), topic completion bonus (500 XP), quizzes, interactive scenarios (75–100 XP each, first time), and daily Deals mini-games. Level increases as total XP crosses thresholds — each level needs more XP than the last (starts at 500 XP for level 1, +200 XP per level). Level-up shows a celebration overlay. XP appears on Learn completion screens, Deals header, and Profile. Repeating lessons, quizzes, or scenarios does not award duplicate XP."
     }
   ]
 }

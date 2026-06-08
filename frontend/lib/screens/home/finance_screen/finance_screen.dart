@@ -430,10 +430,9 @@ class FinanceScreenState extends State<FinanceScreen> {
         Text(
           'My Goals',
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : const Color(0xC2000000),
-            letterSpacing: -0.408,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : const Color(0xFF1C1C1E),
           ),
         ),
         TextButton(
@@ -463,10 +462,9 @@ class FinanceScreenState extends State<FinanceScreen> {
     return Text(
       'Budget Planner',
       style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: isDark ? Colors.white : const Color(0xC2000000),
-        letterSpacing: -0.408,
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: isDark ? Colors.white : const Color(0xFF1C1C1E),
       ),
     );
   }
@@ -965,20 +963,18 @@ class FinanceScreenState extends State<FinanceScreen> {
     final percent = target > 0 ? ((current / target) * 100).round() : 0;
     final iconKey = data['icon']?.toString();
     final iconColors = goalIconAccent(iconKey, isDark: isDark);
-    final accentPillBorder = Color.lerp(
-      iconColors.foreground,
-      iconColors.background,
-      0.45,
-    )!;
-    final goalIconSize = iconKey == 'account_balance' ? 20.0 : 24.0;
+    final goalIconSize = iconKey == 'account_balance' ? 24.0 : 28.0;
+    final titleColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
+    final subtitleColor =
+        isDark ? const Color(0xFFAAB0C6) : const Color(0xFF8E8E93);
+    final statBg =
+        isDark ? const Color(0xFF24263D) : const Color(0xFFF7F9FC);
+    final progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
 
     return Container(
       key: ValueKey(doc.id),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B1D33) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-      ),
+      padding: const EdgeInsets.all(22),
+      decoration: _financeCardDecoration(isDark),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -986,11 +982,11 @@ class FinanceScreenState extends State<FinanceScreen> {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 58,
+                height: 58,
                 decoration: BoxDecoration(
                   color: iconColors.background,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
                   goalIconFromKey(iconKey),
@@ -998,7 +994,7 @@ class FinanceScreenState extends State<FinanceScreen> {
                   size: goalIconSize,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1007,36 +1003,40 @@ class FinanceScreenState extends State<FinanceScreen> {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : null,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: titleColor,
                       ),
                     ),
-                    Text(
-                      category.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF8E8E93),
-                        fontWeight: FontWeight.w500,
+                    if (category.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        category.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: subtitleColor,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: () => _showAdjustGoalSheet(doc),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEAF3FF),
-                  foregroundColor: const Color(0xFF007AFF),
+                style: TextButton.styleFrom(
+                  backgroundColor: isDark
+                      ? const Color(0xFF2A3058)
+                      : const Color(0xFFEAF1FF),
+                  foregroundColor: const Color(0xFF2D4EFF),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 14,
                     vertical: 8,
                   ),
-                  minimumSize: const Size(0, 32),
+                  minimumSize: const Size(0, 36),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 0,
                 ),
                 child: const Text(
                   'Adjust',
@@ -1048,69 +1048,126 @@ class FinanceScreenState extends State<FinanceScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 18),
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                  horizontal: 12,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
                   color: iconColors.background,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: accentPillBorder,
-                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   remaining,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: iconColors.foreground,
                   ),
                 ),
               ),
               const Spacer(),
-              Text(
-                '$percent%',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: iconColors.foreground,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF2A3058)
+                      : const Color(0xFFEAF1FF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$percent%',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF2D4EFF),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 18),
           ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(99),
             child: _buildAnimatedProgressBar(
-              value: target > 0 ? (current / target) : 0,
-              minHeight: 9,
-              backgroundColor: const Color(0xFFEBEBEB),
-              color: iconColors.foreground,
+              value: progress,
+              minHeight: 10,
+              backgroundColor:
+                  isDark ? const Color(0xFF2A2D4A) : const Color(0xFFE9EDF5),
+              color: const Color(0xFF2D4EFF),
               replayKey: 'goal-${doc.id}-${widget.progressReplaySeed}',
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 18),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Current: Rs $current',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF8E8E93),
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: statBg,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Saved',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: subtitleColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Rs ${current.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: titleColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Text(
-                'Target: Rs $target',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: statBg,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Target',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: subtitleColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Rs ${target.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: titleColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1143,83 +1200,30 @@ class FinanceScreenState extends State<FinanceScreen> {
               if (snapshot.connectionState == ConnectionState.waiting &&
                   !snapshot.hasData) {
                 return const SizedBox(
-                  height: 170,
+                  height: 248,
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
 
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
+                return _buildFinanceEmptyStateCard(
+                  isDark: isDark,
+                  icon: Icons.savings_outlined,
+                  accentColor: const Color(0xFF2D4EFF),
+                  lightBackground: const Color(0xFFEAF1FF),
+                  title: 'No goals yet',
+                  subtitle: 'Create a savings goal to start saving.',
+                  buttonLabel: 'Create Goal',
                   margin: const EdgeInsets.only(bottom: 18),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1B1D33) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const GoalsScreen(openCreateOnLaunch: true),
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.flight_takeoff,
-                        size: 44,
-                        color: Color(0xFFBDBDBD),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No goals yet',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1C1C1E),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Create a savings goal to start saving.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        width: 160,
-                        height: 44,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2D4EFF),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const GoalsScreen(openCreateOnLaunch: true),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Create Goal',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               }
 
@@ -1232,7 +1236,7 @@ class FinanceScreenState extends State<FinanceScreen> {
                     _financeMyGoalCard(goals.first, isDark)
                   else
                     SizedBox(
-                      height: 170,
+                      height: 248,
                       child: PageView.builder(
                         controller: _myGoalsPageController,
                         itemCount: goals.length,
@@ -1332,91 +1336,22 @@ class FinanceScreenState extends State<FinanceScreen> {
               }
 
               if (!budgetSnapshot.hasData || !budgetSnapshot.data!.exists) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1B1D33) : Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                return _buildFinanceEmptyStateCard(
+                  isDark: isDark,
+                  icon: Icons.pie_chart_outline_rounded,
+                  accentColor: const Color(0xFF2D4EFF),
+                  lightBackground: const Color(0xFFEAF1FF),
+                  title: 'No budget set yet',
+                  subtitle: 'Track your daily spending and stay in control.',
+                  buttonLabel: 'Open Planner',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BudgetPlannerScreen(),
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 58,
-                        height: 58,
-                        decoration: BoxDecoration(
-                          color: iconAccentBackground(
-                            accentColor: const Color(0xFF2D4EFF),
-                            isDark: isDark,
-                            lightBackground: const Color(0xFFEAF1FF),
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.pie_chart_outline_rounded,
-                          color: Color(0xFF2D4EFF),
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No budget set yet',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1C1C1E),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Track your daily spending and stay in control.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        width: 170,
-                        height: 44,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2D4EFF),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const BudgetPlannerScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Open Planner',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               }
 
@@ -1425,91 +1360,23 @@ class FinanceScreenState extends State<FinanceScreen> {
               final dailyBudget =
                   (budgetData['dailyBudget'] as num?)?.toDouble();
               if (dailyBudget == null || dailyBudget == 0.0) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1B1D33) : Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                return _buildFinanceEmptyStateCard(
+                  isDark: isDark,
+                  icon: Icons.pie_chart_outline_rounded,
+                  accentColor: const Color(0xFF2D4EFF),
+                  lightBackground: const Color(0xFFEAF1FF),
+                  title: 'No daily budget set',
+                  subtitle:
+                      'Please set your daily budget to start tracking your spending.',
+                  buttonLabel: 'Set Daily Budget',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BudgetPlannerScreen(),
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 58,
-                        height: 58,
-                        decoration: BoxDecoration(
-                          color: iconAccentBackground(
-                            accentColor: const Color(0xFF2D4EFF),
-                            isDark: isDark,
-                            lightBackground: const Color(0xFFEAF1FF),
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.pie_chart_outline_rounded,
-                          color: Color(0xFF2D4EFF),
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No daily budget set',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1C1C1E),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Please set your daily budget to start tracking your spending.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF8E8E93),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        width: 170,
-                        height: 44,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2D4EFF),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const BudgetPlannerScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Set Daily Budget',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               }
 
@@ -1547,40 +1414,39 @@ class FinanceScreenState extends State<FinanceScreen> {
                       : 0;
                   final isOverBudget = spentToday > dailyBudget;
 
+                  final titleColor =
+                      isDark ? Colors.white : const Color(0xFF1C1C1E);
+                  final subtitleColor = isDark
+                      ? const Color(0xFFAAB0C6)
+                      : const Color(0xFF8E8E93);
+                  final statBg = isDark
+                      ? const Color(0xFF24263D)
+                      : const Color(0xFFF7F9FC);
+
                   return Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1B1D33) : Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
+                    padding: const EdgeInsets.all(22),
+                    decoration: _financeCardDecoration(isDark),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Container(
-                              width: 52,
-                              height: 52,
+                              width: 58,
+                              height: 58,
                               decoration: BoxDecoration(
                                 color: iconAccentBackground(
                                   accentColor: const Color(0xFF2D4EFF),
                                   isDark: isDark,
                                   lightBackground: const Color(0xFFEAF1FF),
                                 ),
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: const Icon(
-                                Icons.calendar_today_rounded,
+                                Icons.pie_chart_outline_rounded,
                                 color: Color(0xFF2D4EFF),
-                                size: 24,
+                                size: 28,
                               ),
                             ),
                             const SizedBox(width: 14),
@@ -1588,12 +1454,12 @@ class FinanceScreenState extends State<FinanceScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Today’s Budget',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 17,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF1C1C1E),
+                                      color: titleColor,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -1621,8 +1487,12 @@ class FinanceScreenState extends State<FinanceScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isOverBudget
-                                    ? const Color(0xFFFFEAEA)
-                                    : const Color(0xFFEAF7EE),
+                                    ? (isDark
+                                        ? const Color(0xFF3D2424)
+                                        : const Color(0xFFFFEAEA))
+                                    : (isDark
+                                        ? const Color(0xFF2A3058)
+                                        : const Color(0xFFEAF1FF)),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1631,8 +1501,10 @@ class FinanceScreenState extends State<FinanceScreen> {
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: isOverBudget
-                                      ? const Color(0xFFFF3B30)
-                                      : const Color(0xFF1E9E53),
+                                      ? (isDark
+                                          ? const Color(0xFFFF6961)
+                                          : const Color(0xFFFF3B30))
+                                      : const Color(0xFF2D4EFF),
                                 ),
                               ),
                             ),
@@ -1644,7 +1516,9 @@ class FinanceScreenState extends State<FinanceScreen> {
                           child: _buildAnimatedProgressBar(
                             value: progress,
                             minHeight: 10,
-                            backgroundColor: const Color(0xFFE9EDF5),
+                            backgroundColor: isDark
+                                ? const Color(0xFF2A2D4A)
+                                : const Color(0xFFE9EDF5),
                             color: isOverBudget
                                 ? const Color(0xFFFF3B30)
                                 : const Color(0xFF2D4EFF),
@@ -1707,27 +1581,27 @@ class FinanceScreenState extends State<FinanceScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF7F9FC),
+                                  color: statBg,
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Budget',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Color(0xFF8E8E93),
+                                        color: subtitleColor,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      'Rs ${dailyBudget.toStringAsFixed(2)}',
-                                      style: const TextStyle(
+                                      'Rs ${dailyBudget.toStringAsFixed(0)}',
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1C1C1E),
+                                        color: titleColor,
                                       ),
                                     ),
                                   ],
@@ -1739,7 +1613,7 @@ class FinanceScreenState extends State<FinanceScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF7F9FC),
+                                  color: statBg,
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Column(
@@ -1749,21 +1623,21 @@ class FinanceScreenState extends State<FinanceScreen> {
                                       isOverBudget
                                           ? 'Over Budget'
                                           : 'Left Today',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: Color(0xFF8E8E93),
+                                        color: subtitleColor,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      'Rs ${left.abs().toStringAsFixed(2)}',
+                                      'Rs ${left.abs().toStringAsFixed(0)}',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
                                         color: isOverBudget
                                             ? const Color(0xFFFF3B30)
-                                            : const Color(0xFF1C1C1E),
+                                            : titleColor,
                                       ),
                                     ),
                                   ],
@@ -1806,6 +1680,114 @@ class FinanceScreenState extends State<FinanceScreen> {
                 },
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  BoxDecoration _financeCardDecoration(bool isDark) {
+    return BoxDecoration(
+      color: isDark ? const Color(0xFF1B1D33) : Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.04),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinanceEmptyStateCard({
+    required bool isDark,
+    required IconData icon,
+    required Color accentColor,
+    required Color lightBackground,
+    required String title,
+    required String subtitle,
+    required String buttonLabel,
+    required VoidCallback onPressed,
+    EdgeInsetsGeometry margin = EdgeInsets.zero,
+  }) {
+    final titleColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
+    final subtitleColor =
+        isDark ? const Color(0xFFAAB0C6) : const Color(0xFF8E8E93);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      margin: margin,
+      decoration: _financeCardDecoration(isDark),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: iconAccentBackground(
+                    accentColor: accentColor,
+                    isDark: isDark,
+                    lightBackground: lightBackground,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: accentColor, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: titleColor,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: subtitleColor,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2D4EFF),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              onPressed: onPressed,
+              child: Text(
+                buttonLabel,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+            ),
           ),
         ],
       ),

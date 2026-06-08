@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:fintech/services/coupon_service.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 import 'dart:math' as math;
 
 class CouponClaimedScreen extends StatefulWidget {
@@ -55,14 +54,13 @@ class _CouponClaimedScreenState extends State<CouponClaimedScreen> {
     );
   }
 
-  Future<void> _shareCoupon() async {
-    final validUntil = _validUntilFormat.format(widget.validUntil);
-    await Share.share(
-      '${widget.dealStore} — ${widget.dealTitle}\n'
-      'Code: ${widget.couponCode}\n'
-      'Valid until $validUntil\n'
-      '${widget.location}',
-      subject: '${widget.dealStore} coupon',
+  void _shareCoupon() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Share coming soon'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 

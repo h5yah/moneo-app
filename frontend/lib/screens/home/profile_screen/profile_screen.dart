@@ -704,7 +704,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    String languageValue = currentLanguage;
+    String languageValue =
+        currentLanguage == 'Urdu' ? 'English' : currentLanguage;
     String themeLabel = AppThemeController.labelForThemeMode(
         AppThemeController.modeNotifier.value);
     String fontLabel = AppThemeController.labelForTextScale(
@@ -726,7 +727,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     items: const [
                       DropdownMenuItem(
                           value: 'English', child: Text('English')),
-                      DropdownMenuItem(value: 'Urdu', child: Text('Urdu')),
                     ],
                     onChanged: (value) {
                       if (value == null) return;

@@ -1067,6 +1067,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLearningModuleCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const accentBlue = Color(0xFF007AFF);
     final meta = TopicMetaService.instance.byId[_activeTopicId]!;
     final data = _activeTopicData ?? {};
 
@@ -1087,24 +1089,53 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final progressValue =
         ((lessonsCompleted + partial) / meta.totalLessons).clamp(0.0, 1.0);
-    final progressPct = (progressValue * 100).toInt();
+
+    final titleColor = isDark ? accentBlue : Colors.white;
+    final subtitleColor = isDark
+        ? accentBlue.withValues(alpha: 0.72)
+        : Colors.white.withOpacity(0.88);
+    final pillColor = isDark
+        ? accentBlue.withValues(alpha: 0.18)
+        : Colors.white.withOpacity(0.16);
+    final accentColor = isDark ? accentBlue : Colors.white;
+    final progressTrackColor = isDark
+        ? accentBlue.withValues(alpha: 0.22)
+        : Colors.white.withOpacity(0.18);
+    final ringBgColor = isDark
+        ? accentBlue.withValues(alpha: 0.14)
+        : Colors.white.withOpacity(0.12);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF007AFF), Color(0xFF007AFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: isDark ? const Color(0xFF1A1A2E) : null,
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                colors: [accentBlue, accentBlue],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-              color: const Color(0xFF6D5EF9).withOpacity(0.20),
-              blurRadius: 22,
-              offset: const Offset(0, 10))
-        ],
+        border: isDark
+            ? Border.all(color: accentBlue.withValues(alpha: 0.22))
+            : null,
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: const Color(0xFF6D5EF9).withOpacity(0.20),
+                  blurRadius: 22,
+                  offset: const Offset(0, 10),
+                ),
+              ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1117,26 +1148,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.16),
+                    color: pillColor,
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: const Text('Current learning module',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600)),
+                  child: Text(
+                    'Current learning module',
+                    style: TextStyle(
+                      color: accentColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                Text(meta.title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800)),
+                Text(
+                  meta.title,
+                  style: TextStyle(
+                    color: titleColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 6),
                 Text(
                     '$lessonsCompleted of ${meta.totalLessons} lessons completed',
                     style: TextStyle(
-                        color: Colors.white.withOpacity(0.88),
+                        color: subtitleColor,
                         fontSize: 13,
                         fontWeight: FontWeight.w500)),
                 const SizedBox(height: 14),
@@ -1151,9 +1188,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       return LinearProgressIndicator(
                         value: animatedProgress,
                         minHeight: 8,
-                        backgroundColor: Colors.white.withOpacity(0.18),
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(Colors.white),
+                        backgroundColor: progressTrackColor,
+                        valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                       );
                     },
                   ),
@@ -1168,22 +1204,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.16),
+                        color: pillColor,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.bolt,
-                            color: Colors.white,
+                            color: accentColor,
                             size: 17,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '+${XpService.lessonCompletionXp} XP',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: accentColor,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                             ),
@@ -1208,8 +1244,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       style: ElevatedButton.styleFrom(
                         elevation: 0,
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF5B4CF0),
+                        backgroundColor:
+                            isDark ? accentBlue : Colors.white,
+                        foregroundColor:
+                            isDark ? Colors.white : const Color(0xFF5B4CF0),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14)),
                         padding: const EdgeInsets.symmetric(
@@ -1235,7 +1273,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 88,
             height: 88,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.12),
+              color: ringBgColor,
               shape: BoxShape.circle,
             ),
             child: Stack(
@@ -1258,15 +1296,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: CircularProgressIndicator(
                             value: animatedProgress,
                             strokeWidth: 8,
-                            backgroundColor: Colors.white.withOpacity(0.15),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.white),
+                            backgroundColor: progressTrackColor,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(accentColor),
                           ),
                         ),
                         Text(
                           '$animatedPct%',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: accentColor,
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                           ),

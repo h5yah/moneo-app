@@ -259,23 +259,50 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
     );
   }
 
+  Color _balanceOrnamentColor(bool isDark, double alpha) {
+    return isDark
+        ? const Color(0xFF007AFF).withValues(alpha: alpha)
+        : Colors.white.withValues(alpha: alpha);
+  }
+
   Widget _buildBalanceCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const accentBlue = Color(0xFF007AFF);
+    final accentColor = isDark ? accentBlue : Colors.white;
+    final pillColor = isDark
+        ? accentBlue.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.18);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A1A2E) : null,
         borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1E7BFF), Color(0xFF005BE0)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF005BE0).withValues(alpha: 0.28),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E7BFF), Color(0xFF005BE0)],
+              ),
+        border: isDark
+            ? Border.all(color: accentBlue.withValues(alpha: 0.22))
+            : null,
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: const Color(0xFF005BE0).withValues(alpha: 0.28),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10),
+                ),
+              ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
@@ -288,7 +315,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                 width: 132,
                 height: 132,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
+                  color: _balanceOrnamentColor(isDark, 0.16),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -300,7 +327,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.20),
+                  color: _balanceOrnamentColor(isDark, 0.20),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -312,7 +339,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.14),
+                  color: _balanceOrnamentColor(isDark, 0.14),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -325,13 +352,13 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: pillColor,
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Available Balance',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: accentColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -340,8 +367,8 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                   const SizedBox(height: 10),
                   Text(
                     'Rs ${widget.availableBalance.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: accentColor,
                       fontSize: 38,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.8,
@@ -365,8 +392,10 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                         },
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF007AFF),
+                          backgroundColor:
+                              isDark ? accentBlue : Colors.white,
+                          foregroundColor:
+                              isDark ? Colors.white : accentBlue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

@@ -140,7 +140,20 @@ class FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
+  Color _balanceOrnamentColor(bool isDark, double alpha) {
+    return isDark
+        ? const Color(0xFF007AFF).withValues(alpha: alpha)
+        : Colors.white.withValues(alpha: alpha);
+  }
+
   Widget _buildAvailableBalanceCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const accentBlue = Color(0xFF007AFF);
+    final accentColor = isDark ? accentBlue : Colors.white;
+    final pillColor = isDark
+        ? accentBlue.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.18);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 35),
       child: Column(
@@ -149,19 +162,33 @@ class FinanceScreenState extends State<FinanceScreen> {
             height: 176,
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF1E7BFF), Color(0xFF005BE0)],
-              ),
+              color: isDark ? const Color(0xFF1A1A2E) : null,
+              gradient: isDark
+                  ? null
+                  : const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF1E7BFF), Color(0xFF005BE0)],
+                    ),
               borderRadius: BorderRadius.circular(22),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF005BE0).withOpacity(0.28),
-                  blurRadius: 18,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              border: isDark
+                  ? Border.all(color: accentBlue.withValues(alpha: 0.22))
+                  : null,
+              boxShadow: isDark
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFF005BE0).withOpacity(0.28),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(22),
@@ -174,7 +201,7 @@ class FinanceScreenState extends State<FinanceScreen> {
                       width: 128,
                       height: 128,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.16),
+                        color: _balanceOrnamentColor(isDark, 0.16),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -186,7 +213,7 @@ class FinanceScreenState extends State<FinanceScreen> {
                       width: 92,
                       height: 92,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.20),
+                        color: _balanceOrnamentColor(isDark, 0.20),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -198,7 +225,7 @@ class FinanceScreenState extends State<FinanceScreen> {
                       width: 96,
                       height: 96,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.14),
+                        color: _balanceOrnamentColor(isDark, 0.14),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -217,15 +244,15 @@ class FinanceScreenState extends State<FinanceScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.18),
+                            color: pillColor,
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Wallet Balance',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: accentColor,
                             ),
                           ),
                         ),
@@ -234,10 +261,10 @@ class FinanceScreenState extends State<FinanceScreen> {
                           _showBalance
                               ? 'Rs ${_availableBalance.toStringAsFixed(2)}'
                               : '******',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 44,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: accentColor,
                             letterSpacing: -0.8,
                             height: 1.0,
                           ),
@@ -264,34 +291,40 @@ class FinanceScreenState extends State<FinanceScreen> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.18),
+                                  color: pillColor,
                                   borderRadius: BorderRadius.circular(999),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.35),
+                                    color: isDark
+                                        ? accentBlue.withValues(alpha: 0.35)
+                                        : Colors.white.withOpacity(0.35),
                                   ),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Text(
+                                    Text(
                                       'My Wallet',
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
-                                        color: Colors.white,
+                                        color: accentColor,
                                       ),
                                     ),
                                     const SizedBox(width: 6),
                                     Container(
                                       width: 18,
                                       height: 18,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? accentBlue
+                                            : Colors.white,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.arrow_forward,
                                         size: 11,
-                                        color: Color(0xFF007AFF),
+                                        color: isDark
+                                            ? Colors.white
+                                            : accentBlue,
                                       ),
                                     ),
                                   ],
@@ -312,19 +345,33 @@ class FinanceScreenState extends State<FinanceScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF0F6EF0), Color(0xFF0A5ED0)],
-              ),
+              color: isDark ? const Color(0xFF1A1A2E) : null,
+              gradient: isDark
+                  ? null
+                  : const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF0F6EF0), Color(0xFF0A5ED0)],
+                    ),
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0A5ED0).withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              border: isDark
+                  ? Border.all(color: accentBlue.withValues(alpha: 0.22))
+                  : null,
+              boxShadow: isDark
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.28),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFF0A5ED0).withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
             child: Row(
               children: [
@@ -340,20 +387,22 @@ class FinanceScreenState extends State<FinanceScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Cash In',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFFEAF4FF),
+                              color: isDark
+                                  ? accentBlue.withValues(alpha: 0.72)
+                                  : const Color(0xFFEAF4FF),
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Rs ${_income.toStringAsFixed(2)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: accentColor,
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -365,7 +414,9 @@ class FinanceScreenState extends State<FinanceScreen> {
                 Container(
                   width: 1,
                   height: 40,
-                  color: Colors.white.withOpacity(0.25),
+                  color: isDark
+                      ? accentBlue.withValues(alpha: 0.25)
+                      : Colors.white.withOpacity(0.25),
                 ),
                 Expanded(
                   child: Row(
@@ -380,20 +431,22 @@ class FinanceScreenState extends State<FinanceScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Spending',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFFEAF4FF),
+                              color: isDark
+                                  ? accentBlue.withValues(alpha: 0.72)
+                                  : const Color(0xFFEAF4FF),
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Rs ${_spent.toStringAsFixed(2)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: accentColor,
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -470,17 +523,18 @@ class FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _buildQuickActionsSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 35),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Quick Actions',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1C1C1E),
+              color: isDark ? Colors.white : const Color(0xFF1C1C1E),
             ),
           ),
           const SizedBox(height: 14),

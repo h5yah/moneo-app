@@ -68,6 +68,8 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>We need camera access to scan your receipts</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Monéo needs photo library access so you can choose a profile picture.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Monéo uses your contacts so you can choose who to send money to.</string>
 	<key>GIDClientID</key>

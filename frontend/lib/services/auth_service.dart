@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:fintech/services/fcm_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
@@ -121,6 +122,11 @@ class AuthService {
 
   // LOGOUT
   Future<void> logoutUser() async {
+    try {
+      await FcmService.instance.clearTokenForCurrentUser();
+    } catch (e) {
+      debugPrint('FCM clear on logout: $e');
+    }
     try {
       await GoogleSignIn.instance.signOut();
     } catch (e) {

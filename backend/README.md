@@ -19,6 +19,15 @@ Secure XP operations, finance summary read, and the Miro AI assistant for the Mo
 
 Wallet mutations (add funds, send money, pay bill, scan to pay) are performed **client-side** via Firestore transactions in the Flutter app. Server finance write callables are not deployed.
 
+### Push notifications (FCM)
+
+- `onUserNotificationCreated` — Firestore trigger on `users/{uid}/notifications/{id}`; sends FCM when `notifications.push` is enabled and `fcmToken` is set.
+- `sendTestPush` — callable test: `{ "title": "...", "body": "..." }`.
+
+The Flutter app saves `users/{uid}.fcmToken` on sign-in. Streak/lesson alerts created via `AppNotificationService` also deliver as device push when FCM is configured.
+
+**iOS:** Enable Push Notifications capability in Xcode and upload your APNs key in Firebase Console → Project Settings → Cloud Messaging.
+
 ### AI assistant
 
 - `miroChat` — authenticated chat with **OpenAI** (Monéo “Ask Miro” screen).
@@ -39,6 +48,12 @@ Finance collections (client writes + rules in `firestore.rules`):
 - Balances: `balances/{uid}`
 - Transactions: `transactions/{transactionId}`
 - Expenses: `expenses/{expenseId}`
+
+Cloud Storage paths (`storage.rules`):
+
+- `users/{uid}/profile.jpg` — profile photo (client upload)
+- `certificates/{uid}/{topicId}.json` — topic completion certificate metadata
+- `lesson_assets/**` — read-only lesson media (upload via Firebase Console or Admin SDK)
 
 ## Setup
 
@@ -63,7 +78,7 @@ npm install
 npm run deploy
 ```
 
-This deploys Cloud Functions and Firestore security rules.
+This deploys Cloud Functions, Firestore rules, and Storage rules.
 
 **Do not** put `OPENAI_API_KEY` in `backend/functions/.env` — Firebase uploads that as a plain env var and conflicts with the secret. Use Secret Manager only (or `.env.local` for the emulator).
 

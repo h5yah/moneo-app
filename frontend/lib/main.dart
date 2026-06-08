@@ -6,6 +6,9 @@ import 'package:fintech/firebase_options.dart';
 import 'package:fintech/services/topic_meta_service.dart';
 import 'package:fintech/services/app_theme_controller.dart';
 import 'package:fintech/services/app_notification_service.dart';
+import 'package:fintech/services/fcm_service.dart';
+import 'package:fintech/firebase_messaging_background.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 const String _kGoogleSignInServerClientId =
@@ -25,9 +28,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await _initializeGoogleSignIn();
   await TopicMetaService.instance.ensureLoaded();
   await AppNotificationService.instance.initialize();
+  await FcmService.instance.initialize();
   await AppThemeController.loadSaved();
   runApp(const MyApp());
 }

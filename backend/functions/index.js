@@ -3,6 +3,7 @@ if (process.env.FUNCTIONS_EMULATOR === "true") {
 }
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { defineSecret } = require("firebase-functions/params");
 const OpenAI = require("openai");
@@ -203,6 +204,72 @@ exports.spendXp = onCall(async (request) => {
   });
 
   return { xp: updatedXp };
+});
+
+//  PUSH (FCM) 
+
+async function sendFcmToUser(userId, title, body, data = {}) {
+  const userSnap = await db.collection("users").doc(userId).get();
+  if (!userSnap.exists) return { sent: false, reason: "no_user" };
+
+  const userData = userSnap.data() ?? {};
+  const pushEnabled = userData.notifications?.push !== false;
+  if (!pushEnabled) return { sent: false, reason: "push_disabled" };
+
+  const token = sanitizeString(userData.fcmToken);
+  if (!token) return { sent: false, reason: "no_token" };
+
+  await admin.messaging().send({
+    token,
+    notification: { title, body },
+    data: Object.fromEntries(
+      Object.entries(data).map(([k, v]) => [k, String(v)]),
+    ),
+    android: {
+      priority: "high",
+      notification: { channelId: "moneo_general_notifications" },
+    },
+    apns: { payload: { aps: { sound: "default" } } },
+  });
+
+  return { sent: true };
+}
+
+exports.onUserNotificationCreated = onDocumentCreated(
+  "users/{userId}/notifications/{notificationId}",
+  async (event) => {
+    const userId = event.params.userId;
+    const data = event.data?.data() ?? {};
+    const title = sanitizeString(data.title);
+    const body = sanitizeString(data.body);
+    if (!title || !body) return;
+
+    try {
+      await sendFcmToUser(userId, title, body, {
+        type: sanitizeString(data.type, "general"),
+        notificationId: event.params.notificationId,
+      });
+    } catch (err) {
+      console.error("[FCM] Delivery failed:", err);
+    }
+  },
+);
+
+exports.sendTestPush = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const title = sanitizeString(request.data?.title, "Monéo");
+  const body = sanitizeString(
+    request.data?.body,
+    "Push notifications are working.",
+  );
+  const result = await sendFcmToUser(uid, title, body, { type: "test" });
+  if (!result.sent) {
+    throw new HttpsError(
+      "failed-precondition",
+      `Push not sent: ${result.reason ?? "unknown"}`,
+    );
+  }
+  return result;
 });
 
 //  FINANCE 

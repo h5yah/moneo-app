@@ -1,7 +1,21 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+class _MerchantOption {
+  const _MerchantOption({
+    required this.id,
+    required this.name,
+    required this.account,
+  });
+
+  final String id;
+  final String name;
+  final String account;
+}
 
 class ScanToPayScreen extends StatefulWidget {
   const ScanToPayScreen({super.key});
@@ -124,13 +138,13 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
             ),
           ),
         ),
-        const Positioned(
+        Positioned(
           left: 0,
           right: 0,
           bottom: 40,
           child: Column(
             children: [
-              Text(
+              const Text(
                 'Scan merchant QR code',
                 style: TextStyle(
                   color: Colors.white,
@@ -138,13 +152,39 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 4),
-              Text(
+              const SizedBox(height: 4),
+              const Text(
                 'After scan, enter amount and confirm payment',
                 style: TextStyle(
                   color: Color(0xFFE5E7EB),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _showMerchantPicker,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC143C),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Select from merchant list',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -312,6 +352,283 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
     );
   }
 
+  String? _firstNonEmptyString(
+    Map<String, dynamic> data,
+    List<String> fieldNames,
+  ) {
+    final normalizedFields = {
+      for (final fieldName in fieldNames) _normalizeFieldName(fieldName),
+    };
+
+    for (final fieldName in fieldNames) {
+      final value = data[fieldName]?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+
+    for (final entry in data.entries) {
+      if (!normalizedFields.contains(_normalizeFieldName(entry.key))) {
+        continue;
+      }
+      final value = entry.value?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+
+    return null;
+  }
+
+  String? _guessMerchantName(Map<String, dynamic> data, String merchantId) {
+    final directMatch = _firstNonEmptyString(data, const [
+      'merchantName',
+      'merchant name',
+      'merchant_name',
+      'name',
+      'Name',
+      'businessName',
+      'business name',
+      'business_name',
+      'displayName',
+      'display name',
+      'shopName',
+      'shop name',
+      'title',
+    ]);
+    if (directMatch != null) return directMatch;
+
+    for (final entry in data.entries) {
+      final key = _normalizeFieldName(entry.key);
+      if (key.contains('id') ||
+          key.contains('account') ||
+          key.contains('active') ||
+          key.contains('created') ||
+          key.contains('updated')) {
+        continue;
+      }
+
+      final value = entry.value;
+      if (value is String) {
+        final trimmed = value.trim();
+        if (trimmed.isNotEmpty && trimmed != merchantId) return trimmed;
+      }
+
+      if (value is Map) {
+        final nested = _guessMerchantName(
+          Map<String, dynamic>.from(value),
+          merchantId,
+        );
+        if (nested != null) return nested;
+      }
+    }
+
+    return null;
+  }
+
+  Map<String, dynamic> _expandedMerchantData(Map<String, dynamic> data) {
+    final expanded = Map<String, dynamic>.from(data);
+
+    for (final entry in data.entries) {
+      final decodedKey = _tryDecodeJsonMap(entry.key);
+      if (decodedKey != null) expanded.addAll(decodedKey);
+
+      final value = entry.value;
+      if (value is String) {
+        final decodedValue = _tryDecodeJsonMap(value);
+        if (decodedValue != null) expanded.addAll(decodedValue);
+      } else if (value is Map) {
+        expanded.addAll(Map<String, dynamic>.from(value));
+      }
+    }
+
+    return expanded;
+  }
+
+  Map<String, dynamic>? _tryDecodeJsonMap(String value) {
+    final trimmed = value.trim();
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return null;
+
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map) {
+        return Map<String, dynamic>.from(decoded);
+      }
+    } catch (_) {
+      return null;
+    }
+
+    return null;
+  }
+
+  String _normalizeFieldName(String value) {
+    return value.toLowerCase().replaceAll(RegExp(r'[\s_\-]'), '');
+  }
+
+  String? _merchantIdFromData(Map<String, dynamic> data) {
+    return _firstNonEmptyString(data, const [
+      'merchantId',
+      'merchant id',
+      'merchant_id',
+      'id',
+    ]);
+  }
+
+  String? _merchantAccountFromData(Map<String, dynamic> data) {
+    return _firstNonEmptyString(data, const [
+      'account',
+      'accountNumber',
+      'account number',
+      'account_number',
+      'walletAccount',
+      'wallet account',
+      'wallet_account',
+      'merchantAccount',
+      'merchant account',
+    ]);
+  }
+
+  _MerchantOption _merchantOptionFromDoc(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = _expandedMerchantData(doc.data());
+    final id = _merchantIdFromData(data) ?? doc.id;
+    final name = _guessMerchantName(data, id) ?? 'Unknown Merchant';
+    final account = _merchantAccountFromData(data) ?? 'Not available';
+    return _MerchantOption(id: id, name: name, account: account);
+  }
+
+  Future<void> _showMerchantPicker() async {
+    setState(() => _isHandlingScan = true);
+    await _scannerController.stop();
+
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('merchants').get();
+      if (!mounted) return;
+
+      final merchants = snapshot.docs
+          .where((doc) {
+            final data = _expandedMerchantData(doc.data());
+            return data['isActive'] as bool? ?? true;
+          })
+          .map(_merchantOptionFromDoc)
+          .where((merchant) => merchant.name != 'Unknown Merchant')
+          .toList();
+
+      if (merchants.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No active merchants found.')),
+        );
+        await _scannerController.start();
+        setState(() => _isHandlingScan = false);
+        return;
+      }
+
+      final selected = await showModalBottomSheet<_MerchantOption>(
+        context: context,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (sheetContext) {
+          return SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD1D1D6),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Select Merchant',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Choose a merchant if you do not want to scan a QR code.',
+                    style: TextStyle(
+                      color: Color(0xFF8E8E93),
+                      fontSize: 13,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: merchants.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final merchant = merchants[index];
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEAF3FF),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.storefront_rounded,
+                              color: Color(0xFF007AFF),
+                            ),
+                          ),
+                          title: Text(
+                            merchant.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.pop(sheetContext, merchant),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+      if (!mounted) return;
+      if (selected == null) {
+        await _scannerController.start();
+        setState(() => _isHandlingScan = false);
+        return;
+      }
+
+      setState(() {
+        _merchantId = selected.id;
+        _merchantName = selected.name;
+        _merchantAccount = selected.account;
+        _rawPayload = selected.id;
+        _hasScanned = true;
+        _isHandlingScan = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load merchants.')),
+      );
+      await _scannerController.start();
+      setState(() => _isHandlingScan = false);
+    }
+  }
+
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_isHandlingScan || _hasScanned) return;
 
@@ -343,7 +660,7 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
         return;
       }
 
-      final data = doc.data()!;
+      final data = _expandedMerchantData(doc.data()!);
       final isActive = data['isActive'] as bool? ?? true;
 
       if (!isActive) {
@@ -354,13 +671,16 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
         return;
       }
 
+      final merchantName = _guessMerchantName(data, merchantId);
+      final merchantAccount = _merchantAccountFromData(data);
+
       await _scannerController.stop();
 
       if (!mounted) return;
       setState(() {
         _merchantId = merchantId;
-        _merchantName = (data['merchantName'] ?? 'Unknown Merchant').toString();
-        _merchantAccount = (data['account'] ?? 'Not available').toString();
+        _merchantName = merchantName ?? 'Unknown Merchant';
+        _merchantAccount = merchantAccount ?? 'Not available';
         _rawPayload = merchantId;
         _hasScanned = true;
       });

@@ -545,6 +545,103 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildHeaderProfileAvatar({
+    required Color headerCardColor,
+    required Color headerBorderColor,
+    required Color secondaryTextColor,
+  }) {
+    final user = _auth.currentUser;
+
+    Widget avatarImage(String? photoUrl) {
+      if (photoUrl != null && photoUrl.isNotEmpty) {
+        return Image.network(
+          photoUrl,
+          width: 52,
+          height: 52,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _headerProfilePlaceholder(
+              headerCardColor: headerCardColor,
+              secondaryTextColor: secondaryTextColor,
+            );
+          },
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return _headerProfilePlaceholder(
+              headerCardColor: headerCardColor,
+              secondaryTextColor: secondaryTextColor,
+            );
+          },
+        );
+      }
+      return Image.asset(
+        'assets/profile_avatar.jpg',
+        width: 52,
+        height: 52,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _headerProfilePlaceholder(
+            headerCardColor: headerCardColor,
+            secondaryTextColor: secondaryTextColor,
+          );
+        },
+      );
+    }
+
+    final decoration = BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(color: headerBorderColor),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.04),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+
+    if (user == null) {
+      return Container(
+        width: 52,
+        height: 52,
+        decoration: decoration,
+        child: ClipOval(
+          child: avatarImage(null),
+        ),
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: _firestore.collection('users').doc(user.uid).snapshots(),
+      builder: (context, snapshot) {
+        final photoUrl =
+            (snapshot.data?.data()?['photoUrl'] as String?)?.trim();
+        return Container(
+          width: 52,
+          height: 52,
+          decoration: decoration,
+          child: ClipOval(
+            child: avatarImage(photoUrl),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _headerProfilePlaceholder({
+    required Color headerCardColor,
+    required Color secondaryTextColor,
+  }) {
+    return Container(
+      color: headerCardColor,
+      child: Icon(
+        Icons.person_rounded,
+        color: secondaryTextColor,
+        size: 28,
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final headerCardColor = isDark ? const Color(0xFF1B1D33) : Colors.white;
@@ -569,34 +666,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ).then((_) => _replayLearningProgress());
             },
-            child: Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: headerBorderColor),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4))
-                ],
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/profile_avatar.jpg',
-                  width: 52,
-                  height: 52,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: headerCardColor,
-                      child: Icon(Icons.person_rounded,
-                          color: secondaryTextColor, size: 28),
-                    );
-                  },
-                ),
-              ),
+            child: _buildHeaderProfileAvatar(
+              headerCardColor: headerCardColor,
+              headerBorderColor: headerBorderColor,
+              secondaryTextColor: secondaryTextColor,
             ),
           ),
           const SizedBox(width: 14),

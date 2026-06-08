@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:fintech/services/firebase_storage_service.dart';
+import 'package:fintech/services/topic_meta_service.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,7 +60,25 @@ class TopicProgressService {
     required String topicId,
     required int score,
     required int totalQuestions,
+    String? topicTitle,
   }) async {
+    String? certificateUrl;
+    try {
+      await TopicMetaService.instance.ensureLoaded();
+      final resolvedTitle = topicTitle ??
+          TopicMetaService.instance.byId[topicId]?.title ??
+          topicId;
+      certificateUrl =
+          await FirebaseStorageService.instance.uploadTopicCertificate(
+        topicId: topicId,
+        topicTitle: resolvedTitle,
+        score: score,
+        totalQuestions: totalQuestions,
+      );
+    } catch (e) {
+      debugPrint('[Storage] Certificate skipped: $e');
+    }
+
     await _saveTopicProgress(topicId, {
       'postQuizCompleted': true,
       'postQuizScore': score,
@@ -66,6 +86,7 @@ class TopicProgressService {
       'postQuizCompletedAt': DateTime.now().toIso8601String(),
       'topicCompleted': true,
       'topicCompletedAt': DateTime.now().toIso8601String(),
+      if (certificateUrl != null) 'certificateUrl': certificateUrl,
     });
   }
 

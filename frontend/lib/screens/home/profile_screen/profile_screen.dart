@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fintech/services/auth_service.dart';
+import 'package:fintech/services/firebase_storage_service.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:fintech/services/app_theme_controller.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'package:fintech/screens/auth/login_screen.dart';
@@ -147,6 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ? (emailFallback.isEmpty ? 'User' : emailFallback)
                       : displayName,
                   memberSince: memberSince,
+                  photoUrl: (data['photoUrl'] as String?)?.trim(),
                 ),
                 const SizedBox(height: 20),
                 _buildStatsCardsSection(
@@ -1099,9 +1104,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _pickAndUploadProfilePhoto() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Uploading profile photo…')),
+      );
+
+      final result = await FirebaseStorageService.instance
+          .uploadProfilePhoto(File(picked.path));
+      if (!result.isSuccess) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.errorMessage ?? 'Could not upload photo.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      await _firestore.collection('users').doc(user.uid).set(
+        {
+          'photoUrl': result.url,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile photo updated.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Photo upload failed: $e')),
+      );
+    }
+  }
+
+  Widget _profilePlaceholder(bool isDark) {
+    return Container(
+      color: isDark ? const Color(0xFF242742) : const Color(0xFFF3F6FB),
+      child: const Icon(Icons.person, color: Color(0xFF6E7EA7), size: 52),
+    );
+  }
+
   Widget _buildProfileHeader({
     required String displayName,
     required String memberSince,
+    String? photoUrl,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
@@ -1131,19 +1195,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 child: ClipOval(
-                  child: Image.asset(
-                    'assets/profile_avatar.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: isDark
-                            ? const Color(0xFF242742)
-                            : const Color(0xFFF3F6FB),
-                        child: const Icon(Icons.person,
-                            color: Color(0xFF6E7EA7), size: 52),
-                      );
-                    },
-                  ),
+                  child: photoUrl != null && photoUrl.isNotEmpty
+                      ? Image.network(
+                          photoUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _profilePlaceholder(isDark);
+                          },
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return _profilePlaceholder(isDark);
+                          },
+                        )
+                      : Image.asset(
+                          'assets/profile_avatar.jpg',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _profilePlaceholder(isDark);
+                          },
+                        ),
                 ),
               ),
               Positioned(
@@ -1154,7 +1224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   shape: const CircleBorder(),
                   child: InkWell(
                     customBorder: const CircleBorder(),
-                    onTap: () => _showComingSoon('Edit profile'),
+                    onTap: _pickAndUploadProfilePhoto,
                     child: const Padding(
                       padding: EdgeInsets.all(8),
                       child: Icon(

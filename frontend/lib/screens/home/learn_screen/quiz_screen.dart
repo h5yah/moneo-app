@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'package:fintech/services/topic_progress_service.dart';
 import 'quiz_completion_screen.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class QuizScreen extends StatefulWidget {
   final String quizTitle;
@@ -126,6 +127,7 @@ class _QuizScreenState extends State<QuizScreen> {
       return const SizedBox.shrink();
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final popupKey = ValueKey(_xpPopupTick);
 
     return TweenAnimationBuilder<double>(
@@ -147,7 +149,11 @@ class _QuizScreenState extends State<QuizScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF3E0),
+          color: iconAccentBackground(
+            accentColor: const Color(0xFFFF9800),
+            isDark: isDark,
+            lightBackground: const Color(0xFFFFF3E0),
+          ),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.35)),
         ),
@@ -217,6 +223,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Widget _buildProgressSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final progress = (_currentQuestionIndex + 1) / widget.questions.length;
     final xpForQuestion = _correctAnswerXp;
 
@@ -242,7 +249,11 @@ class _QuizScreenState extends State<QuizScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF3E0),
+                    color: iconAccentBackground(
+                      accentColor: const Color(0xFFFF9800),
+                      isDark: isDark,
+                      lightBackground: const Color(0xFFFFF3E0),
+                    ),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(

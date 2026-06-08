@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class _MerchantOption {
   const _MerchantOption({
@@ -571,13 +572,19 @@ class _ScanToPayScreenState extends State<ScanToPayScreen> {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final merchant = merchants[index];
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: Container(
                             width: 42,
                             height: 42,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEAF3FF),
+                              color: iconAccentBackground(
+                                accentColor: const Color(0xFF007AFF),
+                                isDark: isDark,
+                                lightBackground: const Color(0xFFEAF3FF),
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(

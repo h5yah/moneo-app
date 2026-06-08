@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
@@ -159,7 +160,11 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEAF2FF),
+                            color: iconAccentBackground(
+                              accentColor: const Color(0xFF007AFF),
+                              isDark: isDark,
+                              lightBackground: const Color(0xFFEAF2FF),
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(Icons.swap_vert_rounded, color: Color(0xFF007AFF)),

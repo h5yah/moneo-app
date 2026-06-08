@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'add_funds_screen.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class MyWalletScreen extends StatefulWidget {
   const MyWalletScreen({
@@ -431,12 +432,12 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
     final amount = item['amount'] as double;
     final icon = (item['icon'] as IconData?) ??
       (isCashIn ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded);
-    final iconBg = (item['iconBg'] as Color?) ??
-      (isCashIn
-        ? const Color(0xFF34C759).withValues(alpha: 0.15)
-        : const Color(0xFFFF3B30).withValues(alpha: 0.14));
     final iconColor = (item['iconColor'] as Color?) ??
       (isCashIn ? const Color(0xFF34C759) : const Color(0xFFFF3B30));
+    final iconBg = iconAccentBackground(
+      accentColor: iconColor,
+      isDark: isDark,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),

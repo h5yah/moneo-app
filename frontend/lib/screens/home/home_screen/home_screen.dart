@@ -21,6 +21,7 @@ import 'package:fintech/services/app_notification_service.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'package:fintech/services/walkthrough_service.dart';
 import 'package:fintech/widgets/app_walkthrough.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.userName});
@@ -34,6 +35,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _reviewCompleted = false;
   int _selectedIndex = 0;
+  int _previousNavIndex = 0;
   int _dealsArcReplay = 0;
   int _learningProgressReplay = 0;
   int _learnTopicBarsReplay = 0;
@@ -109,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!mounted) return;
 
         setState(() {
+          _previousNavIndex = _selectedIndex;
           _selectedIndex = index;
           if (index == 0) _learningProgressReplay++;
           if (index == 1) _learnTopicBarsReplay++;
@@ -116,7 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
           if (index == 4) _dealsArcReplay++;
         });
 
-        if (index == 1) {
+        if (index == 0) {
+          _loadActiveTopicProgress();
+        } else if (index == 1) {
           _learnTabKey.currentState?.refreshTopicProgress();
           _learnTabKey.currentState?.replayTopicBars();
         }
@@ -137,7 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _replayAppWalkthrough() async {
     if (!mounted) return;
-    setState(() => _selectedIndex = 0);
+    setState(() {
+      _previousNavIndex = _selectedIndex;
+      _selectedIndex = 0;
+    });
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     await _showAppWalkthrough();
@@ -338,6 +346,92 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return 0;
     }
+  }
+
+  void _selectNavIndex(int index, {bool clearLearnResume = false}) {
+    if (index == _selectedIndex) return;
+
+    setState(() {
+      _previousNavIndex = _selectedIndex;
+      _selectedIndex = index;
+      if (clearLearnResume && index != 1) {
+        _pendingResumeTopicId = null;
+        _pendingAutoOpenResumeTopic = false;
+      }
+      if (index == 0) _learningProgressReplay++;
+      if (index == 1) _learnTopicBarsReplay++;
+      if (index == 3) _financeProgressReplay++;
+      if (index == 4) _dealsArcReplay++;
+    });
+
+    if (index == 0) {
+      _loadActiveTopicProgress();
+    } else if (index == 1) {
+      _learnTabKey.currentState?.refreshTopicProgress();
+      _learnTabKey.currentState?.replayTopicBars();
+    }
+  }
+
+  Widget _buildTabStack() {
+    final activeIndex = _tabStackIndex(_selectedIndex);
+    final previousIndex = _tabStackIndex(_previousNavIndex);
+    final slideDirection =
+        activeIndex >= previousIndex ? 1.0 : -1.0;
+
+    Widget tabLayer(int index, Widget child) {
+      return Positioned.fill(
+        child: _NavTabTransition(
+          isActive: activeIndex == index,
+          slideDirection: slideDirection,
+          child: child,
+        ),
+      );
+    }
+
+    final layers = <Widget>[
+      tabLayer(0, _buildHomeBody()),
+      tabLayer(
+        1,
+        LearnScreen(
+          key: _learnTabKey,
+          walkthroughScenariosKey: _wtScenariosKey,
+          walkthroughTopicsKey: _wtTopicsKey,
+          resumeTopicId: _pendingResumeTopicId,
+          autoOpenResumeTopic: _pendingAutoOpenResumeTopic,
+          progressReplaySeed: _learnTopicBarsReplay,
+          onIndexChanged: (i) => _selectNavIndex(i, clearLearnResume: true),
+        ),
+      ),
+      tabLayer(
+        2,
+        FinanceScreen(
+          key: _financeTabKey,
+          walkthroughBalanceKey: _wtBalanceKey,
+          walkthroughFinanceToolsKey: _wtFinanceToolsKey,
+          progressReplaySeed: _financeProgressReplay,
+          onIndexChanged: _selectNavIndex,
+        ),
+      ),
+      tabLayer(
+        3,
+        DealsScreen(
+          key: _dealsTabKey,
+          arcReplaySeed: _dealsArcReplay,
+          isActive: _selectedIndex == 4,
+          onIndexChanged: _selectNavIndex,
+        ),
+      ),
+    ];
+
+    // Paint the entering tab on top so its slide is always visible.
+    final activeLayer = layers.removeAt(activeIndex);
+    layers.add(activeLayer);
+
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: layers,
+    );
   }
 
   String get _formattedDate {
@@ -559,63 +653,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? const Color(0xFFF0F0F0)
                     : const Color(0xFFF5F7FB);
     
-    final Widget body = IndexedStack(
-      index: _tabStackIndex(_selectedIndex),
-      sizing: StackFit.expand,
-      children: [
-        _buildHomeBody(),
-        LearnScreen(
-          key: _learnTabKey,
-          walkthroughScenariosKey: _wtScenariosKey,
-          walkthroughTopicsKey: _wtTopicsKey,
-          resumeTopicId: _pendingResumeTopicId,
-          autoOpenResumeTopic: _pendingAutoOpenResumeTopic,
-          progressReplaySeed: _learnTopicBarsReplay,
-          onIndexChanged: (i) {
-            setState(() {
-              _selectedIndex = i;
-              if (i != 1) {
-                _pendingResumeTopicId = null;
-                _pendingAutoOpenResumeTopic = false;
-              }
-              if (i == 0) _learningProgressReplay++;
-            });
-            if (i == 0) _loadActiveTopicProgress();
-          },
-        ),
-        FinanceScreen(
-          key: _financeTabKey,
-          walkthroughBalanceKey: _wtBalanceKey,
-          walkthroughFinanceToolsKey: _wtFinanceToolsKey,
-          progressReplaySeed: _financeProgressReplay,
-          onIndexChanged: (i) => setState(() => _selectedIndex = i),
-        ),
-        DealsScreen(
-          key: _dealsTabKey,
-          arcReplaySeed: _dealsArcReplay,
-          isActive: _selectedIndex == 4,
-          onIndexChanged: (i) => setState(() => _selectedIndex = i),
-        ),
-      ],
-    );
+    final Widget body = _buildTabStack();
 
-    return Scaffold(
-      backgroundColor: scaffoldBgColor,
-      body: Stack(
-        children: [
-          SafeArea(
-            top: _selectedIndex != 4,
-            child: AnimatedOpacity(
-              opacity: _walkthroughBodyOpacity,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              child: body,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      color: scaffoldBgColor,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            SafeArea(
+              top: _selectedIndex != 4,
+              child: AnimatedOpacity(
+                opacity: _walkthroughBodyOpacity,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                child: body,
+              ),
             ),
-          ),
-          if (_showStreakCelebration) _buildStreakCelebrationOverlay(),
-        ],
+            if (_showStreakCelebration) _buildStreakCelebrationOverlay(),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomNav(),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -838,7 +899,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => ProfileScreen(
-                      onIndexChanged: (i) => setState(() => _selectedIndex = i),
+                      onIndexChanged: _selectNavIndex,
                     ),
                   ),
                 ).then((result) {
@@ -1134,9 +1195,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
+                          _previousNavIndex = _selectedIndex;
                           _pendingResumeTopicId = _activeTopicId;
                           _pendingAutoOpenResumeTopic = true;
                           _selectedIndex = 1;
+                          _learnTopicBarsReplay++;
                         });
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (!mounted) return;
@@ -1234,7 +1297,7 @@ class _HomeScreenState extends State<HomeScreen> {
         sub: 'Convert rates',
         icon: Icons.currency_exchange_rounded,
         color: const Color(0xFF34C759),
-        bg: const Color(0xFFEAF7EE),
+        lightBg: const Color(0xFFEAF7EE),
         screen: const CurrencyConverterScreen(),
       ),
       _ToolItem(
@@ -1242,7 +1305,7 @@ class _HomeScreenState extends State<HomeScreen> {
         sub: 'Reach your goal',
         icon: Icons.savings_rounded,
         color: const Color(0xFF6D5EF9),
-        bg: const Color(0xFFEAF2FF),
+        lightBg: const Color(0xFFEAF2FF),
         screen: const SavingsCalculatorScreen(),
       ),
       _ToolItem(
@@ -1250,7 +1313,7 @@ class _HomeScreenState extends State<HomeScreen> {
         sub: 'Monthly payments',
         icon: Icons.credit_card_rounded,
         color: const Color(0xFFFF6B35),
-        bg: const Color(0xFFFFF0EB),
+        lightBg: const Color(0xFFFFF0EB),
         screen: const LoanCalculatorScreen(),
       ),
       _ToolItem(
@@ -1258,7 +1321,7 @@ class _HomeScreenState extends State<HomeScreen> {
         sub: 'Split bills',
         icon: Icons.group_rounded,
         color: const Color(0xFFFF9500),
-        bg: const Color(0xFFFFF4E0),
+        lightBg: const Color(0xFFFFF4E0),
         screen: const TipSplitterScreen(),
       ),
     ];
@@ -1300,7 +1363,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                  color: t.bg,
+                                  color: iconAccentBackground(
+                                    accentColor: t.color,
+                                    isDark: isDark,
+                                    lightBackground: t.lightBg,
+                                  ),
                                   borderRadius: BorderRadius.circular(12)),
                               child: Icon(t.icon, color: t.color, size: 20),
                             ),
@@ -1362,7 +1429,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF2FF),
+                  color: iconAccentBackground(
+                    accentColor: const Color(0xFF007AFF),
+                    isDark: isDark,
+                    lightBackground: const Color(0xFFEAF2FF),
+                  ),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(Icons.psychology_rounded,
@@ -1544,7 +1615,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRewardsCard() {
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedIndex = 4),
+        onTap: () => _selectNavIndex(4),
         child: Container(
           height: 170,
           decoration: BoxDecoration(
@@ -1614,95 +1685,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomNav() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-              color: isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!),
-        ),
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (i) {
-          if (i == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
-            );
-            return;
-          }
-          setState(() {
-            _selectedIndex = i;
-            if (i == 0) _learningProgressReplay++;
-            if (i == 1) _learnTopicBarsReplay++;
-            if (i == 3) _financeProgressReplay++;
-            if (i == 4) _dealsArcReplay++;
-          });
-          if (i == 0) {
-            _loadActiveTopicProgress();
-          } else if (i == 1) {
-            _learnTabKey.currentState?.refreshTopicProgress();
-            _learnTabKey.currentState?.replayTopicBars();
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: isDark ? const Color(0xFF17192B) : Colors.white,
-        elevation: 0,
-        iconSize: 0,
-        selectedItemColor: const Color(0xFF007AFF),
-        unselectedItemColor: isDark
-            ? const Color(0xFF939BB6)
-            : const Color.fromRGBO(0, 0, 0, 0.55),
-        selectedLabelStyle:
-            const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-        unselectedLabelStyle:
-            const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-        items: [
-          const BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: Icon(Icons.home_outlined, size: 24),
-            ),
-            label: 'Home',
-          ),
-          const BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: Icon(Icons.school_outlined, size: 24),
-            ),
-            label: 'Learn',
-          ),
-          BottomNavigationBarItem(
-            icon: KeyedSubtree(
-              key: _wtAiNavKey,
-              child: const _AiNavIcon(),
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 24,
-              height: 24,
-              child: Icon(Icons.account_balance_outlined, size: 24),
-            ),
-            label: 'Finance',
-          ),
-          BottomNavigationBarItem(
-            icon: KeyedSubtree(
-              key: _wtDealsNavKey,
-              child: const SizedBox(
-                width: 34,
-                height: 34,
-                child: Icon(Icons.card_giftcard_outlined, size: 24),
-              ),
-            ),
-            label: 'Deals',
-          ),
-        ],
-      ),
+    return _SimpleBottomNavBar(
+      selectedIndex: _selectedIndex,
+      aiNavKey: _wtAiNavKey,
+      dealsNavKey: _wtDealsNavKey,
+      onTap: (i) {
+        if (i == 2) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
+          );
+          return;
+        }
+        _selectNavIndex(i);
+      },
     );
   }
 }
@@ -1884,6 +1880,124 @@ class _LevelUpSparkle extends StatelessWidget {
   }
 }
 
+class _SimpleBottomNavBar extends StatelessWidget {
+  const _SimpleBottomNavBar({
+    required this.selectedIndex,
+    required this.onTap,
+    required this.aiNavKey,
+    required this.dealsNavKey,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+  final Key aiNavKey;
+  final Key dealsNavKey;
+
+  static const _selectedColor = Color(0xFF007AFF);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF17192B) : Colors.white;
+    final borderColor =
+        isDark ? const Color(0xFF2A2D4A) : Colors.grey[300]!;
+    final unselectedColor = isDark
+        ? const Color(0xFF939BB6)
+        : const Color.fromRGBO(0, 0, 0, 0.55);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border(top: BorderSide(color: borderColor)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 56,
+          child: Row(
+            children: [
+              _item(
+                index: 0,
+                icon: Icons.home_outlined,
+                label: 'Home',
+                unselectedColor: unselectedColor,
+              ),
+              _item(
+                index: 1,
+                icon: Icons.school_outlined,
+                label: 'Learn',
+                unselectedColor: unselectedColor,
+              ),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTap(2),
+                  child: KeyedSubtree(
+                    key: aiNavKey,
+                    child: const _AiNavIcon(),
+                  ),
+                ),
+              ),
+              _item(
+                index: 3,
+                icon: Icons.account_balance_outlined,
+                label: 'Finance',
+                unselectedColor: unselectedColor,
+              ),
+              _item(
+                index: 4,
+                icon: Icons.card_giftcard_outlined,
+                label: 'Deals',
+                unselectedColor: unselectedColor,
+                navKey: dealsNavKey,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _item({
+    required int index,
+    required IconData icon,
+    required String label,
+    required Color unselectedColor,
+    Key? navKey,
+  }) {
+    final isSelected = selectedIndex == index;
+    final color = isSelected ? _selectedColor : unselectedColor;
+
+    Widget child = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 24, color: color),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: color,
+          ),
+        ),
+      ],
+    );
+
+    if (navKey != null) {
+      child = KeyedSubtree(key: navKey, child: child);
+    }
+
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => onTap(index),
+        child: child,
+      ),
+    );
+  }
+}
+
 class _AiNavIcon extends StatelessWidget {
   const _AiNavIcon();
 
@@ -1903,17 +2017,96 @@ class _AiNavIcon extends StatelessWidget {
   }
 }
 
+class _NavTabTransition extends StatefulWidget {
+  const _NavTabTransition({
+    required this.isActive,
+    required this.slideDirection,
+    required this.child,
+  });
+
+  final bool isActive;
+  final double slideDirection;
+  final Widget child;
+
+  @override
+  State<_NavTabTransition> createState() => _NavTabTransitionState();
+}
+
+class _NavTabTransitionState extends State<_NavTabTransition>
+    with SingleTickerProviderStateMixin {
+  static const _duration = Duration(milliseconds: 300);
+  static const _slideFraction = 0.14;
+
+  late final AnimationController _controller;
+  late final CurvedAnimation _curve;
+  late Animation<Offset> _slide;
+  double _slideDirection = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: _duration);
+    _curve = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    _slideDirection = widget.slideDirection;
+    _syncSlideAnimation();
+    if (widget.isActive) {
+      _controller.value = 1.0;
+    }
+  }
+
+  void _syncSlideAnimation() {
+    _slide = Tween<Offset>(
+      begin: Offset(_slideFraction * _slideDirection, 0),
+      end: Offset.zero,
+    ).animate(_curve);
+  }
+
+  @override
+  void didUpdateWidget(_NavTabTransition oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive == oldWidget.isActive) return;
+    if (widget.isActive) {
+      _slideDirection = widget.slideDirection;
+      _syncSlideAnimation();
+      _controller.forward(from: 0);
+    } else {
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _curve.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !widget.isActive,
+      child: FadeTransition(
+        opacity: _curve,
+        child: SlideTransition(
+          position: _slide,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
 class _ToolItem {
   final String label, sub;
   final IconData icon;
-  final Color color, bg;
+  final Color color, lightBg;
   final Widget screen;
   const _ToolItem({
     required this.label,
     required this.sub,
     required this.icon,
     required this.color,
-    required this.bg,
+    required this.lightBg,
     required this.screen,
   });
 }

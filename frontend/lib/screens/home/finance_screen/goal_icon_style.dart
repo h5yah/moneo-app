@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 IconData goalIconFromKey(String? iconKey) {
   switch (iconKey ?? '') {
@@ -76,7 +77,7 @@ GoalIconAccent goalIconAccent(String? iconKey, {required bool isDark}) {
   }
   if (!isDark) return GoalIconAccent(lightBg, lightFg);
   return GoalIconAccent(
-    Color.alphaBlend(lightFg.withOpacity(0.28), const Color(0xFF1B1D33)),
+    iconAccentBackground(accentColor: lightFg, isDark: true),
     Color.lerp(lightFg, Colors.white, 0.45)!,
   );
 }

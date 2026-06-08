@@ -9,6 +9,7 @@ import 'scan_to_pay_screen.dart';
 import 'send_money_screen.dart';
 import 'budget_planner_screen.dart';
 import 'goal_icon_style.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 class FinanceScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
   final int? progressReplaySeed;
@@ -623,7 +624,10 @@ class FinanceScreenState extends State<FinanceScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
+                color: iconAccentBackground(
+                  accentColor: iconColor,
+                  isDark: isDark,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -1348,7 +1352,11 @@ class FinanceScreenState extends State<FinanceScreen> {
                         width: 58,
                         height: 58,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEAF1FF),
+                          color: iconAccentBackground(
+                            accentColor: const Color(0xFF2D4EFF),
+                            isDark: isDark,
+                            lightBackground: const Color(0xFFEAF1FF),
+                          ),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Icon(
@@ -1437,7 +1445,11 @@ class FinanceScreenState extends State<FinanceScreen> {
                         width: 58,
                         height: 58,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEAF1FF),
+                          color: iconAccentBackground(
+                            accentColor: const Color(0xFF2D4EFF),
+                            isDark: isDark,
+                            lightBackground: const Color(0xFFEAF1FF),
+                          ),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Icon(
@@ -1558,7 +1570,11 @@ class FinanceScreenState extends State<FinanceScreen> {
                               width: 52,
                               height: 52,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEAF1FF),
+                                color: iconAccentBackground(
+                                  accentColor: const Color(0xFF2D4EFF),
+                                  isDark: isDark,
+                                  lightBackground: const Color(0xFFEAF1FF),
+                                ),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: const Icon(

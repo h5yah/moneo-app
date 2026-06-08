@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fintech/services/wallet_card_service.dart';
 import 'add_card_screen.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class AddFundsScreen extends StatefulWidget {
   const AddFundsScreen({super.key});
@@ -487,6 +488,7 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
     required String subtitle,
     required String value,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedDestination == value;
 
     return InkWell(
@@ -542,7 +544,11 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: iconBgColor,
+                color: iconAccentBackground(
+                  accentColor: iconColor,
+                  isDark: isDark,
+                  lightBackground: iconBgColor,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor, size: 22),
@@ -673,6 +679,7 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
   }
 
   Widget _buildSavedCardView() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final last4 = _savedCard!['last4'] ?? '0000';
     final type = _savedCard!['type'] ?? 'debit';
     final label = type == 'credit' ? 'Credit Card' : 'Debit/Credit Card';
@@ -690,7 +697,11 @@ class _AddFundsScreenState extends State<AddFundsScreen> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF3FF),
+              color: iconAccentBackground(
+                accentColor: const Color(0xFF2D4EFF),
+                isDark: isDark,
+                lightBackground: const Color(0xFFEAF3FF),
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(

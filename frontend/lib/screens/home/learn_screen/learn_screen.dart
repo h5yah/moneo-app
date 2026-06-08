@@ -13,6 +13,7 @@ import 'emergency_fund_builder.dart';
 import 'quick_scenario_screen.dart';
 import 'package:fintech/services/topic_meta_service.dart';
 import 'package:fintech/services/learn_content_service.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 enum LessonStatus { completed, current, locked, quiz }
 
@@ -953,7 +954,10 @@ class LearnScreenState extends State<LearnScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.12),
+                          color: iconAccentBackground(
+                            accentColor: Colors.blue,
+                            isDark: isDark,
+                          ),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Row(
@@ -1109,7 +1113,11 @@ class LearnScreenState extends State<LearnScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: meta.iconBgColor,
+                  color: iconAccentBackground(
+                    accentColor: meta.iconColor,
+                    isDark: isDark,
+                    lightBackground: meta.iconBgColor,
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
@@ -1188,7 +1196,11 @@ class LearnScreenState extends State<LearnScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: meta.iconBgColor,
+              color: iconAccentBackground(
+                accentColor: meta.iconColor,
+                isDark: isDark,
+                lightBackground: meta.iconBgColor,
+              ),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(

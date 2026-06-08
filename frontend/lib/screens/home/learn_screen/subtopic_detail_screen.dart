@@ -7,6 +7,7 @@ import 'learn_screen.dart';
 import 'package:fintech/services/topic_progress_service.dart';
 import 'package:fintech/services/xp_service.dart';
 import 'package:fintech/services/learn_content_service.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class SubtopicDetailScreen extends StatefulWidget {
   final String topicId;
@@ -812,6 +813,7 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
   }
 
   Widget _buildStatusIcon(LessonStatus status) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     switch (status) {
       case LessonStatus.completed:
         return Container(
@@ -869,7 +871,11 @@ class _SubtopicDetailScreenState extends State<SubtopicDetailScreen> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFFEAF2FF),
+            color: iconAccentBackground(
+              accentColor: const Color(0xFF007AFF),
+              isDark: isDark,
+              lightBackground: const Color(0xFFEAF2FF),
+            ),
             shape: BoxShape.circle,
           ),
           child: const Icon(

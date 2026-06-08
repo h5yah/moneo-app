@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fintech/services/xp_service.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class EmergencyFundBuilderScreen extends StatefulWidget {
   const EmergencyFundBuilderScreen({super.key});
@@ -964,6 +965,7 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
   }
 
   Widget _buildScenarioTimelineCard(EmergencyScenario scenario) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -980,7 +982,11 @@ class _EmergencyFundBuilderScreenState extends State<EmergencyFundBuilderScreen>
                 height: 52,
                 width: 52,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F0FF),
+                  color: iconAccentBackground(
+                    accentColor: const Color(0xFF1D4ED8),
+                    isDark: isDark,
+                    lightBackground: const Color(0xFFE8F0FF),
+                  ),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(

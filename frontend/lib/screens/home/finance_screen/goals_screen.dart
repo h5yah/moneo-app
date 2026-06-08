@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
   import 'package:cloud_firestore/cloud_firestore.dart';
   import 'package:firebase_auth/firebase_auth.dart';
+  import 'package:fintech/utils/icon_accent_style.dart';
 
   IconData _iconFromString(String iconName) {
     switch (iconName) {
@@ -745,6 +746,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   if (completedGoals.isEmpty) {
                     return const SizedBox.shrink();
                   }
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -770,7 +773,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                 width: 56,
                                 height: 56,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE8E8ED),
+                                  color: iconAccentBackground(
+                                    accentColor: const Color(0xFFB5B5BC),
+                                    isDark: isDark,
+                                    lightBackground: const Color(0xFFE8E8ED),
+                                  ),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Icon(icon, color: const Color(0xFFB5B5BC), size: 28),
@@ -1068,6 +1075,7 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetContext) {
+        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -1092,7 +1100,11 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEAF3FF),
+                        color: iconAccentBackground(
+                          accentColor: const Color(0xFF007AFF),
+                          isDark: isDark,
+                          lightBackground: const Color(0xFFEAF3FF),
+                        ),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(option.icon, color: const Color(0xFF007AFF), size: 20),
@@ -1192,6 +1204,8 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final option = widget.options[index];
+                    final isDark =
+                        Theme.of(context).brightness == Brightness.dark;
 
                     return InkWell(
                       borderRadius: BorderRadius.circular(14),
@@ -1209,7 +1223,11 @@ class _GoalCategoryPickerScreenState extends State<_GoalCategoryPickerScreen> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEAF3FF),
+                                color: iconAccentBackground(
+                                  accentColor: const Color(0xFF007AFF),
+                                  isDark: isDark,
+                                  lightBackground: const Color(0xFFEAF3FF),
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(option.icon, color: const Color(0xFF007AFF), size: 22),

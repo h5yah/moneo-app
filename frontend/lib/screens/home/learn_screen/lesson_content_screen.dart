@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fintech/services/topic_progress_service.dart';
 import 'package:fintech/services/lesson_tts_service.dart';
+import 'package:fintech/utils/icon_accent_style.dart';
 
 class LessonContentScreen extends StatefulWidget {
   final String lessonTitle;
@@ -2052,6 +2053,7 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
   }
 
   Widget buildFunCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final funFact = _content != null ? _content!.funFact ?? '' : '';
     final miniChallenge = _content != null ? _content!.miniChallenge ?? '' : '';
     if (funFact.isEmpty && miniChallenge.isEmpty) return const SizedBox.shrink();
@@ -2067,7 +2069,13 @@ class _LessonContentScreenState extends State<LessonContentScreen> {
             children: [
               Container(
                 width: 30, height: 30,
-                decoration: BoxDecoration(color: const Color(0xFF007AFF).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: iconAccentBackground(
+                    accentColor: const Color(0xFF007AFF),
+                    isDark: isDark,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: const Icon(Icons.edit_note_rounded, size: 18, color: Color(0xFF007AFF)),
               ),
               const SizedBox(width: 10),
@@ -2357,12 +2365,19 @@ class _ConceptCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Column(
         children: [
           Container(
             width: 49, height: 49,
-            decoration: BoxDecoration(color: accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: iconAccentBackground(
+                accentColor: accent,
+                isDark: isDark,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(content.icon, color: accent, size: 28),
           ),
           const SizedBox(height: 8),

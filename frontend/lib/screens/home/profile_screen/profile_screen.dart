@@ -8,6 +8,7 @@ import 'package:fintech/services/firebase_storage_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:fintech/services/app_theme_controller.dart';
 import 'package:fintech/services/xp_service.dart';
+import 'package:fintech/services/walkthrough_service.dart';
 import 'package:fintech/screens/auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -31,6 +32,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$label is coming soon')),
     );
+  }
+
+  Future<void> _handleReplayTour() async {
+    await WalkthroughService.resetAppTour();
+    if (!mounted) return;
+    Navigator.pop(context, true);
   }
 
   Future<void> _handleLogout() async {
@@ -1697,6 +1704,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onTap: () => _openAppPreferences(
               currentLanguage: preferences?['language'] as String? ?? 'English',
             ),
+          ),
+          const SizedBox(height: 8),
+          _buildSettingItem(
+            icon: Icons.route_outlined,
+            label: 'Replay tour',
+            onTap: _handleReplayTour,
           ),
           const SizedBox(height: 8),
           _buildSettingItem(

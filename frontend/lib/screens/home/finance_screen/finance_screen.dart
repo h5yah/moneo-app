@@ -9,22 +9,25 @@ import 'scan_to_pay_screen.dart';
 import 'send_money_screen.dart';
 import 'budget_planner_screen.dart';
 import 'goal_icon_style.dart';
-
 class FinanceScreen extends StatefulWidget {
   final Function(int)? onIndexChanged;
-  final int? progressReplaySeed;  
+  final int? progressReplaySeed;
+  final GlobalKey? walkthroughBalanceKey;
+  final GlobalKey? walkthroughFinanceToolsKey;
 
   const FinanceScreen({
     super.key,
     this.onIndexChanged,
     this.progressReplaySeed,
+    this.walkthroughBalanceKey,
+    this.walkthroughFinanceToolsKey,
   });
 
   @override
-  State<FinanceScreen> createState() => _FinanceScreenState();
+  State<FinanceScreen> createState() => FinanceScreenState();
 }
 
-class _FinanceScreenState extends State<FinanceScreen> {
+class FinanceScreenState extends State<FinanceScreen> {
   final bool _showBalance = true;
   double _availableBalance = 0.00;
   double _income = 0.00;
@@ -44,6 +47,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
   void dispose() {
     _myGoalsPageController.dispose();
     super.dispose();
+  }
+
+  Widget _wrapWalkthroughTarget(GlobalKey? key, Widget child) {
+    if (key == null) return child;
+    return KeyedSubtree(key: key, child: child);
   }
 
   Future<void> _refreshFinanceStats() async {
@@ -99,13 +107,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
           children: [
             _buildHeader(),
             const SizedBox(height: 16),
-            _buildAvailableBalanceCard(context),
+            _wrapWalkthroughTarget(
+              widget.walkthroughBalanceKey,
+              _buildAvailableBalanceCard(context),
+            ),
             const SizedBox(height: 32),
-            _buildQuickActionsSection(context),
-            const SizedBox(height: 32),
-            _buildMyGoalsSection(context),
-            const SizedBox(height: 24),
-            _buildBudgetPlannerSection(context),
+            _wrapWalkthroughTarget(
+              widget.walkthroughFinanceToolsKey,
+              _buildFinanceToolsTourTarget(context),
+            ),
             const SizedBox(height: 24),
           ],
         ),
@@ -395,6 +405,67 @@ class _FinanceScreenState extends State<FinanceScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFinanceToolsTourTarget(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildQuickActionsSection(context),
+        const SizedBox(height: 32),
+        _buildMyGoalsSection(context),
+        const SizedBox(height: 24),
+        _buildBudgetPlannerSection(context),
+      ],
+    );
+  }
+
+  Widget _buildMyGoalsHeader(BuildContext context, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'My Goals',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : const Color(0xC2000000),
+            letterSpacing: -0.408,
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const GoalsScreen(),
+              ),
+            );
+          },
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Text(
+            'View Details',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBudgetPlannerHeader(bool isDark) {
+    return Text(
+      'Budget Planner',
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: isDark ? Colors.white : const Color(0xC2000000),
+        letterSpacing: -0.408,
       ),
     );
   }
@@ -1045,50 +1116,20 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  Widget _buildMyGoalsSection(BuildContext context) {
+  Widget _buildMyGoalsSection(
+    BuildContext context, {
+    bool includeHeader = true,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 35),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'My Goals',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : const Color(0xC2000000),
-                  letterSpacing: -0.408,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const GoalsScreen(),
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'View Details',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
+          if (includeHeader) ...[
+            _buildMyGoalsHeader(context, isDark),
+            const SizedBox(height: 18),
+          ],
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('goals')
@@ -1255,7 +1296,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  Widget _buildBudgetPlannerSection(BuildContext context) {
+  Widget _buildBudgetPlannerSection(
+    BuildContext context, {
+    bool includeHeader = true,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final userId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -1265,21 +1309,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Budget Planner',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : const Color(0xC2000000),
-                  letterSpacing: -0.408,
-                ),
-              ),    
-            ],
-          ),
-          const SizedBox(height: 18),
+          if (includeHeader) ...[
+            _buildBudgetPlannerHeader(isDark),
+            const SizedBox(height: 18),
+          ],
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('budgets')

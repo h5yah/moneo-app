@@ -137,6 +137,7 @@ class _PreQuizScreenState extends State<PreQuizScreen>
   int _selected = -1;
   final List<int> _answers = [];
   bool _saving = false;
+  bool _isTransitioning = false;
   _Archetype? _archetype;
  
   late final AnimationController _fadeCtrl;
@@ -172,23 +173,28 @@ class _PreQuizScreenState extends State<PreQuizScreen>
   }
  
   void _nextQuestion() {
-    if (_selected == -1) return;
-    _answers.add(_selected);
- 
+    if (_selected == -1 || _isTransitioning || _phase != 1) return;
+
     if (_qIndex < _kQuestions.length - 1) {
+      _isTransitioning = true;
+      _answers.add(_selected);
       _fadeCtrl.reverse().then((_) {
         if (!mounted) return;
         setState(() {
           _qIndex++;
           _selected = -1;
+          _isTransitioning = false;
         });
         _fadeCtrl.forward();
       });
     } else {
+      if (_answers.length >= _kQuestions.length) return;
+      _isTransitioning = true;
+      _answers.add(_selected);
       _revealArchetype();
     }
   }
- 
+
   void _revealArchetype() {
     final arch = _deriveArchetype();
     _fadeCtrl.reverse().then((_) {
@@ -196,16 +202,24 @@ class _PreQuizScreenState extends State<PreQuizScreen>
       setState(() {
         _phase = 2;
         _archetype = arch;
+        _isTransitioning = false;
       });
       _fadeCtrl.forward();
-      _scaleCtrl.forward();
+      _scaleCtrl.forward(from: 0);
     });
   }
- 
+
   _Archetype _deriveArchetype() {
     int planner = 0, achiever = 0, explorer = 0;
-    for (int i = 0; i < _answers.length; i++) {
-      final s = _kQuestions[i].scores[_answers[i]];
+    final count = _answers.length < _kQuestions.length
+        ? _answers.length
+        : _kQuestions.length;
+    for (int i = 0; i < count; i++) {
+      final answerIndex = _answers[i];
+      if (answerIndex < 0 || answerIndex >= _kQuestions[i].options.length) {
+        continue;
+      }
+      final s = _kQuestions[i].scores[answerIndex];
       planner += s['planner']!;
       achiever += s['achiever']!;
       explorer += s['explorer']!;
@@ -252,7 +266,11 @@ class _PreQuizScreenState extends State<PreQuizScreen>
             questions: _kQuestions,
             currentIndex: _qIndex,
             selected: _selected,
-            onSelect: (i) => setState(() => _selected = i),
+            isBusy: _isTransitioning,
+            onSelect: (i) {
+              if (_isTransitioning) return;
+              setState(() => _selected = i);
+            },
             onNext: _nextQuestion,
           ),
         _ => _ArchetypeScreen(
@@ -528,12 +546,14 @@ class _QuizScreen extends StatelessWidget {
     required this.questions,
     required this.currentIndex,
     required this.selected,
+    required this.isBusy,
     required this.onSelect,
     required this.onNext,
   });
   final List<_Question> questions;
   final int currentIndex;
   final int selected;
+  final bool isBusy;
   final ValueChanged<int> onSelect;
   final VoidCallback onNext;
  
@@ -663,7 +683,7 @@ class _QuizScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: selected != -1 ? onNext : null,
+                  onPressed: !isBusy && selected != -1 ? onNext : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF007AFF),
                     disabledBackgroundColor: const Color(0xFFE5E7EB),

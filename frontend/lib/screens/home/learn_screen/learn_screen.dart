@@ -57,6 +57,8 @@ class LearnScreen extends StatefulWidget {
   final String? resumeTopicId;
   final bool autoOpenResumeTopic;
   final int? progressReplaySeed;
+  final GlobalKey? walkthroughScenariosKey;
+  final GlobalKey? walkthroughTopicsKey;
 
   const LearnScreen({
     super.key,
@@ -64,6 +66,8 @@ class LearnScreen extends StatefulWidget {
     this.resumeTopicId,
     this.autoOpenResumeTopic = false,
     this.progressReplaySeed,
+    this.walkthroughScenariosKey,
+    this.walkthroughTopicsKey,
   });
 
   @override
@@ -123,6 +127,11 @@ class LearnScreenState extends State<LearnScreen> {
     if (oldWidget.progressReplaySeed != widget.progressReplaySeed) {
       _replayTopicBars();
     }
+  }
+
+  Widget _wrapWalkthroughTarget(GlobalKey? key, Widget child) {
+    if (key == null) return child;
+    return KeyedSubtree(key: key, child: child);
   }
 
   Future<void> _initLearnScreen() async {
@@ -454,7 +463,10 @@ class LearnScreenState extends State<LearnScreen> {
           children: [
             _buildHeader(),
             const SizedBox(height: 24),
-            _buildInteractiveScenariosSection(),
+            _wrapWalkthroughTarget(
+              widget.walkthroughScenariosKey,
+              _buildInteractiveScenariosSection(),
+            ),
             const SizedBox(height: 32),
             _buildAllTopicsSection(),
             const SizedBox(height: 24),
@@ -1004,26 +1016,38 @@ class LearnScreenState extends State<LearnScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'All Topics',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : Colors.black,
-              letterSpacing: -0.408,
+          _wrapWalkthroughTarget(
+            widget.walkthroughTopicsKey,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'All Topics',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : Colors.black,
+                    letterSpacing: -0.408,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (!_topicMetaReady)
+                  const SizedBox(
+                    height: 88,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (_topicsInOrder.isNotEmpty)
+                  _buildTopicCard(meta: _topicsInOrder.first),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          if (!_topicMetaReady)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else
-            for (int i = 0; i < _topicsInOrder.length; i++) ...[
+          if (_topicMetaReady && _topicsInOrder.length > 1) ...[
+            const SizedBox(height: 12),
+            for (int i = 1; i < _topicsInOrder.length; i++) ...[
               _buildTopicCard(meta: _topicsInOrder[i]),
               if (i < _topicsInOrder.length - 1) const SizedBox(height: 12),
             ],
+          ],
         ],
       ),
     );

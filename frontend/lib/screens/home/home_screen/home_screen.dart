@@ -19,6 +19,8 @@ import 'package:fintech/services/topic_meta_service.dart';
 import 'package:fintech/services/app_theme_controller.dart';
 import 'package:fintech/services/app_notification_service.dart';
 import 'package:fintech/services/xp_service.dart';
+import 'package:fintech/services/walkthrough_service.dart';
+import 'package:fintech/widgets/app_walkthrough.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, this.userName});
@@ -39,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showStreakCelebration = false;
   int _celebrationStreakDays = 0;
   bool _hasShownStreakCelebration = false;
+  int? _pendingStreakCelebrationDays;
   bool _isCelebratingLevelUp = false;
   int? _observedLevel;
   Timer? _levelUpDismissTimer;
@@ -59,13 +62,167 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _financeTabKey = GlobalKey();
   final GlobalKey _dealsTabKey = GlobalKey();
 
+  final GlobalKey _wtLearningKey = GlobalKey();
+  final GlobalKey _wtStreakKey = GlobalKey();
+  final GlobalKey _wtScenariosKey = GlobalKey();
+  final GlobalKey _wtTopicsKey = GlobalKey();
+  final GlobalKey _wtBalanceKey = GlobalKey();
+  final GlobalKey _wtFinanceToolsKey = GlobalKey();
+  final GlobalKey _wtAiNavKey = GlobalKey();
+  final GlobalKey _wtDealsNavKey = GlobalKey();
+  final GlobalKey _wtProfileKey = GlobalKey();
+  double _walkthroughBodyOpacity = 1.0;
+
   @override
   void initState() {
     super.initState();
     TopicMetaService.instance.ensureLoaded();
-    _updateStreakIfNeeded();
     _loadActiveTopicProgress();
     _watchLevelUps();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _runPostLoginFlow();
+    });
+  }
+
+  Future<void> _runPostLoginFlow() async {
+    await _updateStreakIfNeeded();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+    await _showAppWalkthrough();
+    if (!mounted) return;
+    _flushPendingStreakCelebration();
+  }
+
+  void _flushPendingStreakCelebration() {
+    final days = _pendingStreakCelebrationDays;
+    if (days == null) return;
+    _pendingStreakCelebrationDays = null;
+    _showStreakCelebrationOverlay(days);
+  }
+
+  Future<void> _walkthroughSelectTab(int index) async {
+    if (!mounted) return;
+    try {
+      if (_selectedIndex != index) {
+        setState(() => _walkthroughBodyOpacity = 0.4);
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+        if (!mounted) return;
+
+        setState(() {
+          _selectedIndex = index;
+          if (index == 0) _learningProgressReplay++;
+          if (index == 1) _learnTopicBarsReplay++;
+          if (index == 3) _financeProgressReplay++;
+          if (index == 4) _dealsArcReplay++;
+        });
+
+        if (index == 1) {
+          _learnTabKey.currentState?.refreshTopicProgress();
+          _learnTabKey.currentState?.replayTopicBars();
+        }
+
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted) return;
+        setState(() => _walkthroughBodyOpacity = 1.0);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      if (!mounted) return;
+      await WidgetsBinding.instance.endOfFrame;
+    } finally {
+      if (mounted && _walkthroughBodyOpacity != 1.0) {
+        setState(() => _walkthroughBodyOpacity = 1.0);
+      }
+    }
+  }
+
+  Future<void> _replayAppWalkthrough() async {
+    if (!mounted) return;
+    setState(() => _selectedIndex = 0);
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    await _showAppWalkthrough();
+  }
+
+  Future<void> _showAppWalkthrough() async {
+    if (!mounted) return;
+
+    try {
+    Future<void> goHome() => _walkthroughSelectTab(0);
+    Future<void> goLearn() => _walkthroughSelectTab(1);
+    Future<void> goFinance() => _walkthroughSelectTab(3);
+    Future<void> goDeals() => _walkthroughSelectTab(4);
+
+    await AppWalkthrough.show(
+      context,
+      tourId: WalkthroughService.appTourId,
+      steps: [
+        WalkthroughStep(
+          targetKey: _wtLearningKey,
+          title: 'Your lessons',
+          message: 'Tap here anytime to continue learning and earn XP.',
+          beforeShow: goHome,
+        ),
+        WalkthroughStep(
+          targetKey: _wtStreakKey,
+          title: 'Daily streak',
+          message: 'Come back each day to grow your streak.',
+          beforeShow: goHome,
+        ),
+        WalkthroughStep(
+          targetKey: _wtScenariosKey,
+          title: 'Try scenarios',
+          message: 'Practice real-life money decisions with no real risk.',
+          beforeShow: goLearn,
+        ),
+        WalkthroughStep(
+          targetKey: _wtTopicsKey,
+          title: 'Your topics',
+          message: 'Work through bite-sized lessons, one topic at a time.',
+          beforeShow: goLearn,
+        ),
+        WalkthroughStep(
+          targetKey: _wtAiNavKey,
+          title: 'AI assistant',
+          message:
+              'Tap the owl anytime to ask about money, lessons, or budgeting.',
+          position: WalkthroughTooltipPosition.above,
+          beforeShow: goLearn,
+        ),
+        WalkthroughStep(
+          targetKey: _wtBalanceKey,
+          title: 'Practice wallet',
+          message:
+              'This is simulated money, perfect for learning safely.',
+          beforeShow: goFinance,
+        ),
+        WalkthroughStep(
+          targetKey: _wtFinanceToolsKey,
+          title: 'Tools & planning',
+          message:
+              'Use quick actions, set savings goals, and plan your monthly budget.',
+          beforeShow: goFinance,
+        ),
+        WalkthroughStep(
+          targetKey: _wtDealsNavKey,
+          title: 'Rewards & deals',
+          message: 'Redeem XP for discounts and check in for daily rewards.',
+          position: WalkthroughTooltipPosition.above,
+          beforeShow: goDeals,
+        ),
+        WalkthroughStep(
+          targetKey: _wtProfileKey,
+          title: 'Your profile',
+          message:
+              'View your progress, update settings, and manage your account.',
+          beforeShow: goHome,
+        ),
+      ],
+    );
+    } finally {
+      if (mounted) {
+        setState(() => _walkthroughBodyOpacity = 1.0);
+      }
+    }
   }
 
   @override
@@ -346,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
         payload: {'streakDays': streakDays},
       );
 
-      _showStreakCelebrationOverlay(streakDays);
+      _pendingStreakCelebrationDays = streakDays;
 
       debugPrint(
           '[Streak] Updated: streakDays=$streakDays, lastActiveDate=$today (doc: users/${user.uid})');
@@ -409,6 +566,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildHomeBody(),
         LearnScreen(
           key: _learnTabKey,
+          walkthroughScenariosKey: _wtScenariosKey,
+          walkthroughTopicsKey: _wtTopicsKey,
           resumeTopicId: _pendingResumeTopicId,
           autoOpenResumeTopic: _pendingAutoOpenResumeTopic,
           progressReplaySeed: _learnTopicBarsReplay,
@@ -426,6 +585,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         FinanceScreen(
           key: _financeTabKey,
+          walkthroughBalanceKey: _wtBalanceKey,
+          walkthroughFinanceToolsKey: _wtFinanceToolsKey,
           progressReplaySeed: _financeProgressReplay,
           onIndexChanged: (i) => setState(() => _selectedIndex = i),
         ),
@@ -442,7 +603,15 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: scaffoldBgColor,
       body: Stack(
         children: [
-          SafeArea(top: _selectedIndex != 4, child: body),
+          SafeArea(
+            top: _selectedIndex != 4,
+            child: AnimatedOpacity(
+              opacity: _walkthroughBodyOpacity,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              child: body,
+            ),
+          ),
           if (_showStreakCelebration) _buildStreakCelebrationOverlay(),
         ],
       ),
@@ -532,13 +701,19 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _buildHeader(),
           const SizedBox(height: 16),
-          _buildLearningModuleCard(),
+          KeyedSubtree(
+            key: _wtLearningKey,
+            child: _buildLearningModuleCard(),
+          ),
           const SizedBox(height: 24),
           _buildToolsSection(),
           const SizedBox(height: 24),
           _buildSmartInsight(),
           const SizedBox(height: 24),
-          _buildMotivationSection(),
+          KeyedSubtree(
+            key: _wtStreakKey,
+            child: _buildMotivationSection(),
+          ),
           const SizedBox(height: 40),
         ],
       ),
@@ -655,21 +830,27 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProfileScreen(
-                    onIndexChanged: (i) => setState(() => _selectedIndex = i),
+          KeyedSubtree(
+            key: _wtProfileKey,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileScreen(
+                      onIndexChanged: (i) => setState(() => _selectedIndex = i),
+                    ),
                   ),
-                ),
-              ).then((_) => _replayLearningProgress());
-            },
-            child: _buildHeaderProfileAvatar(
-              headerCardColor: headerCardColor,
-              headerBorderColor: headerBorderColor,
-              secondaryTextColor: secondaryTextColor,
+                ).then((result) {
+                  _replayLearningProgress();
+                  if (result == true) _replayAppWalkthrough();
+                });
+              },
+              child: _buildHeaderProfileAvatar(
+                headerCardColor: headerCardColor,
+                headerBorderColor: headerBorderColor,
+                secondaryTextColor: secondaryTextColor,
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -1477,8 +1658,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
         unselectedLabelStyle:
             const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: SizedBox(
               width: 24,
               height: 24,
@@ -1486,7 +1667,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: SizedBox(
               width: 24,
               height: 24,
@@ -1495,7 +1676,10 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Learn',
           ),
           BottomNavigationBarItem(
-            icon: _AiNavIcon(),
+            icon: KeyedSubtree(
+              key: _wtAiNavKey,
+              child: const _AiNavIcon(),
+            ),
             label: '',
           ),
           BottomNavigationBarItem(
@@ -1507,10 +1691,13 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Finance',
           ),
           BottomNavigationBarItem(
-            icon: SizedBox(
-              width: 34,
-              height: 34,
-              child: Icon(Icons.card_giftcard_outlined, size: 24),
+            icon: KeyedSubtree(
+              key: _wtDealsNavKey,
+              child: const SizedBox(
+                width: 34,
+                height: 34,
+                child: Icon(Icons.card_giftcard_outlined, size: 24),
+              ),
             ),
             label: 'Deals',
           ),

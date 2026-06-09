@@ -61,7 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final GlobalKey<LearnScreenState> _learnTabKey =
       GlobalKey<LearnScreenState>();
-  final GlobalKey _financeTabKey = GlobalKey();
+  final GlobalKey<FinanceScreenState> _financeTabKey =
+      GlobalKey<FinanceScreenState>();
   final GlobalKey _dealsTabKey = GlobalKey();
 
   final GlobalKey _wtLearningKey = GlobalKey();
@@ -88,7 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _runPostLoginFlow() async {
     await _updateStreakIfNeeded();
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+    await WidgetsBinding.instance.endOfFrame;
+    await Future<void>.delayed(const Duration(milliseconds: 350));
     if (!mounted) return;
     await _showAppWalkthrough();
     if (!mounted) return;
@@ -229,6 +232,10 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) {
         setState(() => _walkthroughBodyOpacity = 1.0);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _resetLearnAndFinanceScroll();
+        });
       }
     }
   }
@@ -369,7 +376,26 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (index == 1) {
       _learnTabKey.currentState?.refreshTopicProgress();
       _learnTabKey.currentState?.replayTopicBars();
+      _scrollTabToTop(index);
+    } else if (index == 3) {
+      _scrollTabToTop(index);
     }
+  }
+
+  void _scrollTabToTop(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (index == 1) {
+        _learnTabKey.currentState?.scrollToTop();
+      } else if (index == 3) {
+        _financeTabKey.currentState?.scrollToTop();
+      }
+    });
+  }
+
+  void _resetLearnAndFinanceScroll() {
+    _learnTabKey.currentState?.scrollToTop();
+    _financeTabKey.currentState?.scrollToTop();
   }
 
   Widget _buildTabStack() {

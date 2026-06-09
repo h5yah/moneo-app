@@ -5,12 +5,7 @@ import 'add_funds_screen.dart';
 import 'package:fintech/utils/icon_accent_style.dart';
 
 class MyWalletScreen extends StatefulWidget {
-  const MyWalletScreen({
-    super.key,
-    required this.availableBalance,
-  });
-
-  final double availableBalance;
+  const MyWalletScreen({super.key});
 
   @override
   State<MyWalletScreen> createState() => _MyWalletScreenState();
@@ -20,6 +15,14 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
   String _selectedFilter = 'all';
 
   String get _userId => FirebaseAuth.instance.currentUser?.uid ?? 'demo_user';
+
+  Stream<double> _availableBalanceStream() {
+    return FirebaseFirestore.instance
+        .collection('balances')
+        .doc(_userId)
+        .snapshots()
+        .map((snap) => (snap.data()?['available'] as num?)?.toDouble() ?? 0.0);
+  }
 
   Stream<List<Map<String, dynamic>>> _walletHistoryStream() {
     return FirebaseFirestore.instance
@@ -197,7 +200,13 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildBalanceCard(context),
+            StreamBuilder<double>(
+              stream: _availableBalanceStream(),
+              builder: (context, snapshot) {
+                final balance = snapshot.data ?? 0.0;
+                return _buildBalanceCard(context, balance);
+              },
+            ),
             const SizedBox(height: 24),
             Row(
               children: [
@@ -265,7 +274,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
         : Colors.white.withValues(alpha: alpha);
   }
 
-  Widget _buildBalanceCard(BuildContext context) {
+  Widget _buildBalanceCard(BuildContext context, double availableBalance) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const accentBlue = Color(0xFF007AFF);
     final accentColor = isDark ? accentBlue : Colors.white;
@@ -366,7 +375,7 @@ class _MyWalletScreenState extends State<MyWalletScreen> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Rs ${widget.availableBalance.toStringAsFixed(2)}',
+                    'Rs ${availableBalance.toStringAsFixed(2)}',
                     style: TextStyle(
                       color: accentColor,
                       fontSize: 38,

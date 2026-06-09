@@ -29,6 +29,7 @@ class FinanceScreen extends StatefulWidget {
 }
 
 class FinanceScreenState extends State<FinanceScreen> {
+  final ScrollController _scrollController = ScrollController();
   final bool _showBalance = true;
   double _availableBalance = 0.00;
   double _income = 0.00;
@@ -44,9 +45,15 @@ class FinanceScreenState extends State<FinanceScreen> {
     _refreshFinanceStats();
   }
 
+  void scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.jumpTo(0);
+  }
+
   @override
   void dispose() {
     _myGoalsPageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -103,6 +110,7 @@ class FinanceScreenState extends State<FinanceScreen> {
     return Container(
       color: isDark ? const Color(0xFF0F1020) : const Color(0xFFF0F4FA),
       child: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -275,9 +283,7 @@ class FinanceScreenState extends State<FinanceScreen> {
                             await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MyWalletScreen(
-                                  availableBalance: _availableBalance,
-                                ),
+                                builder: (context) => const MyWalletScreen(),
                               ),
                             );
                             await _refreshFinanceStats();

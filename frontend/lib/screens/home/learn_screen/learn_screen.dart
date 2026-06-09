@@ -76,6 +76,8 @@ class LearnScreen extends StatefulWidget {
 }
 
 class LearnScreenState extends State<LearnScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   int _budgetSimulatorProgress = 0;
   bool _didAutoResume = false;
   bool _topicMetaReady = false;
@@ -104,11 +106,17 @@ class LearnScreenState extends State<LearnScreen> {
     });
   }
 
+  void scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.jumpTo(0);
+  }
+
   @override
   void dispose() {
     _progressSub?.cancel();
     _localProgressSub?.cancel();
     _progressReloadDebounce?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -460,6 +468,7 @@ class LearnScreenState extends State<LearnScreen> {
     return Container(
       color: isDark ? const Color(0xFF0F1020) : const Color(0xFFFFFFFF),
       child: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           children: [
             _buildHeader(),

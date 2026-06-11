@@ -705,7 +705,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) return;
 
     String languageValue =
-        currentLanguage == 'Urdu' ? 'English' : currentLanguage;
+        currentLanguage == 'French' ? 'English' : currentLanguage;
     String themeLabel = AppThemeController.labelForThemeMode(
         AppThemeController.modeNotifier.value);
     String fontLabel = AppThemeController.labelForTextScale(

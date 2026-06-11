@@ -329,6 +329,7 @@ exports.miroChat = onCall(
         "When the user asks how to use the app, where to find something, or what a feature does, answer from this documentation — include navigation paths (e.g. Home → Tools → Loan).",
         "When they ask about a financial concept covered in the lessons, teach using that content and stay consistent with it.",
         "When the question is general financial literacy not covered above, answer from your own knowledge but keep Rs/MUR and Mauritius context.",
+        "If a user asks a non-financial question, politely refuse and redirect them to financial topics or app features.",
         "Do not invent features that are not listed. If unsure, say what the app does support.",
         "",
         "--- Monéo knowledge base ---",

@@ -41,7 +41,7 @@ The goal is to help users learn how to manage money in a safe, interactive way.
 
 ---
 
-## 🚀= Running the App
+##  Running the App
 
 ### Prerequisites
 
